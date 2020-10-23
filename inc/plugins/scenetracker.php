@@ -143,7 +143,7 @@ function trackerdate_install()
             'value' => '0', // Default
             'disporder' => 6
         ),
-        'scenetracker_remember' => array(
+        'scenetracker_reminder' => array(
             'title' => 'Erinnerung',
             'description' => 'Sollen Charaktere auf dem Index darauf aufmerksam gemacht werden, wenn sie jemanden in einer Szene länger als X Tage warten lassen? 0 wenn nicht',
             'optionscode' => 'text',
@@ -338,4 +338,13 @@ function scenetracker_showinprofile()
  */
 function scenetracker_list()
 {
+}
+
+/**
+ * //TODO Reminder
+ * //Erinnerung wenn man den Postpartner X Tage warten lässt
+ */
+
+function scenetracker_reminder(){
+    
 }
