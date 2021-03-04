@@ -8,6 +8,6 @@ planned features: add a date for every scene add members of scene add a history 
 
 if the member want to: all scenes on index: choose: alway, if you have to post, if a certain user have posted
 
-Notification (admin can choose if my alert or orivate message) member can choose: always, new answer, none
+Notification (admin can choose if my alert or private message) member can choose: always, new answer, none
 
 remind a user to post if he let others wait for more than X days
