@@ -72,12 +72,11 @@ function scenetracker_install()
   $db->write_query("CREATE TABLE `" . TABLE_PREFIX . "scenetracker` (
         `id` int(10) NOT NULL AUTO_INCREMENT,
         `uid` int(10) NOT NULL,
-        `username` varchar(250) NOT NULL,
         `tid` int(10) NOT NULL,
-        `closed` int(1) NOT NULL DEFAULT 0,
         `alert` int(1) NOT NULL DEFAULT 1,
         `type` varchar(50) NOT NULL DEFAULT 'always',
-        `index` int(1) NOT NULL DEFAULT 1,
+        `index_view` int(1) NOT NULL DEFAULT 1,
+        `profil_view` int(1) NOT NULL DEFAULT 1,
         PRIMARY KEY (`id`)
     ) ENGINE=MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
 
@@ -134,7 +133,7 @@ function scenetracker_install()
       'value' => '0', // Default
       'disporder' => 5
     ),
-    'scenetracker_alert_alerts' => array(
+    'scenetracker_profil_sort' => array(
       'title' => 'Profilanzeige',
       'description' => 'Sollen Szenen im Profil des Charakters nach Ingame und Archiv sortiert werden?',
       'optionscode' => 'yesno',
@@ -198,7 +197,8 @@ function scenetracker_activate()
   find_replace_templatesets("newreply", "#" . preg_quote('{$posticons}') . "#i", '{$scenetrackerreply}{$posticons}');
   //variable new thread
   find_replace_templatesets("newthread", "#" . preg_quote('{$posticons}') . "#i", '{$scenetrackeredit}{$posticons}');
-
+  //variable forumdisplay
+  find_replace_templatesets("newthread", "#" . preg_quote('{$thread[\'profilelink\']}') . "#i", '{$scenetrackerforumdisplay}{$thread[\'profilelink\']}');
 
   if (function_exists('myalerts_is_activated') && myalerts_is_activated()) {
 
@@ -230,6 +230,7 @@ function scenetracker_deactivate()
   find_replace_templatesets("editpost", "#" . preg_quote('{$scenetrackeredit}{$posticons}') . "#i", '{$posticons}');
   find_replace_templatesets("newreply", "#" . preg_quote('{$scenetrackerreply}{$posticons}') . "#i", '{$posticons}');
   find_replace_templatesets("newthread", "#" . preg_quote('{$scenetrackeredit}{$posticons}') . "#i", '{$posticons}');
+  find_replace_templatesets("newthread", "#" . preg_quote('{$scenetrackerforumdisplay}{$thread[\'profilelink\']}') . "#i", '{$thread[\'profilelink\']}');
 
   //{$posticons}{$scenetrackeredit} -> zu {$posticons} 
   //nur hauptvariablen löschen
@@ -290,7 +291,7 @@ function scenetracker_add_templates()
   //TODO Variable Profilanzeige
   //find_replace_templatesets("member_profile", "#" . preg_quote('</fieldset>') . "#i", '</fieldset>{$relas_profil}');
   //TODO Variable UCP 
-  //templates einfügen
+  //TODO templates einfügen
 }
 
 /**
@@ -474,12 +475,11 @@ function scenetracker_do_newreply()
 $plugins->add_hook("editpost_end", "scenetracker_editpost");
 function scenetracker_editpost()
 {
-  global $thread, $templates, $db, $lang, $mybb, $templates, $fid, $post_errors, $thread, $scenetrackeredit;
+  global $thread, $templates, $db, $lang, $mybb, $templates, $fid, $post_errors, $thread, $post, $scenetrackeredit;
   if (testParentFid($fid)) {
     if ($thread['firstpost'] == $mybb->input['pid']) {
 
       $date = explode(" ", $thread['scenetracker_date']);
-      //     var_dump($date);
       if ($mybb->input['previewpost'] || $post_errors) {
         $scenetracker_date = $db->escape_string($mybb->input['scenetracker_date']);
         $scenetracker_time = $db->escape_string($mybb->input['scenetracker_time']);
@@ -489,22 +489,15 @@ function scenetracker_editpost()
         $scenetracker_time = $date[1];
         $scenetracker_user = $db->escape_string($thread['scenetracker_user']) . " , ";
       }
-      $teilnehmer_alt = explode(",", trim(str_replace(" , ", ",", trim($thread['scenetracker_user'],))));
-
-      foreach ($teilnehmer_alt as $name) {
-        $user = get_user_by_username($name);
-        echo "'" . trim($name) . "' - " . $user['uid'] . "</br>";
-        // if (str_contains("blub", $name)) {
-        //   echo $name; 
-        // 
-
-      }
+      echo $thread['scenetracker_user'];
+      //TODO find erorr
+      $teilnehmer_alt =  explode(",", trim(str_replace(" , ", ",", trim($thread['scenetracker_user']))));
 
       eval("\$scenetrackeredit = \"" . $templates->get("scenetracker_newthread") . "\";");
     } else {
 
       $teilnehmer = $thread['scenetracker_user'];
-      $thisuser = $mybb->user['username'];
+      $thisuser = $post['username']; //whose post is it, which schould be edited
       $contains = strpos($teilnehmer, $thisuser);
 
       if ($contains === false) {
@@ -514,82 +507,99 @@ function scenetracker_editpost()
   }
 }
 
-
-
-// //TODO Edit speichern
+/**
+ * Save the edit... manage of saving in database and send alerts
+ * Used Tables: Threads & Scenetracker
+ */
 $plugins->add_hook("editpost_do_editpost_end", "scenetracker_do_editpost");
 function scenetracker_do_editpost()
 {
-  global $db, $mybb, $tid, $pid, $thread, $fid;
-
+  global $db, $mybb, $tid, $pid, $thread, $fid, $post;
   if (testParentFid($fid)) {
     //just do edit if new thread else return and do nothing new
     if ($pid != $thread['firstpost']) {
-         //TODO not first post, add charakter 
+      if ($mybb->input['scenetracker_add']) {
+        $insert_array = array(
+          "uid" => $post['uid'],
+          "username" => $db->escape_string($post['username']),
+          "tid" => $tid,
+        );
+        $db->insert_query("scenetracker", $insert_array);
+        $db->write_query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = CONCAT(scenetracker_user, ', " . $db->escape_string($post['username']) . "') WHERE tid = $tid");
+      }
     } else {
       $date = $db->escape_string($mybb->input['scenetracker_date']) . " " . $db->escape_string($mybb->input['scenetracker_time']);
-      // echo str_replace(" , ", ",", trim($thread['scenetracker_user'],)) .".";
-      echo "test" . $thread['scenetracker_user'] . "<br>";
-      $teilnehmer_alt = explode(",", trim(str_replace(" , ", ",", trim($thread['scenetracker_user'],))));
-      $teilnehmer_neu = explode(",", trim(str_replace(" , ", ",", trim($mybb->input['pattern']))));
-      $teilnehmer =  $db->escape_string($mybb->input['pattern']);
-      $new_userfield = array();
 
+      $teilnehmer_alt = explode(",", trim(str_replace(" , ", ",", $thread['scenetracker_user'])));
+      $teilnehmer_neu = explode(",", trim(str_replace(" , ", ",", $mybb->input['pattern'])));
+      //no whitespaces at begin and and
+      $teilnehmer_alt = array_map('trim', $teilnehmer_alt);
+      $teilnehmer_neu = array_map('trim', $teilnehmer_neu);
+      //to build the new input for scenetracker user 
+      $new_userfield = array();
+      //here we first delete the users, that aren't any more in the scene, than we geht all users, who are added... and then merge them to one
       $workarray = array_merge(array_intersect($teilnehmer_alt, $teilnehmer_neu), array_diff($teilnehmer_neu, $teilnehmer_alt));
+      //no whitespaces at the beginn and the end to be sure
+      $workarray = array_map('trim', $workarray);
       foreach ($workarray as $name) {
         if ($name != "") {
           $user = get_user_by_username($name);
           if ($user == "") {
-            $uid = $db->escape_string(trim($name));
+            $uid = $db->escape_string($name);
           } else {
             $uid = $user['uid'];
-          }
-          $new_userfield[$uid] = $db->escape_string(trim($name));
-          if($db->num_rows($db->simple_select("scenetracker", "*", "WHERE tid = $tid AND uid = $uid")) > 0) {
-          
-            $insert_array = array(
+            $new_userfield[$uid] = $db->escape_string($name);
+            if (($db->num_rows($db->simple_select("scenetracker", "*", "tid = $tid AND uid = $uid")) == 0)) {
+              //TODO Test alert: you were added to a Scene
+              $insert_array = array(
                 "uid" => $uid,
-                "username" => $db->escape_string(trim($name)),
+                "username" => $db->escape_string($name),
                 "tid" => $tid,
-            );
-            $db->insert_query("templates", $insert_array);
+              );
+              $db->insert_query("scenetracker", $insert_array);
+            }
+            //alert admin?
+            if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
+              $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newScene');
+              if ($alertType != NULL && $alertType->getEnabled() && $thread['uid'] != $mybb->user['uid']) {
+                //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
+                $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType, (int)$id);
+                //some extra details
+                $alert->setExtraDetails([
+                  'tid' => $tid,
+                  'fromuser' => $uid
+                ]);
+                //add the alert
+                MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+              }
+            }
           }
-
         }
       }
-
+      //Build the new String for users and save it
       $to_save_str = implode(", ", $new_userfield);
-
       $save = array(
         "scenetracker_date" => $date,
         "scenetracker_user" =>  $to_save_str
       );
       $db->update_query("threads", $save, "tid='{$tid}'");
-
-      //INSERT in SCENETRACKER wenn nicht schon uid & tid drinnen
-      //TODO Delete? Update scenetracker table 
+      //to delete in scenetracker table
+      $to_delete = array_diff($teilnehmer_alt, $teilnehmer_neu);
+      foreach ($to_delete as $name) {
+        if ($name != "") {
+          $user = get_user_by_username($name);
+          if ($user == "") {
+            $uid = $db->escape_string($name);
+          } else {
+            $uid = $user['uid'];
+            $db->delete_query("scenetracker", "uid={$uid} AND tid 0 = {$tid}");
+          }
+        }
+      }
     }
   }
 }
 
-
-/*
-*	UserCP Menu
-*	//TODO Link im UserCP Menü 
-*/
-$plugins->add_hook("usercp_menu", "scenetracker_usercpmenu");
-function scenetracker_usercpmenu()
-{
-}
-
-/**
- * Verwaltung der szenen im Profil
- * //TODO Szenenverwaltung
- */
-$plugins->add_hook("usercp_start", "scenetracker_usercp");
-function scenetracker_usercp()
-{
-}
 /**
  * Anzeige von Datum und Teilnehmer im Forumdisplay
  * //TODO Anzeige Forumdisplay
@@ -597,32 +607,25 @@ function scenetracker_usercp()
 $plugins->add_hook("forumdisplay_thread", "scenetracker_forumdisplay_showtrackerstuff");
 function scenetracker_forumdisplay_showtrackerstuff()
 {
-  global $thread, $templates, $db, $fid, $scenetracker_forumdisplay_date;
+  global $thread, $templates, $db, $fid, $scenetrackerforumdisplay;
+
   if (testParentFid($fid)) {
-    $scene_date = $thread['scenetracker_date'] . " " . $thread['scenetracker_time'];
+    $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
+
     $userArray = getUids($thread['scenetracker_user']);
     foreach ($userArray as $uid => $username) {
       if ($uid != $username) {
-        //  $user = build_profile_link($username, $uid);
+        $user = build_profile_link($username, $uid);
       }
       eval("\$scenetracker_forumdisplay_user.= \"" . $templates->get("scenetracker_forumdisplay_user") . "\";");
     }
-    eval("\$scenetracker_forumdisplay_date = \"" . $templates->get("scenetracker_forumdisplay_date") . "\";");
+    eval("\$scenetrackerforumdisplay = \"" . $templates->get("scenetracker_forumdisplay_date") . "\";");
   }
-}
-
-//TODO Edit auch aus der showthread, auch wenn nicht ersteller sondern nur Teilnehmer
-function scenetracker_edit_showthread()
-{
-
-  //TODO prüfen ob Teilnehmer, oder ersteller
-  //mit Javascript! 
 }
 
 
 /**
  * Anzeige von Datum und Teilnehmer im showthread
- * //TODO Anzeige showthread
  */
 $plugins->add_hook("showthread_start", "scenetracker_showthread_showtrackerstuff");
 function scenetracker_showthread_showtrackerstuff()
@@ -669,34 +672,180 @@ function scenetracker_showthread_showtrackerstuff()
       $teilnehmer = $db->escape_string($teilnehmer);
       $db->query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = '" . $teilnehmer . "' WHERE tid = " . $tid . " ");
       $db->delete_query("scenetracker", "tid = " . $tid . " AND uid = " . $uiddelete . "");
-      //TODO Delete from sceentracker table
+
       redirect("showthread.php?tid=" . $tid);
     }
   }
   if ($mybb->input['scenestate'] == "open") {
 
-    $db->query("UPDATE " . TABLE_PREFIX . "threads SET threadsolved = 1 WHERE tid= " . $tid);
-    $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET closed = 1 WHERE tid = " . $tid);
+    $db->query("UPDATE " . TABLE_PREFIX . "threads SET threadsolved = 1, closed = 0 WHERE tid= " . $tid);
+    // $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET closed = 1 WHERE tid = " . $tid);
 
     redirect("showthread.php?tid=" . $tid);
   }
   if ($mybb->input['scenestate'] == "close") {
 
-    $db->query("UPDATE " . TABLE_PREFIX . "threads SET threadsolved = 0 WHERE tid= " . $tid);
-    $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET closed = 0 WHERE tid = " . $tid);
+    $db->query("UPDATE " . TABLE_PREFIX . "threads SET threadsolved = 0, closed = 1 WHERE tid= " . $tid);
+    // $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET closed = 0 WHERE tid = " . $tid);
 
     redirect("showthread.php?tid=" . $tid);
   }
 }
 
+// /*
+// *	UserCP Menu
+// *	//TODO Link im UserCP Menü 
+// */
+// $plugins->add_hook("usercp_menu", "scenetracker_usercpmenu");
+// function scenetracker_usercpmenu()
+// {
+//   global $lang, $templates;
+//   $template = "\n\t<tr><td class=\"trow1 smalltext\"><i class=\"fas fa-book\" aria-hidden=\"true\"></i> <a href=\"usercp.php?action=tracker_usercp\">Szenenverwaltung Neu</a></td></tr>";
+
+//   //<a href="https://lslv.de/usercp.php?action=scenetracker" class="usercp" id="tooltip"><i class="fas fa-book" aria-hidden="true"></i><span>Szenenverwaltung</span></a>
+//   $templates->cache["usercp_nav_misc"] = str_replace("<tbody style=\"{\$collapsed['usercpmisc_e']}\" id=\"usercpmisc_e\">", "<tbody style=\"{\$collapsed['usercpmisc_e']}\" id=\"usercpmisc_e\">{$template}", $templates->cache["usercp_nav_misc"]);
+// }
+
+/**
+ * Verwaltung der szenen im Profil
+ * //WIP Szenenverwaltung
+ */
+$plugins->add_hook("usercp_start", "scenetracker_usercp");
+function scenetracker_usercp()
+{
+  global $mybb, $db, $templates, $cache, $templates, $themes, $headerinclude, $header, $footer, $usercpnav, $scenetracker_ucp_main, $scenetracker_ucp_bit_char, $scenetracker_ucp_bit_chara_new, $scenetracker_ucp_bit_chara_old, $scenetracker_ucp_bit_chara_closed;
+  if ($mybb->input['action'] != "scenetracker") {
+    return false;
+  }
+  //usercp.php?action=scenetracker
+  //welcher user ist online
+  //gett all charas of this user
+  $charas = get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+
+  // AND (closed = 0 OR threadsolved=0)
+  //TODO if abfrage - offen geschlossen etc
+  //new scenes
+  get_scenes($charas, "new");
+
+  get_scenes($charas, "old");
+
+  get_scenes($charas, "closed");
+  //not your turn
+
+  //old scenes
+  //get_scenes($charas, "AND (closed = 1 OR threadsolved=1)", "_old");
+
+
+  eval("\$scenetracker_ucp_main =\"" . $templates->get("scenetracker_ucp_main") . "\";");
+  output_page($scenetracker_ucp_main);
+}
+
+
+function get_scenes($charas, $tplstring)
+{
+  global $db, $mybb, $templates, $scenetracker_ucp_bit_chara_new, $scenetracker_ucp_bit_chara_old, $scenetracker_ucp_bit_chara_closed, $scenetracker_ucp_bit_scene;
+  foreach ($charas as $uid => $charname) {
+    if ($tplstring == "new") {
+      $query =  " AND (closed = 0 OR threadsolved=0) AND ((lastposteruid != $uid and type = 'always') OR (lastposteruid = inform_by and type = 'certain'))";
+    } elseif ($tplstring == "old") {
+      $query =  " AND (closed = 0 OR threadsolved=0) AND ((lastposteruid = $uid and type = 'always') OR (lastposteruid != inform_by and type = 'certain'))";
+      // $query =  " AND (closed = 0 OR threadsolved=0) AND lastposteruid != $uid";
+    } elseif ($tplstring == "closed") {
+      $query =  " AND (closed = 1 OR threadsolved=1) ";
+      // $query =  " AND (closed = 0 OR threadsolved=0) AND lastposteruid != $uid";
+    }
+    //SELECT s.*,fid,subject,dateline,lastpost,lastposter,lastposteruid, closed, threadsolved, scenetracker_date, scenetracker_user FROM mybb_scenetracker  s LEFT JOIN mybb_threads t on s.tid = t.tid WHERE s.uid = 583 AND (closed = 0 OR threadsolved=0) AND ((type = always and lastposteruid != 583) OR (type = "certain" and lastposteruid != inform_by))
+    $charaname = $charname;
+    $scenes = $db->write_query("SELECT s.*,fid,subject,dateline,lastpost,lastposter,lastposteruid, closed, threadsolved, scenetracker_date, scenetracker_user FROM " . TABLE_PREFIX . "scenetracker  s LEFT JOIN mybb_threads t on s.tid = t.tid WHERE s.uid = {$uid} " . $query);
+    $scenetracker_ucp_bit_scene = "";
+    $tplcount = 1;
+    if ($db->num_rows($scenes) == 0) {
+      // echo "----- no";
+      $tplcount = 0;
+    } else {
+      // echo "---- jo";
+      $tplcount = 1;
+
+      while ($data = $db->fetch_array($scenes)) {
+        // echo "ist - " . $uid. "- last". $data['lastposteruid']; 
+        $edit = "";
+
+        $close = "[close]";
+        if ($tplstring == "closed") $close = "[open]";
+        $delete = "[delete]";
+        $alert = "[alert]";
+
+        $user = get_user($uid);
+        $tid = $data['tid'];
+        $username = $user['username'];
+        $lastpostdate = date('d.m.Y', $data['lastpost']);
+        $lastposter = get_user($data['lastposteruid']);
+        $alerttype = $data['type'];
+        if ($alerttype == "always") {
+          $alert = "<button class=\"certain\" name=\"certain\" onclick=\"certain({$tid})\">certain</button>
+          ";
+          ///https://www.feenders.de/ratgeber/experten/modalboxen-ohne-javascript.html#
+        }
+        $scenedate = date('d.m.Y - H:i', strtotime($data['scenetracker_date']));
+        $lastposterlink = '<a href="member.php?action=profile&uid=' . $lastposter['uid'] . '">' .  $lastposter['username'] . '</a>';
+        $scene = '<a href="showthread.php?tid=' . $data['tid'] . '">' . $data['subject'] . '</a>';
+        $users = $data['scenetracker_user'];
+        //if ($data['type'] == 'always' && $data['lasposter'] != $uid) {
+        eval("\$scenetracker_ucp_bit_scene .= \"" . $templates->get('scenetracker_ucp_bit_scene') . "\";");
+      }
+    }
+    // {'avas_female_'.$buchstabe}
+    // $test = {'avas_female_'.$buchstabe}; 
+    //eval("\$scenetracker_ucp_bit_chara.\$tplstring
+    if ($tplcount == 1) {
+      eval("\$scenetracker_ucp_bit_chara_{$tplstring} .=\"" . $templates->get("scenetracker_ucp_bit_chara") . "\";");
+    }
+  }
+}
 
 /**
  * automatische Anzeige von Tracker im Profil
- * //TODO Anzeige Profil
+ * //TODO make scene hidable
  */
-$plugins->add_hook("member_profile_start", "scenetracker_showinprofile");
+$plugins->add_hook("member_profile_end", "scenetracker_showinprofile");
 function scenetracker_showinprofile()
 {
+  global $db, $mybb, $memprofile, $templates, $scenetracker_profil;
+  $userprofil = $memprofile['uid'];
+  $scenetracker_profil_bit = "";
+  $sort = "0";
+  $dateYear = "";
+  setlocale(LC_ALL, 'de_DE@euro', 'de_DE', 'de', 'ge');
+  $show_monthYear = array();
+  $sort = $mybb->settings['scenetracker_profil_sort'];
+  $scene_query = $db->write_query("SELECT s.*,fid, subject, dateline, t.closed as threadclosed, scenetracker_date, scenetracker_user, threadsolved FROM " . TABLE_PREFIX . "scenetracker s, " . TABLE_PREFIX . "threads t WHERE t.tid = s.tid AND s.uid = " . $userprofil . " ORDER by scenetracker_date");
+
+  // $scene_dates = $db->write_query("SELECT s.*,fid, subject, dateline, t.closed as threadclosed, scenetracker_date, scenetracker_user, threadsolved FROM " . TABLE_PREFIX . "scenetracker s, " . TABLE_PREFIX . "threads t WHERE t.tid = s.tid AND s.uid = " . $userprofil . " ORDER by scenetracker_date");
+  //  while ($scenes_date = $db->fetch_array($scene_dates)) {
+  //   $dateYear =  date('F Y', strtotime($scenes_date['scenetracker_date']));
+  //   if (!in_array($dateYear , $show_monthYear, true)) {
+  //     array_push($show_monthYear, $dateYear);
+  //   }
+  // }
+  // var_dump($show_monthYear);
+  while ($scenes = $db->fetch_array($scene_query)) {
+    if ($sort == 1) {
+    } else {
+      $tid = $scenes['tid'];
+      $subject = $scenes['subject'];
+      $sceneusers = $scenes['scenetracker_user'];
+      $scenedate = date('d.m.Y - H:i', strtotime($scenes['scenetracker_date']));
+
+      // echo $test;
+      if ($dateYear != date('m.Y', strtotime($scenes['scenetracker_date']))) {
+        $scenetracker_profil_bit .= "<span class=\"scentracker month\">" . date('F Y', strtotime($scenes['scenetracker_date'])) . "</span>";
+      }
+      $dateYear = date('m.Y', strtotime($scenes['scenetracker_date']));
+      eval("\$scenetracker_profil_bit .= \"" . $templates->get("scenetracker_profil_bit") . "\";");
+    }
+  }
+  eval("\$scenetracker_profil = \"" . $templates->get("scenetracker_profil") . "\";");
+
   //Threads aus der Datenbank holen
   //aufteilen in archiv / ingame -> auswählbar machen wonach sortieren? 
   //markieren ob erledigt oder nicht 
@@ -720,8 +869,29 @@ function scenetracker_reminder()
 {
 }
 
+/**************************** */
 /*** HELPERS ***/
 //TODO Accountswitcher
+/**************************** */
+
+function get_accounts($this_user, $as_uid)
+{
+  global $mybb, $db;
+  // suche alle angehangenen accounts
+  // as uid = 0 wenn hauptaccount oder keiner angehangen
+  $charas = array();
+  if ($as_uid == 0) {
+    $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE (as_uid = $this_user) OR (uid = $this_user) ORDER BY username");
+  } else if ($as_uid != 0) {
+    //id des users holen wo alle angehangen sind 
+    $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE (as_uid = $as_uid) OR (uid = $this_user) OR (uid = $as_uid) ORDER BY username");
+  }
+  while ($users = $db->fetch_array($get_all_users)) {
+    $uid = $users['uid'];
+    $charas[$uid] = $users['username'];
+  }
+  return $charas;
+}
 
 function testParentFid($fid)
 {
@@ -749,11 +919,10 @@ function getUids($string_usernames)
   global $db;
 
   $array_user = array();
-
-  $array_usernames = explode(",", $string_usernames);
+  //no whitespace at beginning and end of name
+  $array_usernames = array_map('trim', explode(",", $string_usernames));
   foreach ($array_usernames as $username) {
-    $username = $db->escape_string(trim($username));
-
+    $username = $db->escape_string($username);
     $uid = $db->fetch_field($db->simple_select("users", "uid", "username='$username'"), "uid");
     // deleted user or an other string;
     //we need an unique key in case of there is more than one deleted user -> we use the username
@@ -761,28 +930,15 @@ function getUids($string_usernames)
     //else key is uid
     $array_user[$uid] = trim($username);
   }
-  //var_dump($array_user);
   return $array_user;
 }
 
 
-// /**
-//  * Get the next id of the posts you are writing
-//  * @return int $lastId the id of next insert Post
-//  */
-// function getPid()
-// {
-//   global $db;
-//   $databasename = $db->fetch_field($db->write_query("SELECT DATABASE()"), "DATABASE()");
-//   $lastId = $db->fetch_field($db->write_query("SELECT AUTO_INCREMENT FROM information_schema.TABLES 
-//     WHERE TABLE_SCHEMA = '" . $databasename . "' AND TABLE_NAME = '" . TABLE_PREFIX . "posts'"), "AUTO_INCREMENT");
-//   return $lastId;
-// }
-
-
-/**********
+/**************************** */
+/*
  *  My Alert Integration
- * *** ****/
+ */
+/**************************** */
 if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
   $plugins->add_hook("global_start", "scenetracker_alert");
 }
