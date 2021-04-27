@@ -25,3 +25,15 @@ $(document).ready(function(){
   });
 });
 
+
+function certain($tid) {
+  $tid = 'p' + $tid;
+  $post = document.getElementById($pid).innerHTML;
+  document.getElementById($pid).innerHTML = '<form action="" method="post">'
+  + '<textarea name ="editPost" class='+$pid+' id='+$pid+'>'+$post+'</textarea><br />'
+  +'<input type="hidden" value="'+$id+'" name="sn_postEditId" />'
+  +'<input type="date" value="'+$date+'" name="sn_postDatumEdit" />'
+  +'<input type="time" name="sn_postUhrzeitEdit" value="'+$time+'" /></br>'
+  +'<input type="submit" value="speichern" name="saveEditPost"/>'
+  +'<input type="button" value="abbrechen" onclick="abort(' + $id + ',\'' + escape($post) + '\')"/></form>';
+}
