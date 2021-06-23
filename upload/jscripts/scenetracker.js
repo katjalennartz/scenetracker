@@ -1,3 +1,31 @@
+// function certain($id) {
+//   $post = document.getElementById($id).innerHTML;
+//   document.getElementById($id).innerHTML = '<form action="" method="post">'
+//   +'<input type="hidden" value="'+$id+'" name="scene_id" />'
+//   +'<input id="certain" type="text" value="username" name="username" autocomplete="off" style="display: block" />'
+//   + '<div id="suggest" style="display:none; z-index:10;"></div>'
+//   +'<input type="submit" value="speichern" name="saveCertain"/>'
+//   +'</form>';
+// }
+
+function certain($id) {
+  $post = document.getElementById($id).innerHTML;
+  document.getElementById($id).innerHTML = '<form action="" method="post">'
+  +'<input type="hidden" value="'+$id+'" name="scene_id" />'
+  +'<label for="charas">Charaktername:</label>'
+  + '<select id="charas">'
+  +'{$users_options_bit}'
+  +'</select>'
+  +'</form>';
+}
+{/* <label for="cars">Choose a car:</label>
+
+<select id="cars">
+  <option value="volvo">Volvo</option>
+  <option value="saab">Saab</option>
+  <option value="vw">VW</option>
+  <option value="audi" selected>Audi</option>
+</select> */}
 $(document).ready(function(){
   $.ajax({
     //we get our usernames with php. The script gives us a Json. (key value paur -> something like 0: {username: "user1"} 1: {username: "user2"} )
@@ -11,29 +39,15 @@ $(document).ready(function(){
         response.forEach(function (user) {
           usernames.push(user.username); //push every name to array we get something like ["user1", "user2", "user3"]
         });
-        console.log(usernames)
-        $('#text').keydown(function () {
-          new Suggest.LocalMulti(
-              "text", // input element id.
-              "suggest", // suggestion area id.
-              usernames, // suggest candidates list
-              {dispAllKey: true} //we want to add more than one name 
-              //more examples for configuration: http://www.enjoyxstudy.com/javascript/suggest/index.en.html
-              ); // options
-      });
+        // new Suggest.LocalMulti("text", "suggest", list, {dispAllKey: true});
+        $('#teilnehmer').keydown(function () {
+          console.log("teilnehmer");
+          new Suggest.LocalMulti("teilnehmer", "suggest", usernames, {dispAllKey: true, delim: ","})
+        });
       }
   });
 });
 
-
-function certain($tid) {
-  $tid = 'p' + $tid;
-  $post = document.getElementById($pid).innerHTML;
-  document.getElementById($pid).innerHTML = '<form action="" method="post">'
-  + '<textarea name ="editPost" class='+$pid+' id='+$pid+'>'+$post+'</textarea><br />'
-  +'<input type="hidden" value="'+$id+'" name="sn_postEditId" />'
-  +'<input type="date" value="'+$date+'" name="sn_postDatumEdit" />'
-  +'<input type="time" name="sn_postUhrzeitEdit" value="'+$time+'" /></br>'
-  +'<input type="submit" value="speichern" name="saveEditPost"/>'
-  +'<input type="button" value="abbrechen" onclick="abort(' + $id + ',\'' + escape($post) + '\')"/></form>';
-}
+// window.addEventListener ?
+//   window.addEventListener('load', LocalMulti, false) :
+//   window.attachEvent('onload', LocalMulti);

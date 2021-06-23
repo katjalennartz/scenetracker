@@ -422,11 +422,12 @@ Suggest.LocalMulti = function() {
 };
 Suggest.copyProperties(Suggest.LocalMulti.prototype, Suggest.Local.prototype);
 
-Suggest.LocalMulti.prototype.delim = ','; // delimiter
+Suggest.LocalMulti.prototype.delim = ' '; // delimiter
 
 Suggest.LocalMulti.prototype.keyEventReturn = function() {
+
   this.clearSuggestArea();
-  this.input.value;
+  this.input.value += this.delim;
   this.moveEnd();
 };
 
