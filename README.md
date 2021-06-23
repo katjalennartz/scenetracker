@@ -1,6 +1,10 @@
 # scenetrackerWIP
 
-not working at the moment ;) Work in Progress
+Work in Progress
+
+Main functions are working now.
+Missing: Reminder and calendar
+
 
 i'm working on my own scentracker, which i've developed a long time ago ;) So it needs some updates and because of that I'm working on it to make it usable as a plugin :)
 
