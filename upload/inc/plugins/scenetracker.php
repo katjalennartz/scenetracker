@@ -60,34 +60,16 @@ function scenetracker_install()
     $db->write_query("ALTER TABLE " . TABLE_PREFIX . "threads ADD `threadsolved` INT(1) NOT NULL DEFAULT '0'");
   }
 
-
-  /*** DATABASE QUERIES ************************************/
-
-  //TODO: Update Scenetracker table
-
-  // //   // UPDATE mybb_threads SET description = REPLACE(description, "&&", ",") WHERE description LIKE "%&&% WHERE `trackerdate` != "0000-00-00 00:00:00"";
-  //   UPDATE mybb_threads SET description = REPLACE(description, "&", ",") WHERE description LIKE "%&% WHERE `trackerdate` != "0000-00-00 00:00:00"";
-  // //   // UPDATE mybb_threads SET description = REPLACE(description, "|", ",") WHERE description LIKE "%|% WHERE `trackerdate` != "0000-00-00 00:00:00""
-  //   UPDATE mybb_threads SET description = REPLACE(description, "-", ",") WHERE description LIKE "%-%" WHERE `trackerdate` != "0000-00-00 00:00:00";
-  //   UPDATE mybb_threads SET description = REPLACE(description, "+", ",") WHERE description LIKE "%+% WHERE `trackerdate` != "0000-00-00 00:00:00""
-  //   UPDATE mybb_threads SET description = REPLACE(description, "und", ",") WHERE description LIKE "%und% WHERE `trackerdate` != "0000-00-00 00:00:00""
-
-  //   UPDATE mybb_threads SET description = REPLACE(description, " , ", ",") WHERE description LIKE "% , % WHERE `trackerdate` != "0000-00-00 00:00:00""
-  //   UPDATE mybb_threads SET description = REPLACE(description, ", ", ",") WHERE description LIKE "%, % WHERE `trackerdate` != "0000-00-00 00:00:00""
-  //   UPDATE mybb_threads SET description = REPLACE(description, " ,", ",") WHERE description LIKE "% ,% WHERE `trackerdate` != "0000-00-00 00:00:00""
-  //   UPDATE mybb_threads SET `scenetracker_date` = `trackerdate` WHERE `trackerdate` != "0000-00-00 00:00:00"
-  //   UPDATE mybb_threads SET `scenetracker_user` = `description` WHERE `trackerdate` != "0000-00-00 00:00:00"
-
-  //   UPDATE mybb_threads SET `newdate` = CONCAT(`feldjahr`,"-",`feldmonat`,"-",`feldtag`," 00:00:00");
-  /******************************************************** */
-
   //Threadtabelle braucht, Feld für Datum, Feld für Teilnehmer
   $db->add_column("threads", "scenetracker_date", "datetime NOT NULL");
   $db->add_column("threads", "scenetracker_place", "varchar(200) NOT NULL");
   $db->add_column("threads", "scenetracker_user", "varchar(1500) NOT NULL");
   $db->add_column("threads", "scenetracker_trigger", "varchar(200) NOT NULL");
 
-  $db->query("ALTER TABLE `mybb_users` ADD `tracker_index` INT(1) NOT NULL DEFAULT '1', ADD `tracker_reminder` INT(1) NOT NULL DEFAULT '1';");
+  $db->add_column("users", "tracker_indexall", "int(1) NOT NULL DEFAULT 1");
+  $db->add_column("users", "tracker_index", "int(1) NOT NULL DEFAULT 1");
+  $db->add_column("users", "tracker_reminder", "int(1) NOT NULL DEFAULT 1");
+
   //new table for saving scenes and notifivation status
   $db->write_query("CREATE TABLE `" . TABLE_PREFIX . "scenetracker` (
         `id` int(10) NOT NULL AUTO_INCREMENT,
@@ -212,6 +194,9 @@ function scenetracker_uninstall()
   }
   if ($db->field_exists("tracker_reminder", "users")) {
     $db->write_query("ALTER TABLE " . TABLE_PREFIX . "users DROP tracker_reminder");
+  }
+  if ($db->field_exists("tracker_indexall", "users")) {
+    $db->write_query("ALTER TABLE " . TABLE_PREFIX . "users DROP tracker_indexall");
   }
   // if ($db->field_exists("threadsolved", "threads")) {
   //   $db->write_query("ALTER TABLE " . TABLE_PREFIX . "threads DROP threadsolved");
