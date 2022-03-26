@@ -1234,7 +1234,7 @@ function scenetracker_do_newthread()
             //Not null, the user wants an alert and the user is not on his own page.
             if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
               //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
-              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType, (int)$id);
+              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
               //some extra details
               $alert->setExtraDetails([
                 'tid' => $tid,
@@ -1312,7 +1312,7 @@ function scenetracker_do_newreply()
             //Not null, the user wants an alert and the user is not on his own page.
             if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
               //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
-              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType, (int)$id);
+              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
               //some extra details
               $alert->setExtraDetails([
                 'tid' => $tid,
@@ -1335,7 +1335,7 @@ function scenetracker_do_newreply()
             //Not null, the user wants an alert and the user is not on his own page.
             if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
               //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
-              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType, (int)$id);
+              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
               //some extra details
               $alert->setExtraDetails([
                 'tid' => $tid,
@@ -1474,7 +1474,7 @@ function scenetracker_do_editpost()
           $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newScene');
           if ($alertType != NULL && $alertType->getEnabled() && $uid != $mybb->user['uid']) {
             //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
-            $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType, (int)$id);
+            $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
             //some extra details
             $alert->setExtraDetails([
               'tid' => $tid,
@@ -1994,12 +1994,12 @@ function scenetracker_usercp()
     redirect('usercp.php?action=scenetracker');
   }
 
-    //Save Settings of user
-    if ($mybb->input['opt_indexall']) {
-      $index = $mybb->input['indexall'];
-      $db->query("UPDATE " . TABLE_PREFIX . "users SET tracker_indexall = " . $index . " WHERE uid = " . $mybb->user['uid'] . " ");
-      redirect('usercp.php?action=scenetracker');
-    }
+  //Save Settings of user
+  if ($mybb->input['opt_indexall']) {
+    $index = $mybb->input['indexall'];
+    $db->query("UPDATE " . TABLE_PREFIX . "users SET tracker_indexall = " . $index . " WHERE uid = " . $mybb->user['uid'] . " ");
+    redirect('usercp.php?action=scenetracker');
+  }
 
   //Save Settings of user
   if ($mybb->input['opt_reminder']) {
@@ -2172,7 +2172,7 @@ function scenetracker_list()
     if ($index_all == 1) {
       $charas = get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
     } else {
-      $charas[$uid] = $mybb->user['username']; 
+      $charas[$uid] = $mybb->user['username'];
       // $charas[$uid] = $users['username'];
     }
     $solvplugin = $mybb->settings['scenetracker_solved'];
@@ -2289,8 +2289,13 @@ function scenetracker_reminder()
 
 /***
  * shows Scenes in calendar
- * https://zellwk.com/blog/calendar-with-css-grid/
- * https://www.schattenbaum.net/php/kalender.php
+ * /***
+ * Darstellung der Szenen im mybb Kalendar 
+ * ACHTUNG! diese Funktion geht nur, wenn die Anleitung zum Hinzufügen des Hakens für die Funktion
+ * in der Readme befolgt wird!
+ * Am Besten über Patches lösen -> calendar.php
+ * suchen nach eval("\$day_bits .= \"".$templates->get("calendar_weekrow_thismonth")."\";");
+ * darüber einfügen $plugins->run_hooks("calendar_weekview_day");
  */
 
 $plugins->add_hook("calendar_weekview_day", "scenetracker_calendar");
@@ -2363,6 +2368,10 @@ function scenetracker_calendar()
 
 /***
  * shows minicalender on index
+ *  * credit to:
+ * https://zellwk.com/blog/calendar-with-css-grid/
+ * https://www.schattenbaum.net/php/kalender.php
+ * 
  */
 $plugins->add_hook('global_end', 'scenetracker_minicalendar');
 
@@ -2572,13 +2581,13 @@ function count_scenes($charas)
               SELECT s.*,
               fid,subject,dateline,lastpost,lastposter,lastposteruid, closed, " . $solvefield . " 
               scenetracker_date, scenetracker_user,scenetracker_place 
-              FROM " . TABLE_PREFIX . "scenetracker  s LEFT JOIN mybb_threads t on s.tid = t.tid WHERE s.uid = {$uid} " . $query_open . " ORDER by lastpost DESC");
+              FROM " . TABLE_PREFIX . "scenetracker  s LEFT JOIN " . TABLE_PREFIX . "threads t on s.tid = t.tid WHERE s.uid = {$uid} " . $query_open . " ORDER by lastpost DESC");
 
     $scenes_all = $db->write_query("
               SELECT s.*,
               fid,subject,dateline,lastpost,lastposter,lastposteruid, closed, " . $solvefield . " 
               scenetracker_date, scenetracker_user,scenetracker_place 
-              FROM " . TABLE_PREFIX . "scenetracker  s LEFT JOIN mybb_threads t on s.tid = t.tid WHERE s.uid = {$uid} " . $query_all . " ORDER by lastpost DESC");
+              FROM " . TABLE_PREFIX . "scenetracker  s LEFT JOIN " . TABLE_PREFIX . "threads t on s.tid = t.tid WHERE s.uid = {$uid} " . $query_all . " ORDER by lastpost DESC");
 
     $cnt_open += $db->num_rows($scenes_open);
     $cnt_all += $db->num_rows($scenes_all);
