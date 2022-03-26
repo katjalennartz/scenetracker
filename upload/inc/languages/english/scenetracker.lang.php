@@ -3,12 +3,10 @@
  * Social Network 1.0 Main Language File
  */
 
-$l['myalerts_setting_scenetracker_newScene'] = 'Szenentracker: Benachrichtigung bei einer neuen Szene?';
-$l['scenetracker_newScene'] = '{1} hat eine Szene eröffnet oder du wurdest nachträglich hinzugefügt.';
+$l['myalerts_setting_scenetracker_newScene'] = 'Scenetracker: alert on new scene?';
+$l['scenetracker_newScene'] = '{1} opened a new scene or you we\'re added';
 
-$l['myalerts_setting_scenetracker_newAnswer'] = 'Szenentracker: Benachrichtigung bei einer neuen Antwort?';
-$l['scenetracker_newAnswer'] = '{1} hat auf eine Szene geantwortet.';
-
-
+$l['myalerts_setting_scenetracker_newAnswer'] = 'Scenetracker: alert on new post?';
+$l['scenetracker_newAnswer'] = '{1} had answered in a scene.';
 
 ?>
