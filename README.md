@@ -1,18 +1,36 @@
-# scenetrackerWIP
+# Szenentracker
 
-Work in Progress
+Diesen Szenentracker habe ich vor allem für meine Boards gebaut, kann aber gerne benutzt werden ;) Allerdings werde ich hier keinen großen Support bieten, oder Wunschfunktionen einbauen ^^  
+Der Tracker kann was er kann und wenn ihr ihn mögt nehmt ihr gerne, wenn nicht. Auch okay.  
+Bugs/Fehler könnt ihr mir gerne bei Discord (auch wenn ihr allgemeine Fragen habt) schreiben oder hier als Issue melden. Im SG gibt es hierzu keinen Supportthread.   
 
-Main functions are working now.
-Missing: Reminder and calendar
-Make scenes sortable (archiv / active) in profile
+**Was kann der Tracker:**  
+Szeneninfos im Thread hinzufügen (Zeit, Ort, Triggerwarnung, Teilnehmer)   
+Alerts bei neuer Antwort (Einstellungsmöglichkeit: Nie, bei Antwort eines bestimmten Users, immer)
+Anzeige der Szenen in einem Minikalener
+Anzeigen der Szenen im Mybb Kalender (Achtung dazu weiter unten Anleitung zu beachten!) 
+Alle Szenenteilnehmer können Szenen schließen/öffnen.  
+Alle Szenenteilnehmer können die Szeneninfos bearbeiten.  
+  
+**Anzeige der Szenen im Profil:**.  
+Sortiert nach Szenendatum. 
+Szenen können auf Wunsch ausgeblendet werden.
+  
+**Verwaltung/Übersicht der Szenen** im UCP.  
+User können einstellen:  
+Szenenübersicht auf der Indexseite?  
+Szenen aller Charaktere auf dem Index anzeigen?  
+Szenen Erinnerung?  
+Außerdem gibt es im UCP viele Filtermöglichkeiten.  
+(Szenen pro Charakter anzeigen, Szenen anzeigen wo man dran ist / nicht dran ist /geschlossen... etc. :D )   
 
 
-i'm working on my own scentracker, which i've developed a long time ago ;) So it needs some updates and because of that I'm working on it to make it usable as a plugin :)
-
-planned features: add a date for every scene add members of scene add a history in profil (always display if scene is read - furthermore you can chose if you want to make a difference between ingame and old scenes)
-
-if the member want to: all scenes on index: choose: alway, if you have to post, if a certain user have posted
-
-Notification (admin can choose if my alert or private message) member can choose: always, new answer, none
-
-remind a user to post if he let others wait for more than X days
+**Wichtig für Darstellung im mybb Kalender:**. 
+suchen nach  
+```` 
+eval("\$day_bits .= \"".$templates->get("calendar_weekrow_thismonth")."\";");
+````
+darüber einfügen 
+````
+ $plugins->run_hooks("calendar_weekview_day");
+````
