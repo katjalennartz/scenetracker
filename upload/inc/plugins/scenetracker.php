@@ -1131,6 +1131,229 @@ function scenetracker_add_templates()
       text-align: center;
       display: block;
   }
+  
+  .calendar {
+  width: 205px;
+  padding-left: 5px;
+}
+
+.calendar:first-child {
+padding: 0px;
+}
+
+/* For the month*/
+.month-indicator {
+  font-family: var(--main-font);
+  color: var(--scrollbar-dunkel);
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* CSS grid used for the dates */
+.day-of-week,
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+/* Styles for the weekday/weekend header*/
+.day-of-week > * {
+  font-size: 12px;
+  color: var(--blue-grey-400);
+  font-weight: 700;
+  text-align: center;
+  margin-top: 5px;
+}
+
+/* Dates */
+.date-grid {
+  margin-top: 0;
+}
+
+/* Positioning the first day */
+.date-grid div:first-child {
+  grid-column: 1;
+}
+
+/* Style for each day*/
+
+.day.activeingame {
+  background: var(--tabel-color);
+  margin: 1px;
+}
+
+.date-grid day {
+  position: relative;
+  border: 0;
+  width: 20px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--blue-grey-600);
+}
+
+.date-grid div:hover,
+.date-grid div:focus {
+  outline: none;
+  background-color: var(--blue-grey-050);
+  color: var(--blue-grey-700);
+}
+
+.date-grid div:active,
+.date-grid div.is-selected {
+  background-color: var(--teal-100);
+  color: var(--teal-900);
+}
+
+.calendar .day.old {
+    opacity: 0.3;
+}
+
+/* pop up - and special days*/ 
+.st_mini_scene {
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    font-weight:bold;
+}
+
+
+.day.st_mini_scene.fullmoon {
+    text-decoration: underline;
+}
+.st_mini_scene_show {
+    opacity: 0;
+    z-index: 300;
+    color: var(--text-color);
+    width: 200px;
+    display: block;
+    font-size: 11px;
+    padding: 5px 10px;
+    text-align: center;
+    background: var(--fb-highlight);
+    border: 5px solid var(--tabel-color);
+    -webkit-transition: all .2s ease-in-out;
+    -moz-transition: all .2s ease-in-out;
+    -o-transition: all .2s ease-in-out;
+    -ms-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+    -webkit-transform: scale(0);
+    -moz-transform: scale(0);
+    -o-transform: scale(0);
+    -ms-transform: scale(0);
+    transform: scale(0);
+    position: absolute;
+    left: -65px;
+    bottom: 20px;
+}
+
+.st_mini_scene_show:before,.st_mini_scene_show:after {
+    content: '';
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--tabel-color);
+    position: absolute;
+    bottom: -13px;
+    left: 59px;
+}
+
+.st_mini_scene:hover .st_mini_scene_show,a:hover .st_mini_scene_show {
+    opacity: 1;
+    -webkit-transform: scale(1);
+    -moz-transform: scale(1);
+    -o-transform: scale(1);
+    -ms-transform: scale(1);
+    transform: scale(1);
+    background-color:var(--fb-highlight);
+}
+
+
+/*calendar own site*/
+.calendar_bigcon .thead {
+    text-transform: uppercase;
+    font-family: var(--main-font);
+    font-size: 20px;
+    text-align: center;
+}
+
+table.calendar_bigcon {
+    background-color: var(--fb-highlight);
+    border: 5px solid var(--tabel-color);
+}
+
+.calendar_bigcon td {
+    background-color: var(--fb-highlight);
+    padding: 5px 10px;
+}
+
+.calendar_bigcon .tcat {
+    text-transform: uppercase;
+    font-family: var(--main-font);
+    text-align: center;
+}
+
+.calendar_event {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: stretch;
+    width: 100%;
+}
+
+
+.calendar_event__name {
+    font-size: 20px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.calendar_event__item.author_box {
+    min-width: 200px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.calendar_event__item.title {
+    width: 100%;
+    text-transform: uppercase;
+    font-weight:700;
+    margin: 5px 0;
+}
+
+.calendar_event__item.link {
+    align-self: center;
+    padding-left: 10px;
+}
+
+.calendar_event.edit {
+    margin-top: 20px;
+}
+
+.calendar .day {
+    text-align: center;
+}
+
+.calendar_bigcon .trow2 {
+    border: 1px solid var(--tabel-color);
+    border-right: 0;
+    border-bottom:0;
+}
+
+
+.calendar_bigcon td:first-child {
+     border: 1px solid var(--tabel-color);
+    border-right: 0;
+    border-bottom: 0;
+}
+
+.calendar_bigcon thead td.tcat {
+    border: 1px solid var(--tabel-color);
+}
+.calendar_bigcon thead td.tcat {
+    border-bottom: 0;
+    border-right: 0;
+}
     ',
     'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
     'lastmodified' => time()
