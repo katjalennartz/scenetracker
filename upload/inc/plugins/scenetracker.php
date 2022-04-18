@@ -549,7 +549,7 @@ function scenetracker_add_templates()
     "template" => '<div class="scenetracker scenebit scenetracker_showthread">
     <div class="scenetracker__sceneitem scene_date icon"><i class="fas fa-calendar"></i> {$scene_date}</div>
     <div class="scenetracker__sceneitem scene_place icon "><i class="fas fa-map-marker-alt"></i> {$sceneplace}</div>
-    <div class="scenetracker__sceneitem scene_status icon"><i class="fas fa-circle-play"></i> {$scenestatus}</div>
+    <div class="scenetracker__sceneitem scene_status icon"><i class="fas fa-play"></i> {$scenestatus}</div>
 	{$scenetrigger}
     <div class="scenetracker__sceneitem scene_users icon"><i class="fas fa-users"></i>{$scenetracker_showthread_user}</div> 
   	{$edit}
@@ -584,7 +584,7 @@ function scenetracker_add_templates()
     "title" => 'scenetracker_ucp_bit_scene',
     "template" => '<div class ="sceneucp__scenebox scene_ucp chara_item__scene">
     <div class="sceneucp__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> {$scene}</div>
-    <div class="sceneucp__sceneitem scene_status icon"><i class="fas fa-circle-play"></i> scene {$close}
+    <div class="sceneucp__sceneitem scene_status icon"><i class="fas fa-play"></i> scene {$close}
     </div>
     <div class="sceneucp__sceneitem scene_profil icon"><i class="fas fa-circle-user"></i> scene {$hide}</div>
     <div class="sceneucp__sceneitem scene_alert icon {$alertclass}"><i class="fas fa-bullhorn"></i>
@@ -605,114 +605,111 @@ function scenetracker_add_templates()
     "title" => 'scenetracker_ucp_main',
     "template" => '<html>
     <head>
-    <title>Szenenverwaltung</title>
+    <title>{$mybb->settings[\\\'bbname\\\']} - Szenentracker</title>
     {$headerinclude}
-      
     </head>
     <body>
     {$header}
-	<div class="ucp--overview nav-notucp">
-	<div class="ucp-nav">
-	{$usercpnav}
-	</div>
-	</div>
-    <table width="100%" border="0" align="center"  class="tborder borderboxstyle">
+    <form enctype="multipart/form-data" action="usercp.php" method="post">
+    <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+    <table width="100%" border="0" align="center">
     <tr>
-    <td valign="top">
-    <div class="scene_ucp container">
-    <div class="scene_ucp manage alert_item">
-      <h1><i class="fas fa-book-open" aria-hidden="true"></i> Szenentracker</h1>
-      <p>Hier kannst du alles rund um den Szenentracker anschauen und verwalten. Die Einstellungen für die Alerts
-    kannst du <a href="alerts.php?action=settings">hier</a> vornehmen. Stelle hier erst einmal allgemein ein,
-    ob du die Szenen auf dem Index angezeigt werden möchtest und ob du eine Meldung haben möchtest, wenn du in
-    einer Szene länger als 6 Wochen dran bist.
-      </p>
-      
-    <div class="scene_ucp scenefilteroptions">
-		<h2>Benachrichtigungseinstellungen</h2>
-       <div class="scenefilteroptions__items">
-        <form action="usercp.php?action=scenetracker" method="post">
-        <fieldset><label for="index">Szenenübersicht auf der Indexseite?</label><br/>
-        <input type="radio" name="index" id="index_yes" value="1" {$yes_ind}> <label for="index_yes">Ja</label>
-        <input type="radio" name="index" id="index_no" value="0" {$no_ind}> <label for="index_no">Nein</label><br />
-        <input type="submit" name="opt_index" value="speichern" id="index_button" />
-        </fieldset>
-        </form>
-      </div>
-		<div class="scenefilteroptions__items">
-        <form action="usercp.php?action=scenetracker" method="post">
-        <fieldset><label for="index_yesall">Szenen aller Charaktere auf dem Index anzeigen?</label><br/>
-        <input type="radio" name="indexall" id="index_yesall" value="1" {$yes_indall}> <label for="index_yesall">Ja</label>
-        <input type="radio" name="indexall" id="index_noall" value="0" {$no_indall}> <label for="index_noall">Nein</label><br />
-			<span style="font-size: 0.8em">(Einstellung für den jeweils eingeloggten Charakter)</span><br />
-        <input type="submit" name="opt_indexall" value="speichern" id="indexall_button" />
-        </fieldset>
-        </form>
-      </div>
-       <div class="scenefilteroptions__items">
-        <form action="usercp.php?action=scenetracker" method="post">
-        <fieldset><label for="reminder">Szenenerinnerung nach 6 Wochen?</label><br/>
-        <input type="radio" name="reminder" id="reminder_yes" value="1" {$yes_rem}> <label for="index_rem">Ja</label>
-        <input type="radio" name="reminder" id="reminder_no" value="0" {$no_rem}> <label for="index_rem">Nein</label><br />
-        <input type="submit" name="opt_reminder" value="speichern" id="reminder_button" />
-        </fieldset>
-      </form>
-      </div>
-
-    </div>
-    </div><!--scene_ucp manage alert_item-->
-	<form action="usercp.php?action=scenetracker" method="post">
-	<div class="scene_ucp scenefilteroptions">
-		<h2>Filteroptions</h2>
-		<div class="scenefilteroptions__items">
-			<label for="charakter">Szenen anzeigen von: </label>{$selectchara}
-			<input type="hidden" value="{$thisuser}" name="uid" id="uid"/>
-		</div>	
-		<div class="scenefilteroptions__items">
-			<label for="status">Status der Szene:  </label>
-			<select name="status" id="status">
-				<option value="both" {$sel_s[\\\'both\\\']}>beides</option>
-    			<option value="open" {$sel_s[\\\'open\\\']} >offen</option>
-				<option value="closed" {$sel_s[\\\'closed\\\']}>geschlossen</option>
-			</select>
-		</div>
-		<div class="scenefilteroptions__items">
-				<label for="move">Du bist dran: </label>
-				<select name="move" id="move">
-				<option value="beides" {$sel_m[\\\'beides\\\']}>beides</option>
-    			<option value="ja" {$sel_m[\\\'ja\\\']}>ja</option>
-				<option value="nein" {$sel_m[\\\'nein\\\']}>nein</option>
-				
-			</select>
-		</div>
-		<div class="scenefilteroptions__items button">
-			<input type="submit" name="scenefilter" value="Szenen filtern" id="scenefilter" />
-		</div>
-	</div>
-		</form>
-    <div class="scene_ucp manage overview_item overview_con">
-      <div class="scene_ucp overview_item">
-      <h2>{$scenes_title}</h2>
-        <div class="scene_ucp overview_chara_con">
-			
-	
-        {$scenetracker_ucp_bit_chara} 
+      {$usercpnav}
+      <td valign="top">
+        
+         <div class="scene_ucp container">
+        <div class="scene_ucp manage alert_item">
+          <h1><i class="fas fa-book-open" aria-hidden="true"></i> Szenentracker</h1>
+          <p>Hier kannst du alles rund um den Szenentracker anschauen und verwalten. Die Einstellungen für die Alerts
+        kannst du <a href="alerts.php?action=settings">hier</a> vornehmen. Stelle hier erst einmal allgemein ein,
+        ob du die Szenen auf dem Index angezeigt werden möchtest und ob du eine Meldung haben möchtest, wenn du in
+        einer Szene länger als 6 Wochen dran bist.
+          </p>
+          
+        <div class="scene_ucp scenefilteroptions">
+        <h2>Benachrichtigungseinstellungen</h2>
+           <div class="scenefilteroptions__items">
+            <form action="usercp.php?action=scenetracker" method="post">
+            <fieldset><label for="index">Szenenübersicht auf der Indexseite?</label><br/>
+            <input type="radio" name="index" id="index_yes" value="1" {$yes_ind}> <label for="index_yes">Ja</label>
+            <input type="radio" name="index" id="index_no" value="0" {$no_ind}> <label for="index_no">Nein</label><br />
+            <input type="submit" name="opt_index" value="speichern" id="index_button" />
+            </fieldset>
+            </form>
+          </div>
+        <div class="scenefilteroptions__items">
+            <form action="usercp.php?action=scenetracker" method="post">
+            <fieldset><label for="index_yesall">Szenen aller Charaktere auf dem Index anzeigen?</label><br/>
+            <input type="radio" name="indexall" id="index_yesall" value="1" {$yes_indall}> <label for="index_yesall">Ja</label>
+            <input type="radio" name="indexall" id="index_noall" value="0" {$no_indall}> <label for="index_noall">Nein</label><br />
+          <span style="font-size: 0.8em">(Einstellung für den jeweils eingeloggten Charakter)</span><br />
+            <input type="submit" name="opt_indexall" value="speichern" id="indexall_button" />
+            </fieldset>
+            </form>
+          </div>
+           <div class="scenefilteroptions__items">
+            <form action="usercp.php?action=scenetracker" method="post">
+            <fieldset><label for="reminder">Szenenerinnerung nach 6 Wochen?</label><br/>
+            <input type="radio" name="reminder" id="reminder_yes" value="1" {$yes_rem}> <label for="index_rem">Ja</label>
+            <input type="radio" name="reminder" id="reminder_no" value="0" {$no_rem}> <label for="index_rem">Nein</label><br />
+            <input type="submit" name="opt_reminder" value="speichern" id="reminder_button" />
+            </fieldset>
+          </form>
+          </div>
+    
+        </div>
+        </div><!--scene_ucp manage alert_item-->
+      <form action="usercp.php?action=scenetracker" method="post">
+      <div class="scene_ucp scenefilteroptions">
+        <h2>Filteroptions</h2>
+        <div class="scenefilteroptions__items">
+          <label for="charakter">Szenen anzeigen von: </label>{$selectchara}
+          <input type="hidden" value="{$thisuser}" name="uid" id="uid"/>
+        </div>	
+        <div class="scenefilteroptions__items">
+          <label for="status">Status der Szene:  </label>
+          <select name="status" id="status">
+            <option value="both" {$sel_s[\\\'both\\\']}>beides</option>
+              <option value="open" {$sel_s[\\\'open\\\']} >offen</option>
+            <option value="closed" {$sel_s[\\\'closed\\\']}>geschlossen</option>
+          </select>
+        </div>
+        <div class="scenefilteroptions__items">
+            <label for="move">Du bist dran: </label>
+            <select name="move" id="move">
+            <option value="beides" {$sel_m[\\\'beides\\\']}>beides</option>
+              <option value="ja" {$sel_m[\\\'ja\\\']}>ja</option>
+            <option value="nein" {$sel_m[\\\'nein\\\']}>nein</option>
+            
+          </select>
+        </div>
+        <div class="scenefilteroptions__items button">
+          <input type="submit" name="scenefilter" value="Szenen filtern" id="scenefilter" />
         </div>
       </div>
-     
-  
-      </div>
-    </div><!--scene_ucp container-->
-		
-    <script type="text/javascript" src="./jscripts/suggest.js"></script>
-
-    </td>
+        </form>
+        <div class="scene_ucp manage overview_item overview_con">
+          <div class="scene_ucp overview_item">
+          <h2>{$scenes_title}</h2>
+            <div class="scene_ucp overview_chara_con">
+          
+      
+            {$scenetracker_ucp_bit_chara} 
+            </div>
+          </div>
+         
+      
+          </div>
+        </div><!--scene_ucp container-->
+        
+        <script type="text/javascript" src="./jscripts/suggest.js"></script>
+        
+      </td>
     </tr>
     </table>
+    </form>
     {$footer}
-	
     </body>
-    
     </html>',
     "sid" => "-2",
     "version" => "1.0",
@@ -971,6 +968,14 @@ function scenetracker_add_templates()
       grid-column: -1;
   }
   
+  .scenetracker.scenebit.scenetracker_profil {
+    padding: 5px 10px;
+    display: flex;
+    flex-wrap: wrap;
+}
+.scenetracker_profil .scenetracker__sceneitem.scene_title {width: 100%;}
+
+.scenetracker_profil .scenetracker__sceneitem {padding: 0px 5px;}
   
   /*****************
   *Forumdisplay
