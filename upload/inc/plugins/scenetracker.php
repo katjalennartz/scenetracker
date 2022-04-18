@@ -66,9 +66,10 @@ function scenetracker_install()
   $db->add_column("threads", "scenetracker_user", "varchar(1500) NOT NULL");
   $db->add_column("threads", "scenetracker_trigger", "varchar(200) NOT NULL");
 
-  // Einfügen der Trackeroptionen in die user tabelle
-  $db->query("ALTER TABLE `" . TABLE_PREFIX . "users` ADD `tracker_index` INT(1) NOT NULL DEFAULT '1', ADD `tracker_reminder` INT(1) NOT NULL DEFAULT '1';");
 
+  // Einfügen der Trackeroptionen in die user tabelle
+  $db->query("ALTER TABLE `" . TABLE_PREFIX . "users` ADD `tracker_index` INT(1) NOT NULL DEFAULT '1', ADD `tracker_indexall` INT(1) NOT NULL DEFAULT '1', ADD `tracker_reminder` INT(1) NOT NULL DEFAULT '1';");
+// tracker_indexall
   //Neue Tabelle um Szenen zu speichern und informationen, wie die benachrichtigungen sein sollen.
   $db->write_query("CREATE TABLE `" . TABLE_PREFIX . "scenetracker` (
         `id` int(10) NOT NULL AUTO_INCREMENT,
@@ -190,6 +191,9 @@ function scenetracker_uninstall()
     $db->write_query("ALTER TABLE " . TABLE_PREFIX . "threads DROP scenetracker_trigger");
   }
   if ($db->field_exists("tracker_index", "users")) {
+    $db->write_query("ALTER TABLE " . TABLE_PREFIX . "users DROP tracker_index");
+  }
+  if ($db->field_exists("tracker_indexall", "users")) {
     $db->write_query("ALTER TABLE " . TABLE_PREFIX . "users DROP tracker_index");
   }
   if ($db->field_exists("tracker_reminder", "users")) {
