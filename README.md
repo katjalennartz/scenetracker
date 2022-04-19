@@ -2,6 +2,16 @@
 Readme ist in bearbeitung :)     
 Hier findet ihr einen weiteren Szenentracker für RPGs. Damit könnt ihr direkt beim Threaderstellen Teilnehemr, Ort und Datum, sowie auch eine Triggerwarnung eingeben. Die Szenen werden im Profil automatisch nach Datum sortiert angezeigt und können im Benutzer CP verwaltet werden. Es gibt verschiedene Benachrichtigungseinstellungen. 
 
+**Wichtiges TODO für die Darstellung im mybb Kalender:**. 
+suchen nach  
+```` 
+eval("\$day_bits .= \"".$templates->get("calendar_weekrow_thismonth")."\";");
+````
+darüber einfügen 
+````
+ $plugins->run_hooks("calendar_weekview_day");
+````
+
 **Benutzer CP**. (/usercp.php?action=scenetracker)  
 Hier findet der User 3 Einstellungen.  
  
@@ -16,7 +26,12 @@ Der User kann die Szenen ganz verschieden Filtern. Nach Charakteren, Status und 
 * *Verwaltung der Szenen*  
 Der User kann verschiedene Einstellungen vornehmen. Zum Beispiel ob die Szene im Profil angezeigt werden soll, ob und wann er benachrichtigt werden soll oder sie öffnen/schließen.
  
-  
+**Beiträge erstellen/bearbeiten**.    
+Es kann ein Datum und Zeit, Ort und bei Bedarf eine Triggerwarnung angegeben werden.    
+Teilnehmer können eingetragen werden, Benutzernamen werden automatisch vervollständig, es kann aber auch eine Info wie 'und weitere' hinzugefügt werden.    
+Charaktere, die auf den Beitrag antworten aber noch nicht als Teilnehmer eingetragen sind, können mit einem Häkchen bestimmen ob sie hinzugefügt werden wollen oder nicht. (Per Default auf hinzufügen).      
+
+**Index Anzeige**.
   
 **Was kann der Tracker:** 
 Szeneninfos im Thread hinzufügen (Zeit, Ort, Triggerwarnung, Teilnehmer)    
@@ -39,15 +54,7 @@ Außerdem gibt es im UCP viele Filtermöglichkeiten.
 (Szenen pro Charakter anzeigen, Szenen anzeigen wo man dran ist / nicht dran ist /geschlossen... etc. :D )   
 
 
-**Wichtig für Darstellung im mybb Kalender:**. 
-suchen nach  
-```` 
-eval("\$day_bits .= \"".$templates->get("calendar_weekrow_thismonth")."\";");
-````
-darüber einfügen 
-````
- $plugins->run_hooks("calendar_weekview_day");
-````
+
 
 **Demo**  
 
