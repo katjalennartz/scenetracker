@@ -136,6 +136,20 @@ function scenetracker_install()
       'value' => '0', // Default
       'disporder' => 5
     ),
+    'scenetracker_birhday' => array(
+      'title' => 'Geburtstagsfeld für Kalendar',
+      'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet oder das Standardgeburtstagsfeld?',
+      'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten",
+      'value' => '0', // Default
+      'disporder' => 5
+    ),
+    'scenetracker_birhdayfid' => array(
+      'title' => 'Geburtstagsfeld ID?',
+      'description' => 'Wenn der Geburtstags über ein Profilfeld angegben wird, bitte hier die ID eingeben.',
+      'optionscode' => 'text',
+      'value' => '0', // Default
+      'disporder' => 5
+    ),
     // 'scenetracker_profil_sort' => array( //TODO
     //   'title' => 'Profilanzeige',
     //   'description' => 'Sollen Szenen im Profil des Charakters nach Ingame und Archiv sortiert werden?',
@@ -623,7 +637,7 @@ function scenetracker_add_templates()
           <p>Hier kannst du alles rund um den Szenentracker anschauen und verwalten. Die Einstellungen für die Alerts
         kannst du <a href="alerts.php?action=settings">hier</a> vornehmen. Stelle hier erst einmal allgemein ein,
         ob du die Szenen auf dem Index angezeigt werden möchtest und ob du eine Meldung haben möchtest, wenn du in
-        einer Szene länger als 6 Wochen dran bist.
+        einer Szene länger als {$days_reminder} Tage(n) dran bist.
           </p>
           
         <div class="scene_ucp scenefilteroptions">
@@ -647,15 +661,7 @@ function scenetracker_add_templates()
             </fieldset>
             </form>
           </div>
-           <div class="scenefilteroptions__items">
-            <form action="usercp.php?action=scenetracker" method="post">
-            <fieldset><label for="reminder">Szenenerinnerung nach 6 Wochen?</label><br/>
-            <input type="radio" name="reminder" id="reminder_yes" value="1" {$yes_rem}> <label for="index_rem">Ja</label>
-            <input type="radio" name="reminder" id="reminder_no" value="0" {$no_rem}> <label for="index_rem">Nein</label><br />
-            <input type="submit" name="opt_reminder" value="speichern" id="reminder_button" />
-            </fieldset>
-          </form>
-          </div>
+          {$ucp_main_reminderopt}
     
         </div>
         </div><!--scene_ucp manage alert_item-->
@@ -702,7 +708,7 @@ function scenetracker_add_templates()
           </div>
         </div><!--scene_ucp container-->
         
-        <script type="text/javascript" src="./jscripts/suggest.js"></script>
+     
         
       </td>
     </tr>
@@ -752,343 +758,360 @@ function scenetracker_add_templates()
     'attachedto' => '',
     "stylesheet" =>    '
     :root {
-      --main-red: #a02323;
-      --dark-grey-back: #b1b1b1;
-      --lighter-grey: #c5c5c5;
-      --light-grey-back: #bcbcbc;
-      --darkest-grey: #898989;
-  }
-  
-  /* **********
-  * Showthread
-  ******** */
-  .scenetracker_user {
-    display:inline-block;
-  }
-  .scenetracker_user:after {
-    content: ", ";
-  }
-  .scenetracker_user:last-child:after {
-    content: none;
-  }
-  
-  .breadcrumbs li {
-    display: inline-block;
-  }
-  .breadcrumbs li:after {
-    content: ">";
-    margin-left: 10px;
-  }
-  .breadcrumbs li:last-child:after {
-    content: none;
-  }
-  
-  /* **********
-  *POP UP
-  ******** */
-  .trackerpop { 
-    position: fixed; 
-    top: 0; 
-    right: 0; 
-    bottom: 0; 
-    left: 0; 
-    background: hsla(0, 0%, 0%, 0.5); 
-    z-index: 9; 
-    opacity:0; 
-    -webkit-transition: .5s ease-in-out; 
-    -moz-transition: .5s ease-in-out; 
-    transition: .5s ease-in-out; 
-    pointer-events: none; 
-  } 
-  
-  .trackerpop:target {
-    opacity:1;
-    pointer-events: auto;
-    z-index: 20;
-  } 
-  
-  .trackerpop > .pop {
-    background: #aaaaaa;
-    width: 200px;
-    position: relative;
-    margin: 10% auto;
-    padding: 15px;
-    z-index: 50;
-    text-align: center;
-  } 
-  
-  .trackerclosepop { 
-    position: absolute; 
-    right: -5px; 
-    top:-5px; 
-    width: 100%; 
-    height: 100%; 
-    z-index: 10; 
-  }
-  
-  .trackerpop input[type="submit"] {
-    background-color: var(--darkest-grey);
-    border: none;
-    color: white;
-    padding: 8px 20px;
-    text-decoration: none;
-    margin-top: 10px;
-    cursor: pointer;
-  }
-  
-  /* **********
-  * UCP
-  ******** */
-  .scene_ucp.container.alerts {
+      --background-light: #bcbcbc;
+      --background-dark: #898989;
+    }
+    
+    /* **********
+    * Showthread
+    ******** */
+    .scenetracker_user {
+      display:inline-block;
+    }
+    .scenetracker_user:after {
+      content: ", ";
+    }
+    .scenetracker_user:last-child:after {
+      content: none;
+    }
+    
+    .breadcrumbs li {
+      display: inline-block;
+    }
+    .breadcrumbs li:after {
+      content: ">";
+      margin-left: 10px;
+    }
+    .breadcrumbs li:last-child:after {
+      content: none;
+    }
+    
+    /* **********
+    *POP UP
+    ******** */
+    .trackerpop { 
+      position: fixed; 
+      top: 0; 
+      right: 0; 
+      bottom: 0; 
+      left: 0; 
+      background: hsla(0, 0%, 0%, 0.5); 
+      z-index: 9; 
+      opacity:0; 
+      -webkit-transition: .5s ease-in-out; 
+      -moz-transition: .5s ease-in-out; 
+      transition: .5s ease-in-out; 
+      pointer-events: none; 
+    } 
+    
+    .trackerpop:target {
+      opacity:1;
+      pointer-events: auto;
+      z-index: 20;
+    } 
+    
+    .trackerpop > .pop {
+      background: var(--background-dark);
+      width: 200px;
+      position: relative;
+      margin: 10% auto;
+      padding: 15px;
+      z-index: 50;
+      text-align: center;
+    } 
+    
+    .trackerclosepop { 
+      position: absolute; 
+      right: -5px; 
+      top:-5px; 
+      width: 100%; 
+      height: 100%; 
+      z-index: 10; 
+    }
+    
+    .trackerpop input[type="submit"] {
+      background-color: var(--background-light);
+      border: none;
+      color: white;
+      padding: 8px 20px;
+      text-decoration: none;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    
+    /* **********
+    * UCP
+    ******** */
+    .scene_ucp.container.alerts {
       display: flex;
       justify-content: space-around;
-  }
-  .scene_ucp.alerts_item {
+    }
+    .scene_ucp.alerts_item {
       display: block;
       width: 48%;
-  }
-  
-  .scene_ucp.overview_chara_con {
+    }
+    
+    .scene_ucp.overview_chara_con {
       display: grid;
       grid-template-columns: 49% 49%;
-  }
-  
-  .scene_ucp.chara_item__scenes-con {
+    }
+    
+    .scene_ucp.chara_item__scenes-con {
       max-height: 120px;
       overflow: auto;
       margin: 5px;
       margin-top:0px;
-  }
-  
-  .scene_ucp.chara_item__scene {
-     padding: 8px;
-  }
-  
-  .scene_ucp.chara_item__scene:nth-child(even) {
-      background-color: var(--dark-grey-back);
-  }
-  
-  .scene_ucp.chara_item__scene:nth-child(odd) {
-    background-color: var(--lighter-grey);
-  }
-  
-  .scene_ucp > h2 {
-    position: relative;
-  }
-  
-  .scene_ucp > h2::after {
-    content: " ";
-    display: block;
-    position: relative;
-    height: 1px;
-    background: black;
-    top: 0px;
-  }
-  
-  .sceneucp__scenebox {
+    }
+    
+    .scene_ucp.chara_item__scene {
+      padding: 8px;
+    }
+    
+    .scene_ucp.chara_item__scene:nth-child(even) {
+      background-color: var(--background-dark);
+    }
+    
+    .scene_ucp.chara_item__scene:nth-child(odd) {
+      background-color: var(--background-light);
+    }
+    
+    .scene_ucp > h2 {
+      position: relative;
+    }
+    
+    .scene_ucp > h2::after {
+      content: " ";
+      display: block;
+      position: relative;
+      height: 1px;
+      background: black;
+      top: 0px;
+    }
+    
+    .sceneucp__scenebox {
       display: grid;
       grid-template-columns: 1fr 1fr;
-  }
-  
-  .sceneucp__sceneitem.scene_status,{
+    }
+    
+    .sceneucp__sceneitem.scene_status{
       grid-column-start: 1 ;
-  }
-  .sceneucp__sceneitem.scene_profil {
-    grid-column-start: span 2;
-  }
-  .sceneucp__sceneitem.scene_alert.certain,
-  .sceneucp__sceneitem.sceneinfos,
-  .sceneucp__sceneitem.scene_alert.always,
-  .sceneucp__sceneitem.scene_title,
-  .sceneucp__sceneitem.scene_last,
-  .sceneucp__sceneitem.scene_users,
-  .sceneucp__sceneitem.scene_infos {
-      grid-column-start: span 3;
-  }
-  
-  .sceneucp__sceneitem.scene_infos {
+    }
+    
+    .sceneucp__sceneitem.scene_profil {
+      grid-column-start: span 2;
+    }
+    
+    .scenetracker.scenebit.scenetracker_profil {
+      padding: 5px 10px;
       display: flex;
-  }
-  
-  .sceneucp__sceneitem > .flexitem {
+      flex-wrap: wrap;
+    }
+    
+    .scenetracker_profil .scenetracker__sceneitem.scene_title {
+      width: 100%;
+    }
+    
+    .scenetracker_profil .scenetracker__sceneitem {
+      padding: 0px 5px;
+    }
+    
+    .sceneucp__sceneitem.scene_alert.certain,
+    .sceneucp__sceneitem.sceneinfos,
+    .sceneucp__sceneitem.scene_alert.always,
+    .sceneucp__sceneitem.scene_title,
+    .sceneucp__sceneitem.scene_last,
+    .sceneucp__sceneitem.scene_users,
+    .sceneucp__sceneitem.scene_infos {
+      grid-column-start: span 3;
+    }
+    
+    .sceneucp__sceneitem.scene_infos {
+      display: flex;
+    }
+    
+    .sceneucp__sceneitem > .flexitem {
       padding: 3px;
-  }
-  .sceneucp__sceneitem > .flexitem.left {
+    }
+    .sceneucp__sceneitem > .flexitem.left {
       width: 40%;
-  }
-  .sceneucp__sceneitem.scene_title a:after { 
+    }
+    .sceneucp__sceneitem.scene_title a:after { 
       content: "";
       display: block;
       margin-top: -5px;
       height: 1px;
       background: black;
-  }
-  
-  
-  /*****************
-  **PROFIL
-  *****************/ 
-  .scenetracker.container {width: 90%;height: 400px;overflow: auto;margin: auto auto;background: #c7c7c7;padding: 10px;}
-  
-  span.scentracker.month {
-    margin-top:10px;
+    }
+    
+    
+    /*****************
+    **PROFIL
+    *****************/ 
+    .scenetracker.container {
+      width: 90%;
+      height: 400px;
+      overflow: auto;
+      margin: auto auto;
+      background: var(--background-light);
+      padding: 10px;
+    }
+    
+    span.scentracker.month {
+      margin-top:10px;
       width: 90%;
       font-weight: 600;
       font-size: 1.3em;
       border-bottom: 1px solid black;
       display: block;
-  }
-  
-  .scenetracker.scenebit {
+    }
+    
+    .scenetracker.scenebit {
       padding-left: 10px;
       padding-right:20px;
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-  }
-  
-  .scenetracker__sceneitem.scene_users {
+    }
+    
+    .scenetracker__sceneitem.scene_users {
       grid-column: 1 / -2;
       grid-row: 2;
-  }
-  
-  .scenetracker__sceneitem.scene_title {
+    }
+    
+    .scenetracker__sceneitem.scene_title {
       grid-column: 1 / 2;
       grid-row: 2;
-  }
-  
-  .scenetracker__sceneitem.scene_status {
-
-  }
-  
-  .scenetracker__sceneitem.scene_date {
-
-  }
-  .scenetracker__sceneitem.scene_hide {
+    }
+    
+    .scenetracker__sceneitem.scene_status {
+    
+    }
+    
+    .scenetracker__sceneitem.scene_date {
+    
+    }
+    .scenetracker__sceneitem.scene_hide {
       grid-row: 2;
       grid-column: -1;
-  }
-  
-  .scenetracker.scenebit.scenetracker_profil {
-    padding: 5px 10px;
-    display: flex;
-    flex-wrap: wrap;
-}
-.scenetracker_profil .scenetracker__sceneitem.scene_title {width: 100%;}
-
-.scenetracker_profil .scenetracker__sceneitem {padding: 0px 5px;}
-  
-  /*****************
-  *Forumdisplay
-  *****************/ 
-  
-  .scenetracker_forumdisplay.scene_infos {
+    }
+    
+    
+    /*****************
+    *Forumdisplay
+    *****************/ 
+    
+    .scenetracker_forumdisplay.scene_infos {
       display: grid;
       grid-template-columns: 1fr 2fr;
-  
-  }
-  
-  .scenetracker_forumdisplay.scene_users.icon {
+    }
+    
+    .scenetracker_forumdisplay.scene_users.icon {
       grid-column: span 2;
-  }
-  
-  /*********************
-  *INDEX
-  *********************/
-  
-  .scenetracker_index.character.container {
+    }
+    
+    /*********************
+    *INDEX
+    *********************/
+    
+    .scenetracker_index.character.container {
       /* display: grid; */
       width: 100%;
       max-height: 150px;
       overflow: auto;
-  }
-  
-  .scenetracker_index.wrapper_container{
+    }
     
-  }
-  .scenetracker_index.chara_item__scene:nth-child(even) {
-      background-color: var(--dark-grey-back);
-  }
-  
-  .scenetracker_index h1 {
-    position:relative;
-    font-size: 1.5em;
-    z-index: 20;
-    margin-bottom: 5px;
-    padding-left:15px;
-  }
-  
-  .scenetracker_index h1:after {
-    content: " ";
-    display: block;
-    height: 1px;
-    background: black;
-    margin-top:-10px;
-    margin-bottom:-5px;
-  }
-  
-  .scenetracker_index.chara_item__scene:nth-child(odd) {
-    background-color: var(--lighter-grey);
-    width: 100%;
-  }
-  
-  .sceneindex__scenebox.container {
-    /* width:100%; */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .sceneindex__sceneitem.scene_users {
+    .scenetracker_index.wrapper_container{
+      background-color: var(--background-dark);
+      padding: 10px
+    }
+    
+    .scenetracker_index.chara_item__scene:nth-child(even) {
+      background-color: var(--background-dark);
+    }
+    
+    .scenetracker_index h1 {
+      position:relative;
+      font-size: 1.5em;
+      z-index: 20;
+      margin-bottom: 5px;
+      padding-left:15px;
+    }
+    
+    .scenetracker_index h1:after {
+      content: " ";
+      display: block;
+      height: 1px;
+      background: black;
+      margin-top:-10px;
+      margin-bottom:-5px;
+    }
+    
+    .scenetracker_index.chara_item__scene:nth-child(odd) {
+      background-color: var(--background-light);
+      width: 100%;
+    }
+    
+    .sceneindex__scenebox.container {
+      /* width:100%; */
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .sceneindex__sceneitem.scene_users {
       grid-column: 1 / -1;
-  }
-  .sceneindex__sceneitem.scene_title {
+    }
+    .sceneindex__sceneitem.scene_title {
       padding-top: 5px;
       font-weight: 600;
       grid-row: 1;
       grid-column: 1;
-  }
-  .sceneindex__sceneitem.scene_status.scene_place {
+    }
+    .sceneindex__sceneitem.scene_status.scene_place {
       grid-column: 3;
       grid-row: 1;
-  }
-  .sceneindex__sceneitem.scene_place.scene_date {
+    }
+    .sceneindex__sceneitem.scene_place.scene_date {
       grid-column: 1 / -1;
       grid-row: 2;
-  }
-  
-  .sceneindex__sceneitem.scene_last {
+    }
+    
+    .sceneindex__sceneitem.scene_last {
       grid-row: 1;
       grid-column: 2;
-  }
-  
-  .sceneindex__sceneitem.scene_alert {
+    }
+    
+    .sceneindex__sceneitem.scene_alert {
       grid-column: 4;
       grid-row: span 2;
       margin-right: 10px;
-  }
-  
-  .sceneindex__sceneitem.scene_last {
+    }
+    
+    .sceneindex__sceneitem.scene_last {
       padding-top: 5px;
-  }
-  
-  /*INDEX REMINDER */ 
-  .scenetracker_reminder.box {
-    margin-bottom: 20px;
-  }
-  
-  .scenetracker_reminder.container {
+    }
+    
+    /*INDEX REMINDER */ 
+    .scenetracker_reminder.box {
+      margin-bottom: 20px;
+    }
+    
+    .scenetracker_reminder.container {
       max-height: 100px;
       overflow: auto;
       padding-left: 30px;
-  }
-  
-  .scenetracker_reminder.item:before {
-    content: "» ";
-  }
-  
-  span.senetracker_reminder.text {
+    }
+    
+    .scenetracker_reminder.item:before {
+      content: "» ";
+    }
+    
+    span.senetracker_reminder.text {
       text-align: center;
       display: block;
-  }
+    }
+    
+    .scenetracker_index.character_box {
+      background-color: var(--background-dark);
+    }    
     ',
     'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
     'lastmodified' => time()
@@ -1584,8 +1607,8 @@ function scenetracker_showthread_showtrackerstuff()
                   <input type=\"time\" id=\"scenetracker_time\" name=\"scenetracker_time\" value=\"{$scenetracker_time}\" />
                   <input type=\"text\" name=\"scenetrigger\" id=\"scenetrigger\" placeholder=\"Triggerwarnung\" value=\"{$scenetriggerinput}\" />
                   <input type=\"text\" name=\"sceneplace\" id=\"sceneplace\" placeholder=\"Ort\" value=\"{$sceneplace}\" />
-                  <button name=\"edit_sceneinfos\" id=\"edit_sceneinfos\">Submit</button>
-            </form>
+                  
+            </form><button name=\"edit_sceneinfos\" id=\"edit_sceneinfos\">Submit</button>
             <script src=\"./jscripts/scenetracker.js\"></script>
             <script type=\"text/javascript\" src=\"./jscripts/suggest.js\"></script>
         </div>
@@ -1664,6 +1687,22 @@ function scenetracker_usercp()
   }
 
   // scenetracker_ucp_bit_scene
+  $days_reminder =  $mybb->settings['scenetracker_reminder'];
+  if ($days_reminder != 0) {
+    $ucp_main_reminderopt = "  <div class=\"scenefilteroptions__items\">
+  <form action=\"usercp.php?action=scenetracker\" method=\"post\">
+  <fieldset><label for=\"reminder\">Szenenerinnerung nach {$days_reminder} Tage(n)?</label><br/>
+  <input type=\"radio\" name=\"reminder\" id=\"reminder_yes\" value=\"1\" {$yes_rem}> 
+  <label for=\"index_rem\">Ja</label>
+  <input type=\"radio\" name=\"reminder\" id=\"reminder_no\" value=\"0\" {$no_rem}> 
+  <label for=\"index_rem\">Nein</label><br />
+  <input type=\"submit\" name=\"opt_reminder\" value=\"speichern\" id=\"reminder_button\" />
+  </fieldset>
+</form>
+</div>";
+  } else {
+    $ucp_main_reminderopt = "";
+  }
 
   //welcher user ist online
   //get all charas of this user
@@ -2025,7 +2064,9 @@ function scenetracker_showinprofile()
 
     $scenedate = date('d.m.Y - H:i', strtotime($scenes['scenetracker_date']));
     if ($dateYear != date('m.Y', strtotime($scenes['scenetracker_date']))) {
-      $scenedatetitle = strftime('%B %Y', strtotime($scenes['scenetracker_date']));
+      $scenedatetitle = date('F Y', strtotime($scenes['scenetracker_date']));
+      // TODO CHECK
+      // $scenedatetitle = strftime('%B %Y', strtotime($scenes['scenetracker_date']));
       eval("\$scenetracker_profil_bit_mY = \"" . $templates->get("scenetracker_profil_bit_mY") . "\";");
       $dateYear = date('m.Y', strtotime($scenes['scenetracker_date']));
     } else {
@@ -2161,7 +2202,7 @@ function scenetracker_reminder()
 
 
 /***
- * shows Scenes in calendar
+ * shows Scenes and events and birthdays in calendar
  * /***
  * Darstellung der Szenen im mybb Kalendar 
  * ACHTUNG! diese Funktion geht nur, wenn die Anleitung zum Hinzufügen des Hakens für die Funktion
@@ -2187,11 +2228,23 @@ function scenetracker_calendar()
     //wir müssen das Datum in das gleiche format wie den geburtstag bekommen
     $datetoconvert = "{$daynew}.{$monthzero}.{$year}";
     $timestamp = strtotime($datetoconvert);
-    $converteddate = date("d.m", $timestamp);
-    // echo $converteddate;
-    $get_birthdays = $db->write_query("
-      SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid4 LIKE '{$converteddate}%'");
 
+    // echo $converteddate;
+    $setting_birhtday = $mybb->settings['scenetracker_birhday'];
+    if ($setting_birhtday == "fid") {
+      $converteddate = date("d.m", $timestamp);
+      $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
+      $get_birthdays = $db->write_query("
+      SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE ".$setting_fid." LIKE '{$converteddate}%'");
+    } elseif ($setting_birhtday == "standard") {
+      // 9-4-1987
+      $converteddate = date("d-m", $timestamp);
+      //convert date setting_fid 
+      $get_birthdays = $db->write_query("
+      SELECT username, uid FROM " . TABLE_PREFIX ."users WHERE birthday LIKE '{$converteddate}%'");
+      // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
+
+    }
 
     $scenes = $db->write_query("
     SELECT *, TIME_FORMAT(scenetracker_date, '%H:%i') scenetime FROM " . TABLE_PREFIX . "threads WHERE scenetracker_date LIKE '{$year}-{$monthzero}-{$daynew}%' and scenetracker_user LIKE '%{$username}%'");
@@ -2257,11 +2310,9 @@ function scenetracker_minicalendar()
   $username = $db->escape_string($mybb->user['username']);
   $ingame =  explode(",", str_replace(" ", "", $mybb->settings['scenetracker_ingametime']));
   foreach ($ingame as $monthyear) {
-    // echo "Blubber";
     $ingamelastday = $monthyear . "-" .  sprintf("%02d", $enddate_ingame);
   }
   $ingamefirstday = $ingame[0] . "-" . sprintf("%02d", $startdate_ingame);
-  // echo "first {$ingamefirstday} last {$ingamelastday}";
   foreach ($ingame as $monthyear) {
     $kal_datum = strtotime($monthyear . "-01");
 
@@ -2275,7 +2326,11 @@ function scenetracker_minicalendar()
     $kal_ende_tag = date("N", mktime(0, 0, 0, date("n", $kal_datum), $kal_tage_gesamt, date("Y", $kal_datum)));
 
     //Monat Jahr
-    $kal_title = strftime("%B %Y", $kal_datum);
+    // $scenedatetitle = date('%F %Y', strtotime($scenes['scenetracker_date']));
+    //TODO TESTEN
+    $kal_title = date('F Y', strtotime($kal_datum));
+
+    // $kal_title = strftime("%B %Y", $kal_datum);
     $kal_day = "";
     $kal_day .= "<div class=\"date-grid\"  style=\"grid-template-columns: repeat(7, 1fr);\">";
     //Tage bis zum wochenstart, also wieviele tage der woche sind noch im vormonat
@@ -2301,9 +2356,21 @@ function scenetracker_minicalendar()
       $timestamp = strtotime($datetoconvert);
       $converteddate = date("d.m", $timestamp);
       // echo $converteddate;
-      $get_birthdays = $db->write_query("
-      SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid4 LIKE '{$converteddate}%'");
-
+      $setting_birhtday = $mybb->settings['scenetracker_birhday'];
+      if ($setting_birhtday == "fid") {
+        $converteddate = date("d.m", $timestamp);
+        $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
+        $get_birthdays = $db->write_query("
+        SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE ".$setting_fid." LIKE '{$converteddate}%'");
+      } elseif ($setting_birhtday == "standard") {
+        // 9-4-1987
+        $converteddate = date("d-m", $timestamp);
+        //convert date setting_fid 
+        $get_birthdays = $db->write_query("
+        SELECT username, uid FROM " . TABLE_PREFIX ."users WHERE birthday LIKE '{$converteddate}%'");
+        // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
+  
+      }
       $get_events = $db->write_query("
       SELECT * FROM " . TABLE_PREFIX . "events WHERE DATE_FORMAT(FROM_UNIXTIME(starttime), '%Y-%m-%d') LIKE '{$datetoconvert}%'");
       //SELECT DATE_FORMAT(FROM_UNIXTIME(starttime), '%Y-%m-%d') FROM " . TABLE_PREFIX . "events
