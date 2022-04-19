@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MyBB Patches exported 2022-04-19T19:48:15+02:00 -->
+<array>
+  <element>
+    <key>calendar.php</key>
+    <value>
+      <array>
+        <element>
+          <key type="INT">0</key>
+          <value>
+            <array>
+              <element>
+                <key>ptitle</key>
+                <value>addhook for day</value>
+              </element>
+              <element>
+                <key>pdescription</key>
+                <value>Für den Szenentracker, damit szenen im kalender angezeigt werden</value>
+              </element>
+              <element>
+                <key>psearch</key>
+                <value><![CDATA[eval("\$day_bits .= \"".$templates->get("calendar_weekrow_thismonth")."\";");]]></value>
+              </element>
+              <element>
+                <key>pbefore</key>
+                <value><![CDATA[$plugins->run_hooks("calendar_weekview_day");]]></value>
+              </element>
+              <element>
+                <key>pafter</key>
+                <value></value>
+              </element>
+              <element>
+                <key>preplace</key>
+                <value type="BOOL"></value>
+              </element>
+              <element>
+                <key>pmulti</key>
+                <value type="BOOL"></value>
+              </element>
+              <element>
+                <key>pnone</key>
+                <value type="BOOL"></value>
+              </element>
+            </array>
+          </value>
+        </element>
+      </array>
+    </value>
+  </element>
+</array>
+<!-- End of file. -->
