@@ -2231,19 +2231,22 @@ function scenetracker_calendar()
 
     // echo $converteddate;
     $setting_birhtday = $mybb->settings['scenetracker_birhday'];
-    if ($setting_birhtday == "fid") {
+    if ($setting_birhtday == "0") {
       $converteddate = date("d.m", $timestamp);
       $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
       $get_birthdays = $db->write_query("
       SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE ".$setting_fid." LIKE '{$converteddate}%'");
-    } elseif ($setting_birhtday == "standard") {
+      $birth_num = $db->num_rows($get_birthdays);
+    } elseif ($setting_birhtday == "1") {
       // 9-4-1987
       $converteddate = date("d-m", $timestamp);
       //convert date setting_fid 
       $get_birthdays = $db->write_query("
       SELECT username, uid FROM " . TABLE_PREFIX ."users WHERE birthday LIKE '{$converteddate}%'");
       // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
-
+      $birth_num = $db->num_rows($get_birthdays);
+    } else {
+      $birth_num = 0;
     }
 
     $scenes = $db->write_query("
@@ -2254,7 +2257,7 @@ function scenetracker_calendar()
     $birthday_show = "";
     $birthday_ouput = "";
     $birthday_in = "";
-    if ($db->num_rows($scenes) > 0 || $db->num_rows($get_birthdays) > 0) {
+    if ($db->num_rows($scenes) > 0 || $num_rows > 0) {
       if ($db->num_rows($scenes) > 0) {
         $szene = "<a onclick=\"$('#day{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Szenen]</a>";
         $scene_ouput = " {$szene}
@@ -2274,7 +2277,7 @@ function scenetracker_calendar()
         $scene_ouput .= "{$scene_in}</div>";
       }
 
-      if ($db->num_rows($get_birthdays) > 0) {
+      if ($birth_num > 0) {
         $birthday_show = "<a onclick=\"$('#day{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Geburtstage]</a>";
         $birthday_ouput = " {$birthday_show}
       <div class=\"modal\" id=\"day{$day}\" style=\"display: none; padding: 10px; margin: auto; text-align: center;\">
@@ -2355,21 +2358,27 @@ function scenetracker_minicalendar()
       //original date is in format YYYY-mm-dd
       $timestamp = strtotime($datetoconvert);
       $converteddate = date("d.m", $timestamp);
-      // echo $converteddate;
+
       $setting_birhtday = $mybb->settings['scenetracker_birhday'];
-      if ($setting_birhtday == "fid") {
+   
+      if ($setting_birhtday == "0") { //fid ist eingestellt
+        echo "fid". $converteddate;
         $converteddate = date("d.m", $timestamp);
         $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
         $get_birthdays = $db->write_query("
         SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE ".$setting_fid." LIKE '{$converteddate}%'");
-      } elseif ($setting_birhtday == "standard") {
+        $birth_num = $db->num_rows($get_birthdays);
+      } elseif ($setting_birhtday == "1") {
         // 9-4-1987
         $converteddate = date("d-m", $timestamp);
+
         //convert date setting_fid 
         $get_birthdays = $db->write_query("
         SELECT username, uid FROM " . TABLE_PREFIX ."users WHERE birthday LIKE '{$converteddate}%'");
         // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
-  
+        $birth_num = $db->num_rows($get_birthdays);
+      } else {
+        $birth_num=0;
       }
       $get_events = $db->write_query("
       SELECT * FROM " . TABLE_PREFIX . "events WHERE DATE_FORMAT(FROM_UNIXTIME(starttime), '%Y-%m-%d') LIKE '{$datetoconvert}%'");
@@ -2382,14 +2391,14 @@ function scenetracker_minicalendar()
         $sceneshow = "";
         $birthdayshow = "";
         $eventshow = "";
-        if ($db->num_rows($scenes) > 0 || $db->num_rows($get_birthdays) > 0 || $db->num_rows($get_events) > 0) {
+        if ($db->num_rows($scenes) > 0 || $birth_num > 0 || $db->num_rows($get_events) > 0) {
           if ($db->num_rows($scenes) > 0) {
             $sceneshow = "<span class=\"st_mini_scene_title\">Szenen</span>";
             while ($scene = $db->fetch_array($scenes)) {
               $sceneshow .= "<div class=\"st_mini_scenelink\"><span class=\"raquo\">&raquo;</span> <a href=\"showthread.php?tid={$scene['tid']}\">{$scene['subject']}</a> ({$scene['scenetime']})</div>";
             }
           }
-          if ($db->num_rows($get_birthdays) > 0) {
+          if ($birth_num > 0) {
             $birthdayshow = "<span class=\"st_mini_scene_title\">Geburtstage</span>";
             while ($birthday = $db->fetch_array($get_birthdays)) {
               $birthdayshow .= "<div class=\"st_mini_scenelink\">" . build_profile_link($birthday['username'], $birthday['uid']) . "</div>";
