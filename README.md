@@ -2,7 +2,11 @@
 Readme ist in bearbeitung :)     
 Hier findet ihr einen weiteren Szenentracker für RPGs. Damit könnt ihr direkt beim Threaderstellen Teilnehemr, Ort und Datum, sowie auch eine Triggerwarnung eingeben. Die Szenen werden im Profil automatisch nach Datum sortiert angezeigt und können im Benutzer CP verwaltet werden. Es gibt verschiedene Benachrichtigungseinstellungen. 
 
-**Wichtiges TODO für die Darstellung im mybb Kalender:**. 
+**Wichtiges TODO für die Darstellung im mybb Kalender:**.      
+empfohlen wird hier die Bearbeitung über Patches :) Ihr findet eine xml datei für den direkten import in patches, ansonsten hier aber auch die Änderungen, um sie manuell durchführen zu können:
+
+
+calendar.php 
 suchen nach  
 ```` 
 eval("\$day_bits .= \"".$templates->get("calendar_weekrow_thismonth")."\";");
@@ -32,27 +36,12 @@ Teilnehmer können eingetragen werden, Benutzernamen werden automatisch vervolls
 Charaktere, die auf den Beitrag antworten aber noch nicht als Teilnehmer eingetragen sind, können mit einem Häkchen bestimmen ob sie hinzugefügt werden wollen oder nicht. (Per Default auf hinzufügen).      
 
 **Index Anzeige**.
-  
-**Was kann der Tracker:** 
-Szeneninfos im Thread hinzufügen (Zeit, Ort, Triggerwarnung, Teilnehmer)    
-Alerts bei neuer Antwort (Einstellungsmöglichkeit: Nie, bei Antwort eines bestimmten Users, immer) 
-Anzeige der Szenen in einem Minikalener 
-Anzeigen der Szenen im Mybb Kalender (Achtung dazu weiter unten Anleitung zu beachten!)  
-Alle Szenenteilnehmer können Szenen schließen/öffnen.   
-Alle Szenenteilnehmer können die Szeneninfos bearbeiten.   
-  
+Auf dem Index über dem Footer, werden die Szenen des Spielers angezeigt, je nach Einstellung im User CP.     
+Auch hier können direkt die wichtigsten Einstellungen vorgenommen werden      
+
 **Anzeige der Szenen im Profil:**.  
 Sortiert nach Szenendatum. 
 Szenen können auf Wunsch ausgeblendet werden.
-  
-**Verwaltung/Übersicht der Szenen** im UCP.  
-User können einstellen:  
-Szenenübersicht auf der Indexseite?  
-Szenen aller Charaktere auf dem Index anzeigen?  
-Szenen Erinnerung?  
-Außerdem gibt es im UCP viele Filtermöglichkeiten.  
-(Szenen pro Charakter anzeigen, Szenen anzeigen wo man dran ist / nicht dran ist /geschlossen... etc. :D )   
-
 
 
 
