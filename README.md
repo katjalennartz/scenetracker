@@ -3,6 +3,7 @@ Readme ist in bearbeitung :)
 Hier findet ihr einen weiteren Szenentracker für RPGs. Damit könnt ihr direkt beim Threaderstellen Teilnehemr, Ort und Datum, sowie auch eine Triggerwarnung eingeben. Die Szenen werden im Profil automatisch nach Datum sortiert angezeigt und können im Benutzer CP verwaltet werden. Es gibt verschiedene Benachrichtigungseinstellungen. 
 
 **Wichtiges TODO für die Darstellung im mybb Kalender:**.      
+Damit Szenen und Geburtstage direkt im Kalender von MyBB angezeigt werden können, ist diese Änderung **zwingend** nötig.  
 empfohlen wird hier die Bearbeitung über Patches :) Ihr findet eine xml datei für den direkten import in patches, ansonsten hier aber auch die Änderungen, um sie manuell durchführen zu können:
 
 
@@ -16,6 +17,10 @@ darüber einfügen
  $plugins->run_hooks("calendar_weekview_day");
 ````
 
+**Mini Kalendaer**  
+Einbindung im Footer oder im Header über
+{$scenetracker_calendar} 
+    
 **Benutzer CP**. (/usercp.php?action=scenetracker)  
 Hier findet der User 3 Einstellungen.  
  
