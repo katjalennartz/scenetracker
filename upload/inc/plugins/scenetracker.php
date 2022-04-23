@@ -31,7 +31,8 @@ function scenetracker_info()
 {
   return array(
     "name" => "Szenentracker von Risuena",
-    "description" => "Automatischer Tracker, mit Benachrichtigungseinstellung, Indexanzeige und Reminder",
+    "description" => "Automatischer Tracker, mit Benachrichtigungseinstellung, (Mini-)Kalender, Indexanzeige und Reminder.<br/>
+      <b style=\"color: red;\">Achtung</b> Bitte die Infos in der <b>readme</b> beachten, um Szenen im Kalendar angezeigt zu bekommen.",
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
@@ -58,7 +59,6 @@ function scenetracker_install()
   } else {
     $db->write_query("ALTER TABLE " . TABLE_PREFIX . "threads ADD `threadsolved` INT(1) NOT NULL DEFAULT '0'");
   }
-
 
   // Einfügen der Trackerfelder in die Threadtabelle
   $db->add_column("threads", "scenetracker_date", "datetime NOT NULL");
@@ -87,7 +87,7 @@ function scenetracker_install()
   $setting_group = array(
     'name' => 'scenetracker',
     'title' => 'Szenentracker',
-    'description' => 'Einstellungen für Risuenas Szenentracker',
+    'description' => 'Einstellungen für Risuenas Szenentracker.<br/> <b>Achtung</b> Bitte die Infos in der Readme beachten um Szenen im Kalendar angezeigt zu bekommen.',
     'disporder' => 7, // The order your setting group will display
     'isdefault' => 0
   );
@@ -145,7 +145,7 @@ function scenetracker_install()
     ),
     'scenetracker_birhdayfid' => array(
       'title' => 'Geburtstagsfeld ID?',
-      'description' => 'Wenn der Geburtstags über ein Profilfeld angegben wird, bitte hier die ID eingeben.',
+      'description' => 'Wenn der Geburtstags über ein Profilfeld angegeben wird, bitte hier die ID eingeben.',
       'optionscode' => 'text',
       'value' => '0', // Default
       'disporder' => 5
@@ -698,18 +698,11 @@ function scenetracker_add_templates()
           <div class="scene_ucp overview_item">
           <h2>{$scenes_title}</h2>
             <div class="scene_ucp overview_chara_con">
-          
-      
             {$scenetracker_ucp_bit_chara} 
             </div>
           </div>
-         
-      
           </div>
         </div><!--scene_ucp container-->
-        
-     
-        
       </td>
     </tr>
     </table>
@@ -721,10 +714,22 @@ function scenetracker_add_templates()
     "version" => "1.0",
     "dateline" => TIME_NOW
   );
-
   $template[20] = array(
     "title" => 'scenetracker_calendar',
     "template" => '
+    
+    <div class="calendar-container">
+    {$scenetracker_calendar_bit}
+    </div>
+   ',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
+  $template[21] = array(
+    "title" => 'scenetracker_calendar_bit',
+    "template" => '
+    
     <div class="calendar">
     <div class="month-indicator">
       <div> {$kal_title}</div>
@@ -1096,12 +1101,12 @@ function scenetracker_add_templates()
     
     .scenetracker_reminder.container {
       max-height: 100px;
-      overflow: auto;
+      overflow: auto
       padding-left: 30px;
     }
     
     .scenetracker_reminder.item:before {
-      content: "» ";
+      content: "Ã‚Â» ";
     }
     
     span.senetracker_reminder.text {
@@ -1112,6 +1117,124 @@ function scenetracker_add_templates()
     .scenetracker_index.character_box {
       background-color: var(--background-dark);
     }    
+
+/*calendar*/ 
+
+.calendar-container {
+    display: flex;
+    justify-content: center;
+	gap: 20px;
+}
+ 
+.calendar {
+  background-color: var(--dark-slate-gray-50);
+  width: 205px;
+  padding-left: 5px;
+  padding: 5px;
+  border: 1px solid var(--dark-border-color);
+}
+
+.calendar:first-child {
+	padding: 0px;
+}
+
+/* For the month*/
+.month-indicator {
+  font-family: var(--main-font);
+  color: var(--scrollbar-hell);
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* CSS grid used for the dates */
+.day-of-week,
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+/* Styles for the weekday/weekend header*/
+.day-of-week > * {
+  font-size: 12px;
+  color: var(--blue-grey-400);
+  font-weight: 700;
+  text-align: center;
+  margin-top: 5px;
+}
+
+/* Dates */
+.date-grid {
+  margin-top: 0;
+  text-align: center;
+}
+    
+.calendar .day.old {
+  opacity: 0.3;
+}
+
+.st_mini_scene {
+cursor: pointer;
+position: relative;
+display: inline-block;
+font-weight:bold;
+}
+
+
+.day.st_mini_scene.fullmoon {
+text-decoration: underline;
+}
+
+.st_mini_scene_show {
+opacity: 0;
+z-index: 300;
+width: 200px;
+display: block;
+font-size: 11px;
+padding: 5px 10px;
+text-align: center;
+background: var(--background-dark);
+border: 5px solid var(--background-light);
+-webkit-transition: all .2s ease-in-out;
+-moz-transition: all .2s ease-in-out;
+-o-transition: all .2s ease-in-out;
+-ms-transition: all .2s ease-in-out;
+transition: all .2s ease-in-out;
+-webkit-transform: scale(0);
+-moz-transform: scale(0);
+-o-transform: scale(0);
+-ms-transform: scale(0);
+transform: scale(0);
+position: absolute;
+left: -65px;
+bottom: 20px;
+}
+
+.st_mini_scene_show:before,.st_mini_scene_show:after {
+content: '';
+border-left: 10px solid transparent;
+border-right: 10px solid transparent;
+border-top: 10px solid var(--background-light);
+position: absolute;
+bottom: -13px;
+left: 59px;
+}
+
+.st_mini_scene:hover .st_mini_scene_show,a:hover .st_mini_scene_show {
+opacity: 1;
+-webkit-transform: scale(1);
+-moz-transform: scale(1);
+-o-transform: scale(1);
+-ms-transform: scale(1);
+transform: scale(1);
+background-color:var(--background-dark);
+}
+
+.st_mini_scene_title {
+  text-decoration: underline;
+}
+
+
     ',
     'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
     'lastmodified' => time()
@@ -1163,8 +1286,6 @@ function scenetracker_do_newthread()
   if (scenetracker_testParentFid($fid)) {
     $thisuser = intval($mybb->user['uid']);
     $alertsetting_alert = $mybb->settings['scenetracker_alert_alerts'];
-
-
     $usersettingIndex = intval($mybb->user['tracker_index']);
     $array_users = array();
     $date = $db->escape_string($mybb->input['scenetracker_date']) . " " . $db->escape_string($mybb->input['scenetracker_time']);
@@ -1231,7 +1352,6 @@ function scenetracker_newreply()
     $contains = strpos($teilnehmer, $thisuser);
 
     if ($contains === false) {
-
       eval("\$scenetrackerreply = \"" . $templates->get("scenetracker_newreply") . "\";");
     }
   }
@@ -1309,8 +1429,6 @@ function scenetracker_do_newreply()
             }
           }
         } elseif ($uid == $thisuser) {
-          // echo " uid == this user {$type['inform_by']} == $thisuser <br><br>";
-
           $update = array(
             "alert" => 0,
           );
@@ -1358,7 +1476,6 @@ function scenetracker_editpost()
     } else { //we're answering to a post.
 
       $teilnehmer = $thread['scenetracker_user'];
-      // var_dump($postinfo);
 
       if ($mybb->input['previewpost']) {
         $thisuser = $postinfo['username'];
@@ -2239,7 +2356,7 @@ function scenetracker_calendar()
       $birth_num = $db->num_rows($get_birthdays);
     } elseif ($setting_birhtday == "1") {
       // 9-4-1987
-      $converteddate = date("d-m", $timestamp);
+      $converteddate = date("j-n", $timestamp);
       //convert date setting_fid 
       $get_birthdays = $db->write_query("
       SELECT username, uid FROM " . TABLE_PREFIX ."users WHERE birthday LIKE '{$converteddate}%'");
@@ -2250,14 +2367,14 @@ function scenetracker_calendar()
     }
 
     $scenes = $db->write_query("
-    SELECT *, TIME_FORMAT(scenetracker_date, '%H:%i') scenetime FROM " . TABLE_PREFIX . "threads WHERE scenetracker_date LIKE '{$year}-{$monthzero}-{$daynew}%' and scenetracker_user LIKE '%{$username}%'");
+    SELECT *, TIME_FORMAT(scenetracker_date, '%H:%i') scenetime FROM " . TABLE_PREFIX . "threads WHERE scenetracker_date LIKE '{$year}-{$monthzero}-{$daynew}%' and scenetracker_user LIKE '%".$db->escape_string($username)."%'");
     $szene = "";
     $scene_in = "";
     $scene_ouput = "";
     $birthday_show = "";
     $birthday_ouput = "";
     $birthday_in = "";
-    if ($db->num_rows($scenes) > 0 || $num_rows > 0) {
+    if ($db->num_rows($scenes) > 0 || $birth_num > 0) {
       if ($db->num_rows($scenes) > 0) {
         $szene = "<a onclick=\"$('#day{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Szenen]</a>";
         $scene_ouput = " {$szene}
@@ -2296,19 +2413,20 @@ function scenetracker_calendar()
 }
 
 /***
- * shows minicalender on index
+ * shows minicalender 
+ * global functions, use {$scenetracker_calendar} for showing calender in Header or Footer
  *  * credit to:
  * https://zellwk.com/blog/calendar-with-css-grid/
  * https://www.schattenbaum.net/php/kalender.php
  * 
  */
-$plugins->add_hook('global_start', 'scenetracker_minicalendar');
+$plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
 function scenetracker_minicalendar()
 {
   global $db, $mybb, $templates, $scenetracker_calendar;
+  $scenetracker_calendar = "";
   $startdate_ingame = $mybb->settings['memberstats_ingamemonat_tag_start'];
   $enddate_ingame = $mybb->settings['memberstats_ingamemonat_tag_end'];
-
 
   $username = $db->escape_string($mybb->user['username']);
   $ingame =  explode(",", str_replace(" ", "", $mybb->settings['scenetracker_ingametime']));
@@ -2331,15 +2449,14 @@ function scenetracker_minicalendar()
     //Monat Jahr
     // $scenedatetitle = date('%F %Y', strtotime($scenes['scenetracker_date']));
     //TODO TESTEN
-    $kal_title = date('F Y', strtotime($kal_datum));
-
+    $kal_title = date('F Y', $kal_datum);
     // $kal_title = strftime("%B %Y", $kal_datum);
+    // echo "tes titelt: $kal_title";
     $kal_day = "";
     $kal_day .= "<div class=\"date-grid\"  style=\"grid-template-columns: repeat(7, 1fr);\">";
     //Tage bis zum wochenstart, also wieviele tage der woche sind noch im vormonat
     //(7 - $kal_ende_tag) wieviele tage am ende des monats in der woche 
     for ($i = 1; $i <= $kal_tage_gesamt + ($kal_start_tag - 1) + (7 - $kal_ende_tag); $i++) {
-
       $kal_anzeige_akt_tag = $i - $kal_start_tag;
       $kal_anzeige_heute_timestamp = strtotime($kal_anzeige_akt_tag . " day", $kal_start_timestamp);
       $kal_anzeige_heute_tag = date("j", $kal_anzeige_heute_timestamp);
@@ -2362,7 +2479,7 @@ function scenetracker_minicalendar()
       $setting_birhtday = $mybb->settings['scenetracker_birhday'];
    
       if ($setting_birhtday == "0") { //fid ist eingestellt
-        echo "fid". $converteddate;
+        // echo "fid". $converteddate;
         $converteddate = date("d.m", $timestamp);
         $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
         $get_birthdays = $db->write_query("
@@ -2370,9 +2487,9 @@ function scenetracker_minicalendar()
         $birth_num = $db->num_rows($get_birthdays);
       } elseif ($setting_birhtday == "1") {
         // 9-4-1987
-        $converteddate = date("d-m", $timestamp);
+        // echo "geburtstag conv". $converteddate;
+        $converteddate = date("j-n", $timestamp);
 
-        //convert date setting_fid 
         $get_birthdays = $db->write_query("
         SELECT username, uid FROM " . TABLE_PREFIX ."users WHERE birthday LIKE '{$converteddate}%'");
         // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
@@ -2443,8 +2560,10 @@ function scenetracker_minicalendar()
     }
     $kal_day .= "</div>";
     // echo $scenetracker_calendar;
-    eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar") . "\";");
+    eval("\$scenetracker_calendar_bit .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
   }
+  eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar") . "\";");
+
 }
 
 /**
@@ -2846,12 +2965,14 @@ function scenetracker_scene_change_status($close, $tid, $uid)
 {
   global $db, $mybb;
   $solvplugin = $mybb->settings['scenetracker_solved'];
-  // scenetracker_change_allowed($thread['scenetracker_user'])
+  if($db->$db->field_exists("threads", "threadsolved")) {
+  } else {
+    $solvplugin = 0;
+  }
   $teilnehmer = $db->fetch_field($db->simple_select("threads", "scenetracker_user", "tid={$tid}"), "scenetracker_user");
 
   if ($close == 1) {
     $db->query("UPDATE " . TABLE_PREFIX . "threads SET closed = '1' WHERE tid = " . $tid . " ");
-    //TODO check switcher not working 
     //prüft ob übergebene id zu dem chara gehört der online ist 
     //-> gesamte teilnehmerliste müsste durchgegangen werden
     if (scenetracker_change_allowed($teilnehmer)) {
