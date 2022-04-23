@@ -1106,7 +1106,7 @@ function scenetracker_add_templates()
     }
     
     .scenetracker_reminder.item:before {
-      content: "Ã‚Â» ";
+      content: "» ";
     }
     
     span.senetracker_reminder.text {
@@ -1211,7 +1211,7 @@ bottom: 20px;
 }
 
 .st_mini_scene_show:before,.st_mini_scene_show:after {
-content: '';
+content: "";
 border-left: 10px solid transparent;
 border-right: 10px solid transparent;
 border-top: 10px solid var(--background-light);
