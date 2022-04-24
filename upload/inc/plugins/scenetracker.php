@@ -243,7 +243,7 @@ function scenetracker_activate()
   find_replace_templatesets("editpost", "#" . preg_quote('{$posticons}') . "#i", '{$scenetrackeredit}{$posticons}');
   find_replace_templatesets("newthread", "#" . preg_quote('{$posticons}') . "#i", '{$scenetrackeredit}{$posticons}
 	{$scenetracker_newthread}');
-  find_replace_templatesets("showthread", "#" . preg_quote('{$thread[\'subject\']}') . "#i", '{$thread[\'subject\']}{$scenetracker_showthread}');
+  find_replace_templatesets("showthread", "#" . preg_quote('{$thread[\'displayprefix\']}{$thread[\'subject\']}') . "#i", '{$thread[\'displayprefix\']}{$thread[\'subject\']}{$scenetracker_showthread}');
   find_replace_templatesets("forumdisplay_thread", "#" . preg_quote('{$thread[\'multipage\']}</span>') . "#i", '{$thread[\'multipage\']}</span>{$scenetrackerforumdisplay}');
   find_replace_templatesets("index", "#" . preg_quote('{$header}</span>') . "#i", '{$header}{$scenetracker_index_reminder}');
   find_replace_templatesets("index", "#" . preg_quote('{$footer}') . "#i", '{$scenetracker_index_main}{$footer}');
@@ -1106,7 +1106,7 @@ function scenetracker_add_templates()
     }
     
     .scenetracker_reminder.item:before {
-      content: "» ";
+      content: "Ã‚Â» ";
     }
     
     span.senetracker_reminder.text {
@@ -1233,6 +1233,7 @@ background-color:var(--background-dark);
 .st_mini_scene_title {
   text-decoration: underline;
 }
+
 
 
     ',
@@ -2352,7 +2353,7 @@ function scenetracker_calendar()
       $converteddate = date("d.m", $timestamp);
       $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
       $get_birthdays = $db->write_query("
-      SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE ".$setting_fid." LIKE '{$converteddate}%'");
+      SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid".$setting_fid." LIKE '{$converteddate}%'");
       $birth_num = $db->num_rows($get_birthdays);
     } elseif ($setting_birhtday == "1") {
       // 9-4-1987
@@ -2465,7 +2466,7 @@ function scenetracker_minicalendar()
       $scenes = $db->write_query("
       SELECT *, TIME_FORMAT(scenetracker_date, '%H:%i') scenetime FROM " . TABLE_PREFIX . "threads WHERE scenetracker_date LIKE '{$monthyear}-{$daynew}%' and scenetracker_user LIKE '%{$username}%'");
 
-      //wir müssen das Datum in das gleiche format wie den geburtstag bekommen
+      // ist der tag im ingamezeitraum
       if ($monthyear . "-" . $daynew >= $ingamefirstday && $monthyear . "-" . $daynew <= $ingamelastday) {
         $ingame = "activeingame";
       } else {
@@ -2479,12 +2480,12 @@ function scenetracker_minicalendar()
       $setting_birhtday = $mybb->settings['scenetracker_birhday'];
    
       if ($setting_birhtday == "0") { //fid ist eingestellt
-        // echo "fid". $converteddate;
         $converteddate = date("d.m", $timestamp);
         $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
         $get_birthdays = $db->write_query("
-        SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE ".$setting_fid." LIKE '{$converteddate}%'");
+        SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid".$setting_fid." LIKE '{$converteddate}%'");
         $birth_num = $db->num_rows($get_birthdays);
+
       } elseif ($setting_birhtday == "1") {
         // 9-4-1987
         // echo "geburtstag conv". $converteddate;
@@ -2499,10 +2500,6 @@ function scenetracker_minicalendar()
       }
       $get_events = $db->write_query("
       SELECT * FROM " . TABLE_PREFIX . "events WHERE DATE_FORMAT(FROM_UNIXTIME(starttime), '%Y-%m-%d') LIKE '{$datetoconvert}%'");
-      //SELECT DATE_FORMAT(FROM_UNIXTIME(starttime), '%Y-%m-%d') FROM " . TABLE_PREFIX . "events
-
-      // echo "{$monthyear}-{$daynew} <br>";
-      // echo $monthyear . "-" . sprintf("%02d", $kal_anzeige_akt_tag) . "<br>";
 
       if ($kal_anzeige_akt_tag >= 0 and $kal_anzeige_akt_tag < $kal_tage_gesamt) {
         $sceneshow = "";
@@ -2513,12 +2510,14 @@ function scenetracker_minicalendar()
             $sceneshow = "<span class=\"st_mini_scene_title\">Szenen</span>";
             while ($scene = $db->fetch_array($scenes)) {
               $sceneshow .= "<div class=\"st_mini_scenelink\"><span class=\"raquo\">&raquo;</span> <a href=\"showthread.php?tid={$scene['tid']}\">{$scene['subject']}</a> ({$scene['scenetime']})</div>";
+              $ownscene ="ownscene";
             }
           }
           if ($birth_num > 0) {
             $birthdayshow = "<span class=\"st_mini_scene_title\">Geburtstage</span>";
             while ($birthday = $db->fetch_array($get_birthdays)) {
               $birthdayshow .= "<div class=\"st_mini_scenelink\">" . build_profile_link($birthday['username'], $birthday['uid']) . "</div>";
+              $birthdaycss = "birthdaycal";
             }
           }
 
@@ -2543,7 +2542,7 @@ function scenetracker_minicalendar()
             $showpop = "";
           }
           $kal_day .= "
-            <div class=\"day st_mini_scene {$fullmoon} {$eventcss} {$ingame}\">
+            <div class=\"day st_mini_scene {$fullmoon} {$birthdaycss} {$ownscene} {$eventcss} {$ingame}\">
               {$kal_anzeige_heute_tag}
 
               {$showpop}
@@ -2551,6 +2550,8 @@ function scenetracker_minicalendar()
           </div>";
           $fullmoon = "";
           $eventcss = "";
+          $birthdaycss = "";
+          $ownscene = "";
         } else {
           $kal_day .= "<div class=\"day {$ingame}\">" . $kal_anzeige_heute_tag . "</div>";
         }
