@@ -251,8 +251,8 @@ function scenetracker_activate()
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tbody style="{$collapsed[\'usercpmisc_e\']}" id="usercpmisc_e">') . "#i", '
   <tbody style="{$collapsed[\'usercpmisc_e\']}" id="usercpmisc_e"><tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>
   ');
-
-
+  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$day_events}') . "#i", '{$day_events}{$scene_ouput}{$birthday_ouput}');
+  
   //  find_replace_templatesets("newthread", "#" . preg_quote('{$thread[\'profilelink\']}') . "#i", '{$scenetrackerforumdisplay}{$thread[\'profilelink\']}');
 
   // Alerts hinzufügen
@@ -294,6 +294,7 @@ function scenetracker_deactivate()
   find_replace_templatesets("index", "#" . preg_quote('{$scenetracker_index_main}') . "#i", '');
   find_replace_templatesets("member_profile", "#" . preg_quote('</tr><tr><td colspan="2">{$scenetracker_profil}</td>') . "#i", '');
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>') . "#i", '');
+  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}') . "#i", '');
 
   // Alerts deaktivieren
   if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
@@ -2346,7 +2347,6 @@ function scenetracker_calendar()
     //wir müssen das Datum in das gleiche format wie den geburtstag bekommen
     $datetoconvert = "{$daynew}.{$monthzero}.{$year}";
     $timestamp = strtotime($datetoconvert);
-
     // echo $converteddate;
     $setting_birhtday = $mybb->settings['scenetracker_birhday'];
     if ($setting_birhtday == "0") {
@@ -2392,6 +2392,7 @@ function scenetracker_calendar()
           <div class=\"st_calendar__sceneitem scene_users icon \">><i class=\"fas fa-users\"></i> {$scene['scenetracker_user']}</div>
          </div> ";
         }
+        
         $scene_ouput .= "{$scene_in}</div>";
       }
 
