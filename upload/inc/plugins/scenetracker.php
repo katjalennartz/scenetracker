@@ -141,14 +141,14 @@ function scenetracker_install()
       'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet oder das Standardgeburtstagsfeld?',
       'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten",
       'value' => '0', // Default
-      'disporder' => 5
+      'disporder' => 6
     ),
     'scenetracker_birhdayfid' => array(
       'title' => 'Geburtstagsfeld ID?',
       'description' => 'Wenn der Geburtstags über ein Profilfeld angegeben wird, bitte hier die ID eingeben.',
       'optionscode' => 'text',
       'value' => '0', // Default
-      'disporder' => 5
+      'disporder' => 7
     ),
     // 'scenetracker_profil_sort' => array( //TODO
     //   'title' => 'Profilanzeige',
@@ -162,14 +162,14 @@ function scenetracker_install()
       'description' => 'Sollen Charaktere auf dem Index darauf aufmerksam gemacht werden, wenn sie jemanden in einer Szene länger als X Tage warten lassen? 0 wenn nicht',
       'optionscode' => 'text',
       'value' => '0', // Default
-      'disporder' => 7
+      'disporder' => 8
     ),
     'scenetracker_ingametime' => array(
       'title' => 'Ingame Zeitraum',
       'description' => 'Bitte Ingamezeitraum eingeben - Monat und Jahr. Bei mehreren mit , getrennt. Z.b für April, Juni und Juli "1997-04, 1997-06, 1997-07. <b>Achtung genauso wie im Beispiel!</b> (Wichtig für Minicalender)."',
       'optionscode' => 'text',
       'value' => '2022-04, 2022-06, 2022-07', // Default
-      'disporder' => 7
+      'disporder' => 9
     ),
   );
 
@@ -1468,7 +1468,7 @@ function scenetracker_editpost()
         if ($thread['scenetracker_user'] == "") {
           $scenetracker_user = "";
         } else {
-          $scenetracker_user = $thread['scenetracker_user'] . " , ";
+          $scenetracker_user = $thread['scenetracker_user'] . ",";
         }
         $scenetracker_place = $thread['scenetracker_place'];
         $scenetracker_trigger = $thread['scenetracker_trigger'];
