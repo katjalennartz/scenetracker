@@ -2389,7 +2389,7 @@ function scenetracker_calendar()
           <div class=\"st_calendar__sceneitem scene_date icon\"><i class=\"fas fa-calendar\"></i> {$scene['scenetime']}</div>
           <div class=\"st_calendar__sceneitem scene_title icon\"><i class=\"fas fa-folder-open\"></i> <a href=\"showthread.php?tid={$scene['tid']}\">{$scene['subject']}</a> </div>
           <div class=\"st_calendar__sceneitem scene_place icon\"><i class=\"fas fa-map-marker-alt\"></i> {$scene['scenetracker_place']}</div>
-          <div class=\"st_calendar__sceneitem scene_users icon \">><i class=\"fas fa-users\"></i> {$scene['scenetracker_user']}</div>
+          <div class=\"st_calendar__sceneitem scene_users icon \"><i class=\"fas fa-users\"></i> {$scene['scenetracker_user']}</div>
          </div> ";
         }
         
