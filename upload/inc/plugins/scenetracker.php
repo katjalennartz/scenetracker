@@ -2653,7 +2653,7 @@ function scenetracker_count_scenes($charas)
     "open" => 0
   );
 
-  if ($solvplugin == 1) {
+  if ($solvplugin == 1 && $db->field_exists("threadsolved", "threads")) {
     $solvefield = " threadsolved, ";
     $solved = " OR threadsolved = 0 ";
   }
