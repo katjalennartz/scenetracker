@@ -69,6 +69,10 @@ Auch hier können direkt die wichtigsten Einstellungen vorgenommen werden
 Sortiert nach Szenendatum. 
 Szenen können auf Wunsch ausgeblendet werden.
 
+**Anzeige der Szenen im Forumdisplay :**.  
+Szeneninfos im Forumdisplay anzeigen:
+forumdisplay_thread öffnen   
+{$scenetrackerforumdisplay} einfügen   
 
 
 **Demo**  
