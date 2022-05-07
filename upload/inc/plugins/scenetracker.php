@@ -171,6 +171,20 @@ function scenetracker_install()
       'value' => '2022-04, 2022-06, 2022-07', // Default
       'disporder' => 9
     ),
+    'scenetracker_ingametime_tagstart' => array(
+      'title' => 'Ingame Zeitraum 1. Tag',
+      'description' => 'Gib hier den ersten Tag eures Ingamezeitraums an. z.B. 1 oder 15.',
+      'optionscode' => 'text',
+      'value' => '1', // Default
+      'disporder' => 10
+    ),
+    'scenetracker_ingametime_tagend' => array(
+      'title' => 'Ingame Zeitraum letzter Tag',
+      'description' => 'Gib hier den letzte  Tag eures Ingamezeitraums an. z.B. 15 oder 30.<br><i>Tage im Zeitraum, bekommen die Klasse "activeingame" und können gesondert gestylt werden.</i>',
+      'optionscode' => 'text',
+      'value' => '30', // Default
+      'disporder' => 11
+    ),
   );
 
 
@@ -2457,8 +2471,8 @@ function scenetracker_minicalendar()
 {
   global $db, $mybb, $templates, $scenetracker_calendar;
   $scenetracker_calendar = "";
-  $startdate_ingame = $mybb->settings['memberstats_ingamemonat_tag_start'];
-  $enddate_ingame = $mybb->settings['memberstats_ingamemonat_tag_end'];
+  $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
+  $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
   $username = $db->escape_string($mybb->user['username']);
   $ingame =  explode(",", str_replace(" ", "", $mybb->settings['scenetracker_ingametime']));
