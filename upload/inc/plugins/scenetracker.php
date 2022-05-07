@@ -2977,6 +2977,7 @@ function scenetracker_change_allowed($str_teilnehmer)
 {
   global $mybb, $db;
   $chars = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+  if($mybb->user['uid'] == 0) return false;
   foreach ($chars as $uid => $username) {
     $pos = stripos($str_teilnehmer, $username);
     if ($pos !== false) {
