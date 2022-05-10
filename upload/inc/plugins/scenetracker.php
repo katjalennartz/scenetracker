@@ -1891,9 +1891,9 @@ function scenetracker_usercp()
 
   if ($status == "open") {
 
-    $query .=  " AND (closed = 0 {$solved_toone} ) ";
+    $query .=  " AND (closed = 0 {$solved_tozero} ) ";
   } else if ($status == "closed") {
-    $query .=  " AND (closed = 1 {$solved_tozero} ) ";
+    $query .=  " AND (closed = 1 {$solved_toone} ) ";
   } else if ($status == "both") {
     $status_str = "open & closed";
     $query .= "";
