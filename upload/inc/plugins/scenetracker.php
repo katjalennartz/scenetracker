@@ -140,7 +140,7 @@ function scenetracker_install()
       'title' => 'Geburtstagsfeld für Kalendar',
       'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet oder das Standardgeburtstagsfeld?',
       'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten",
-      'value' => '0', // Default
+      'value' => '1', // Default
       'disporder' => 6
     ),
     'scenetracker_birhdayfid' => array(
