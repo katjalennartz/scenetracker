@@ -1889,6 +1889,13 @@ function scenetracker_usercp()
     $solved_tozero = " OR threadsolved=0 ";
   }
 
+  // catch error if settings for threadsolved are wrong
+  if (!$db->field_exists("threadsolved", "threads")) {
+    $solvefield = "";
+    $solved_toone = "";
+    $solved_tozero = "";
+  }
+
   if ($status == "open") {
 
     $query .=  " AND (closed = 0 {$solved_tozero} ) ";
@@ -2162,6 +2169,12 @@ function scenetracker_showinprofile()
   if ($mybb->settings['scenetracker_solved'] == 1) {
     $solved = ", threadsolved";
   }
+
+  // catch error if settings for threadsolved are wrong
+  if (!$db->field_exists("threadsolved", "threads")) {
+    $solved = "";
+  }
+
   //hide scene in profile
   if ($mybb->input['show'] == "0") {
     $id = intval($mybb->input['getsid']);
@@ -2304,6 +2317,14 @@ function scenetracker_reminder()
     $solved_toone = " AND threadsolved = 1 ";
     $solved_tozero = " AND threadsolved = 0 ";
   }
+
+  // catch error if settings for threadsolved are wrong
+  if (!$db->field_exists("threadsolved", "threads")) {
+    $solvefield = "";
+    $solved_toone = "";
+    $solved_tozero = "";
+  }
+
   if ($uid != 0 && $reminder == 1) {
     // Alle Charaktere des Users holen
     $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
@@ -2797,6 +2818,12 @@ function scenetracker_get_scenes($charas, $tplstring)
     }
   }
 
+  //Catch error if settings for threadsolved in acp are wrong
+  if (!$db->field_exists("threadsolved", "threads")) {
+    $solved = "";
+    $solvefield = "";
+  }
+
   $cnt = scenetracker_count_scenes($charas);
   // var_dump($cnt);
   foreach ($charas as $uid => $charname) {
@@ -2991,7 +3018,7 @@ function scenetracker_change_allowed($str_teilnehmer)
 {
   global $mybb, $db;
   $chars = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
-  if($mybb->user['uid'] == 0) return false;
+  if ($mybb->user['uid'] == 0) return false;
   foreach ($chars as $uid => $username) {
     $pos = stripos($str_teilnehmer, $username);
     if ($pos !== false) {
