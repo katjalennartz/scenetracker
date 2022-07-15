@@ -612,7 +612,7 @@ function scenetracker_add_templates()
   $template[18] = array(
     "title" => 'scenetracker_ucp_bit_scene',
     "template" => '<div class ="sceneucp__scenebox scene_ucp chara_item__scene">
-    <div class="sceneucp__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> {$scene}</div>
+    <div class="sceneucp__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> {$scene} {$statusclass}</div>
     <div class="sceneucp__sceneitem scene_status icon"><i class="fas fa-play"></i> scene {$close}
     </div>
     <div class="sceneucp__sceneitem scene_profil icon"><i class="fas fa-circle-user"></i> scene {$hide}</div>
@@ -1307,8 +1307,8 @@ function scenetracker_newthread()
 $plugins->add_hook("newthread_do_newthread_end", "scenetracker_do_newthread");
 function scenetracker_do_newthread()
 {
-  global $db, $mybb, $tid, $fid, $visible;
-   if (scenetracker_testParentFid($fid) && $visible == 1) {
+  global $db, $mybb, $tid, $fid;
+  if (scenetracker_testParentFid($fid)) {
     $thisuser = intval($mybb->user['uid']);
     $alertsetting_alert = $mybb->settings['scenetracker_alert_alerts'];
     $usersettingIndex = intval($mybb->user['tracker_index']);
@@ -1389,14 +1389,14 @@ function scenetracker_newreply()
 $plugins->add_hook("newreply_do_newreply_end", "scenetracker_do_newreply");
 function scenetracker_do_newreply()
 {
-  global $db, $mybb, $tid, $thread, $templates, $fid, $pid, $visible;
+  global $db, $mybb, $tid, $thread, $templates, $fid, $pid;
 
   $thisuser = intval($mybb->user['uid']);
   $teilnehmer = $thread['scenetracker_user'];
   $array_users = scenetracker_getUids($teilnehmer);
   $username = $db->escape_string($mybb->user['username']);
 
-  if (scenetracker_testParentFid($fid) && $visible == 1) {
+  if (scenetracker_testParentFid($fid)) {
     // füge den charakter, der gerade antwortet hinzu wenn gewollt und noch nicht in der Szene eingetragen
     if ($mybb->input['scenetracker_add'] == "add") {
       $db->write_query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = CONCAT(scenetracker_user, '," . $username . "') WHERE tid = {$tid}");
@@ -1995,7 +1995,15 @@ function scenetracker_usercp()
       }
       $scenetracker_ucp_bit_scene = "";
       while ($data = $db->fetch_array($scenes)) {
-
+        $statusofscene = $db->fetch_array($db->write_query("SELECT s.*, t.lastposteruid FROM ".TABLE_PREFIX."scenetracker s INNER JOIN ".TABLE_PREFIX."threads t ON s.tid = t.tid WHERE s.tid = {$data['tid']}"));
+        
+        if($statusofscene['type'] == "always" && $statusofscene['lastposteruid'] != $uid ) {
+          $statusclass = "<span class=\"yourturn\">Du bist dran</span>";
+        } else if($statusofscene['type'] == "certain" && $statusofscene['lastposteruid'] != $statusofscene['inform_by'] ) {
+          $statusclass = "<span class=\"yourturn\">Du bist dran</span>";
+        } else {
+          $statusclass = "";
+        }
         $edit = "";
         $alert = "[alert]";
 
@@ -3054,6 +3062,9 @@ function scenetracker_scene_change_status($close, $tid, $uid)
         $db->query("UPDATE " . TABLE_PREFIX . "threads SET threadsolved = '1' WHERE tid = " . $tid . " ");
       }
     }
+    $fid = $db->fetch_field($db->simple_select("threads", "fid", "tid = {$tid}"), "fid");
+    redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
+
   } elseif ($close == 0) {
     if (scenetracker_change_allowed($teilnehmer)) {
       $db->query("UPDATE " . TABLE_PREFIX . "threads SET closed = '0' WHERE tid = " . $tid . " ");
