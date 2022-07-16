@@ -1995,7 +1995,7 @@ function scenetracker_usercp()
       }
       $scenetracker_ucp_bit_scene = "";
       while ($data = $db->fetch_array($scenes)) {
-        $statusofscene = $db->fetch_array($db->write_query("SELECT s.*, t.lastposteruid FROM ".TABLE_PREFIX."scenetracker s INNER JOIN ".TABLE_PREFIX."threads t ON s.tid = t.tid WHERE s.tid = {$data['tid']}"));
+        $statusofscene = $db->fetch_array($db->write_query("SELECT s.*, t.lastposteruid FROM ".TABLE_PREFIX."scenetracker s INNER JOIN ".TABLE_PREFIX."threads t ON s.tid = t.tid WHERE s.tid = {$data['tid']} AND s.uid = {$uid}"));
         
         if($statusofscene['type'] == "always" && $statusofscene['lastposteruid'] != $uid ) {
           $statusclass = "<span class=\"yourturn\">Du bist dran</span>";
