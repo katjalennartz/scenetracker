@@ -1999,7 +1999,7 @@ function scenetracker_usercp()
         
         if($statusofscene['type'] == "always" && $statusofscene['lastposteruid'] != $uid ) {
           $statusclass = "<span class=\"yourturn\">Du bist dran</span>";
-        } else if($statusofscene['type'] == "certain" && $statusofscene['lastposteruid'] == $statusofscene['inform_by'] ) {
+        } else if($statusofscene['type'] == "certain" && $statusofscene['lastposteruid'] != $statusofscene['inform_by'] ) {
           $statusclass = "<span class=\"yourturn\">Du bist dran</span>";
         } else {
           $statusclass = "";
