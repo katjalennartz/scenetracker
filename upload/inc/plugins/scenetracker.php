@@ -1921,13 +1921,13 @@ function scenetracker_usercp()
 
   $selectchara = "<select name=\"charakter\" id=\"charakter\">
     <option value=\"0\">allen Charas</option>";
-  foreach ($charas as $uid => $username) {
-    if ($uid == $charakter) {
+  foreach ($charas as $uid_sel => $username) {
+    if ($uid_sel == $charakter) {
       $charsel_[$charakter] = "SELECTED";
     } else {
       $charsel_[$charakter] = "";
     }
-    $selectchara .=  "<option value=\"{$uid}\" {$charsel_[$charakter]} >{$username}</option>";
+    $selectchara .=  "<option value=\"{$uid_sel}\" {$charsel_[$charakter]} >{$username}</option>";
   }
   $selectchara .= "</select>";
 
@@ -2065,13 +2065,13 @@ function scenetracker_usercp()
         if ($data['type'] == 'certain' && $info_by != 0) {
           $users_options_bit = "<option value=\"0\">another user posted</option>
                                 <option value=\"-1\">never</option>";
-          foreach ($all_users as $uid => $username) {
-            if ($info_by == $uid) {
+          foreach ($all_users as $uid_sel => $username) {
+            if ($info_by == $uid_sel) {
               $selected = "selected";
             } else {
               $selected = "";
             }
-            $users_options_bit .= "<option value=\"{$uid}\" $selected>{$username}</option>";
+            $users_options_bit .= "<option value=\"{$uid_sel}\" $selected>{$username}</option>";
           }
         }
         if ($data['type'] == 'always' || $data['type'] == 'never') {
