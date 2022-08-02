@@ -1307,8 +1307,8 @@ function scenetracker_newthread()
 $plugins->add_hook("newthread_do_newthread_end", "scenetracker_do_newthread");
 function scenetracker_do_newthread()
 {
-  global $db, $mybb, $tid, $fid;
-  if (scenetracker_testParentFid($fid)) {
+  global $db, $mybb, $tid, $fid, $visible;
+  if (scenetracker_testParentFid($fid) && $visible == 1) {
     $thisuser = intval($mybb->user['uid']);
     $alertsetting_alert = $mybb->settings['scenetracker_alert_alerts'];
     $usersettingIndex = intval($mybb->user['tracker_index']);
@@ -1389,14 +1389,14 @@ function scenetracker_newreply()
 $plugins->add_hook("newreply_do_newreply_end", "scenetracker_do_newreply");
 function scenetracker_do_newreply()
 {
-  global $db, $mybb, $tid, $thread, $templates, $fid, $pid;
+  global $db, $mybb, $tid, $thread, $templates, $fid, $pid, $visible;
 
   $thisuser = intval($mybb->user['uid']);
   $teilnehmer = $thread['scenetracker_user'];
   $array_users = scenetracker_getUids($teilnehmer);
   $username = $db->escape_string($mybb->user['username']);
 
-  if (scenetracker_testParentFid($fid)) {
+  if (scenetracker_testParentFid($fid) && $visible == 1) {
     // füge den charakter, der gerade antwortet hinzu wenn gewollt und noch nicht in der Szene eingetragen
     if ($mybb->input['scenetracker_add'] == "add") {
       $db->write_query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = CONCAT(scenetracker_user, '," . $username . "') WHERE tid = {$tid}");
