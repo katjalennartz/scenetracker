@@ -2,6 +2,7 @@
 
 ```diff
 - Ganz unten im Text: HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin
+- Sowie: HOW TO: Minicalender überm Inplay anzeigen.
 ```
 Hier findet ihr einen weiteren Szenentracker für RPGs. Damit könnt ihr direkt beim Threaderstellen Teilnehemr, Ort und Datum, sowie auch eine Triggerwarnung eingeben. Die Szenen werden im Profil automatisch nach Datum sortiert angezeigt und können im Benutzer CP verwaltet werden. Es gibt verschiedene Benachrichtigungseinstellungen. 
 
@@ -151,3 +152,60 @@ suche nach:
 ```    
 	$partners = explode(",", $query);
 ```
+
+
+**HOW TO: Minicalender über dem Ingame**
+
+
+suchen nach:
+```
+$plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
+```
+
+**ersetzen mit**:
+```
+$plugins->add_hook("build_forumbits_forum", "scenetracker_minicalendar");
+```
+
+
+dann unter 
+```   global $db, $mybb, $templates, $scenetracker_calendar;```
+
+ (X ersetzen mit fid) 
+
+```
+if ($forum['fid'] == "X") {  
+```
+
+und dann ans ende der funktion
+```
+    eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar") ."\";"); 
+```
+
+**ersetzen mit**
+```
+    $forum['minicalender'] = eval($templates->render('scenetracker_calendar'));
+  }
+```
+
+
+und
+```
+function scenetracker_minicalendar()
+```
+ersetzen mit
+```
+function scenetracker_minicalendar(&$forum)
+```
+ 
+
+
+
+
+
+
+
+
+
+
+
