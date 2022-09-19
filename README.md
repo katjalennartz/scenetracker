@@ -199,7 +199,7 @@ function scenetracker_minicalendar(&$forum)
 ```
  
 
-
+Die Ausgabe erfolgt dann über $forum['minicalender']
 
 
 
