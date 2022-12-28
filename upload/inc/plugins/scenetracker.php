@@ -138,14 +138,14 @@ function scenetracker_install()
     ),
     'scenetracker_birhday' => array(
       'title' => 'Geburtstagsfeld für Kalendar',
-      'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet oder das Standardgeburtstagsfeld?',
-      'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten",
+      'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet, das Standardgeburtstagsfeld oder benutzt ihr das Steckbrief(Format YYYY-mm-dd wie datumsfeld) im UCP Plugin?',
+      'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten\n3=Steckbrief im Profil",
       'value' => '1', // Default
       'disporder' => 6
     ),
     'scenetracker_birhdayfid' => array(
       'title' => 'Geburtstagsfeld ID?',
-      'description' => 'Wenn der Geburtstags über ein Profilfeld angegeben wird, bitte hier die ID eingeben.',
+      'description' => 'Wenn der Geburtstags über ein Profilfeld angegeben wird, bitte hier die ID eingeben, wenn das Steckbrieffeld benutzt wird, die Kennung von diesem.',
       'optionscode' => 'text',
       'value' => '0', // Default
       'disporder' => 7
@@ -1130,7 +1130,7 @@ function scenetracker_add_templates()
     }
     
     .scenetracker_reminder.item:before {
-      content: "Ã‚Â» ";
+      content: "» ";
     }
     
     span.senetracker_reminder.text {
@@ -1308,7 +1308,7 @@ $plugins->add_hook("newthread_do_newthread_end", "scenetracker_do_newthread");
 function scenetracker_do_newthread()
 {
   global $db, $mybb, $tid, $fid, $visible;
-  if (scenetracker_testParentFid($fid) && $visible == 1) {
+  if (scenetracker_testParentFid($fid)) {
     $thisuser = intval($mybb->user['uid']);
     $alertsetting_alert = $mybb->settings['scenetracker_alert_alerts'];
     $usersettingIndex = intval($mybb->user['tracker_index']);
@@ -1319,40 +1319,42 @@ function scenetracker_do_newthread()
     $trigger = $db->escape_string($mybb->input['scenetracker_trigger']);
 
     $array_users = scenetracker_getUids($teilnehmer);
+    if ($visible == 1) {
+      $save = array(
+        "scenetracker_date" => $date,
+        "scenetracker_user" => $teilnehmer,
+        "scenetracker_place" => $scenetracker_place,
+        "scenetracker_trigger" => $trigger
+      );
+      $db->update_query("threads", $save, "tid='{$tid}'");
+    }
+    if ($visible == 1) {
+      foreach ($array_users as $uid => $username) {
+        if ($uid != $username) {
+          $alert_array = array(
+            "uid" => $uid,
+            "tid" => $tid,
+            "type" => "always"
+          );
+          $db->insert_query("scenetracker", $alert_array);
 
-    $save = array(
-      "scenetracker_date" => $date,
-      "scenetracker_user" => $teilnehmer,
-      "scenetracker_place" => $scenetracker_place,
-      "scenetracker_trigger" => $trigger
-    );
-    $db->update_query("threads", $save, "tid='{$tid}'");
+          //add alert for new scene
+          if ($alertsetting_alert == 1) {
 
-    foreach ($array_users as $uid => $username) {
-      if ($uid != $username) {
-        $alert_array = array(
-          "uid" => $uid,
-          "tid" => $tid,
-          "type" => "always"
-        );
-        $db->insert_query("scenetracker", $alert_array);
-
-        //add alert for new scene
-        if ($alertsetting_alert == 1) {
-
-          if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
-            $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newScene');
-            //Not null, the user wants an alert and the user is not on his own page.
-            if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
-              //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
-              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
-              //some extra details
-              $alert->setExtraDetails([
-                'tid' => $tid,
-                'fromuser' => $uid
-              ]);
-              //add the alert
-              MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+            if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
+              $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newScene');
+              //Not null, the user wants an alert and the user is not on his own page.
+              if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
+                //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
+                $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
+                //some extra details
+                $alert->setExtraDetails([
+                  'tid' => $tid,
+                  'fromuser' => $uid
+                ]);
+                //add the alert
+                MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+              }
             }
           }
         }
@@ -1395,72 +1397,77 @@ function scenetracker_do_newreply()
   $teilnehmer = $thread['scenetracker_user'];
   $array_users = scenetracker_getUids($teilnehmer);
   $username = $db->escape_string($mybb->user['username']);
-
-  if (scenetracker_testParentFid($fid) && $visible == 1) {
+  $alertsetting_alert = $mybb->settings['scenetracker_alert_alerts'];
+  if (scenetracker_testParentFid($fid)) {
     // füge den charakter, der gerade antwortet hinzu wenn gewollt und noch nicht in der Szene eingetragen
     if ($mybb->input['scenetracker_add'] == "add") {
       $db->write_query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = CONCAT(scenetracker_user, '," . $username . "') WHERE tid = {$tid}");
-
-      $to_add = array(
-        "uid" => $thisuser,
-        "tid" => $tid,
-        "type" => "always"
-      );
-      $db->insert_query("scenetracker", $to_add);
+      if ($visible == 1) {
+        $to_add = array(
+          "uid" => $thisuser,
+          "tid" => $tid,
+          "type" => "always"
+        );
+        $db->insert_query("scenetracker", $to_add);
+      }
     }
-
-    foreach ($array_users as $uid => $username) {
-      // Alle teilnehmer bekommen
-      if ($uid != $username) {
-        $type = $db->fetch_array($db->write_query("SELECT type, inform_by FROM " . TABLE_PREFIX . "scenetracker WHERE tid = $tid AND uid = $uid"));
-        // Je nach Benachrichtigungswunsch alerts losschicken
-        if ($type['type'] == "always") {
-          if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
-            $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newAnswer');
-            //Not null, the user wants an alert and the user is not on his own page.
-            if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
-              //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
-              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
-              //some extra details
-              $alert->setExtraDetails([
-                'tid' => $tid,
-                'pid' => $pid,
-                'fromuser' => $uid
-              ]);
-              //add the alert
-              MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+    if ($visible == 1) {
+      foreach ($array_users as $uid => $username) {
+        // Alle teilnehmer bekommen
+        if ($uid != $username) {
+          $type = $db->fetch_array($db->write_query("SELECT type, inform_by FROM " . TABLE_PREFIX . "scenetracker WHERE tid = $tid AND uid = $uid"));
+          // Je nach Benachrichtigungswunsch alerts losschicken
+          if ($type['type'] == "always") {
+            if ($alertsetting_alert == 1) {
+              if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
+                $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newAnswer');
+                //Not null, the user wants an alert and the user is not on his own page.
+                if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
+                  //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
+                  $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
+                  //some extra details
+                  $alert->setExtraDetails([
+                    'tid' => $tid,
+                    'pid' => $pid,
+                    'fromuser' => $uid
+                  ]);
+                  //add the alert
+                  MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+                }
+              }
             }
-          }
-        } elseif ($type['type'] == "certain" && $type['inform_by'] == $thisuser) {
-          $update = array(
-            "alert" => 1,
-          );
-          $db->update_query("scenetracker", $update, "tid = {$tid} AND uid = {$uid}");
-
-          if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
-            $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newAnswer');
-            //Not null, the user wants an alert and the user is not on his own page.
-            if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
-              //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
-              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
-              //some extra details
-              $alert->setExtraDetails([
-                'tid' => $tid,
-                'pid' => $pid,
-                'fromuser' => $uid
-              ]);
-              //add the alert
-              MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+          } elseif ($type['type'] == "certain" && $type['inform_by'] == $thisuser) {
+            $update = array(
+              "alert" => 1,
+            );
+            $db->update_query("scenetracker", $update, "tid = {$tid} AND uid = {$uid}");
+            if ($alertsetting_alert == 1) {
+              if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
+                $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newAnswer');
+                //Not null, the user wants an alert and the user is not on his own page.
+                if ($alertType != NULL && $alertType->getEnabled() && $thisuser != $uid) {
+                  //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
+                  $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
+                  //some extra details
+                  $alert->setExtraDetails([
+                    'tid' => $tid,
+                    'pid' => $pid,
+                    'fromuser' => $uid
+                  ]);
+                  //add the alert
+                  MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+                }
+              }
             }
-          }
-        } elseif ($uid == $thisuser) {
-          $update = array(
-            "alert" => 0,
-          );
-          $db->update_query("scenetracker", $update, "tid = {$tid} AND uid = {$uid}");
-        } elseif ($type['type'] == "never") {
-          //do nothing
+          } elseif ($uid == $thisuser) {
+            $update = array(
+              "alert" => 0,
+            );
+            $db->update_query("scenetracker", $update, "tid = {$tid} AND uid = {$uid}");
+          } elseif ($type['type'] == "never") {
+            //do nothing
 
+          }
         }
       }
     }
@@ -1526,7 +1533,7 @@ function scenetracker_do_editpost()
 {
   global $db, $mybb, $tid, $pid, $thread, $fid, $post;
   if (scenetracker_testParentFid($fid)) {
-
+    $alertsetting_alert = $mybb->settings['scenetracker_alert_alerts'];
     if ($pid != $thread['firstpost']) {
       if ($mybb->input['scenetracker_add']) {
         $insert_array = array(
@@ -1575,19 +1582,20 @@ function scenetracker_do_editpost()
         if ($user != "") {
           $uid = $user['uid'];
         }
-
-        if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
-          $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newScene');
-          if ($alertType != NULL && $alertType->getEnabled() && $uid != $mybb->user['uid']) {
-            //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
-            $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
-            //some extra details
-            $alert->setExtraDetails([
-              'tid' => $tid,
-              'fromuser' => $uid
-            ]);
-            //add the alert
-            MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+        if ($alertsetting_alert == 1) {
+          if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
+            $alertType = MybbStuff_MyAlerts_AlertTypeManager::getInstance()->getByCode('scenetracker_newScene');
+            if ($alertType != NULL && $alertType->getEnabled() && $uid != $mybb->user['uid']) {
+              //constructor for MyAlert gets first argument, $user (not sure), second: type  and third the objectId 
+              $alert = new MybbStuff_MyAlerts_Entity_Alert((int)$uid, $alertType);
+              //some extra details
+              $alert->setExtraDetails([
+                'tid' => $tid,
+                'fromuser' => $uid
+              ]);
+              //add the alert
+              MybbStuff_MyAlerts_AlertManager::getInstance()->addAlert($alert);
+            }
           }
         }
       }
@@ -1628,30 +1636,30 @@ function scenetracker_forumdisplay_showtrackerstuff()
 {
   global $thread, $templates, $db, $fid, $scenetrackerforumdisplay;
 
-  if (scenetracker_testParentFid($fid)) {
-    $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
+  // if (scenetracker_testParentFid($fid)) {
+  //   $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
 
-    $userArray = scenetracker_getUids($thread['scenetracker_user']);
-    $scene_place = $thread['scenetracker_place'];
+  //   $userArray = scenetracker_getUids($thread['scenetracker_user']);
+  //   $scene_place = $thread['scenetracker_place'];
 
-    $author = build_profile_link($thread['username'], $thread['uid']);
-    $scenetracker_forumdisplay_user = "";
-    if ($thread['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon\"><i class=\"fas fa-circle-exclamation\"></i> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
-    } else {
-      $scenetrigger = "";
-    }
-    foreach ($userArray as $uid => $username) {
-      if ($uid != $username) {
-        $user = build_profile_link($username, $uid);
-      } else {
-        $user = $username;
-      }
-      eval("\$scenetracker_forumdisplay_user.= \"" . $templates->get("scenetracker_forumdisplay_user") . "\";");
-    }
+  //   $author = build_profile_link($thread['username'], $thread['uid']);
+  //   $scenetracker_forumdisplay_user = "";
+  //   if ($thread['scenetracker_trigger'] != "") {
+  //     $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
+  //   } else {
+  //     $scenetrigger = "";
+  //   }
+  //   foreach ($userArray as $uid => $username) {
+  //     if ($uid != $username) {
+  //       $user = build_profile_link($username, $uid);
+  //     } else {
+  //       $user = $username;
+  //     }
+  //     eval("\$scenetracker_forumdisplay_user.= \"" . $templates->get("scenetracker_forumdisplay_user") . "\";");
+  //   }
 
-    eval("\$scenetrackerforumdisplay = \"" . $templates->get("scenetracker_forumdisplay_infos") . "\";");
-  }
+  //   eval("\$scenetrackerforumdisplay = \"" . $templates->get("scenetracker_forumdisplay_infos") . "\";");
+  // }
 }
 
 /*Anzeige in suchergebnissen */
@@ -1695,14 +1703,16 @@ function scenetracker_search_showtrackerstuff()
 $plugins->add_hook("showthread_end", "scenetracker_showthread_showtrackerstuff");
 function scenetracker_showthread_showtrackerstuff()
 {
-  global $thread, $templates, $db, $fid, $tid, $mybb, $scenetracker_showthread;
+  global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $statusscene_new, $scenetrigger;
 
+  $lang->load("scenetracker");
 
   if (scenetracker_testParentFid($fid)) {
     $allowclosing = false;
     $thisuser = intval($mybb->user['uid']);
     $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
     $scenetracker_date = date('Y-m-d', strtotime($thread['scenetracker_date']));
+    $scenetracker_date_thread = date('d.m.Y', strtotime($thread['scenetracker_date']));
     $scenetracker_time = date('H:i', strtotime($thread['scenetracker_date']));
     $sceneplace = $thread['scenetracker_place'];
     $scenetriggerinput = $thread['scenetracker_trigger'];
@@ -1716,7 +1726,7 @@ function scenetracker_showthread_showtrackerstuff()
         $user = build_profile_link($username, $uid);
         if ($mybb->usergroup['canmodcp'] == 1 || scenetracker_change_allowed($thread['scenetracker_user'])) {
           $allowclosing = true; //if he's a participant he is also allowed to close/open scene
-          $delete = "<a href=\"showthread.php?tid=" . $tid . "&delete=" . $uid . "\">[x]</a>";
+          $delete = "<a href=\"showthread.php?tid=" . $tid . "&delete=" . $uid . "\">{$lang->scenetracker_delete}</a>";
         }
       } else {
         $user = $username;
@@ -1725,32 +1735,32 @@ function scenetracker_showthread_showtrackerstuff()
       eval("\$scenetracker_showthread_user.= \"" . $templates->get("scenetracker_showthread_user") . "\";");
     }
     if ($thread['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon\">Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
+      $scenetrigger = "<div class=\"scenetracker__sceneitem scenethread scene_trigger\"><span class=\"scene_trigger__title\">{$lang->scenetracker_triggeredit}</span> {$thread['scenetracker_trigger']}</div>";
     } else {
       $scenetrigger = "";
     }
     if ($allowclosing || $mybb->usergroup['canmodcp'] == 1) {
       if ($thread['closed'] == 1) {
-        $mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=open\">[öffnen]</a></span>";
-        $scenestatus = "<span class=\"scenestate\">Szene ist beendet. " . $mark;
+        $mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=open\">{$lang->scenetracker_openscene}</a></span>";
+        $scenestatus = "<span class=\"scenestate bl-btn bl-btn--scenetracker\">{$lang->scenetracker_closescenestatus} " . $mark;
       } else {
-        $mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=close\">[schließen]</a></span>";
-        $scenestatus = "<span class=\"scenestate\">Szene ist offen. " . $mark;
+        $mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=close\">{$lang->scenetracker_closescene}</a></span>";
+        $scenestatus = "<span class=\"scenestate bl-btn bl-btn--scenetracker\">{$lang->scenetracker_openscenestatus} " . $mark;
       }
       $edit = "
-      <div class=\"scenetracker__sceneitem scene_edit icon\">
-      <a onclick=\"$('#sceneinfos{$tid}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[edit infos]</a>
+      <div class=\"scenetracker__sceneitem scene_edit icon bl-btn bl-btn--scenetracker\">
+      <a onclick=\"$('#sceneinfos{$tid}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">{$lang->scenetracker_editinfos}</a>
           <div class=\"modal editscname\" id=\"sceneinfos{$tid}\" style=\"display: none; padding: 10px; margin: auto; text-align: center;\">
              <form action=\"\" id=\"formeditscene\" method=\"post\" >
               <input type=\"hidden\" value=\"{$tid}\" name=\"id\" id=\"id\"/>
-                <center><input id=\"teilnehmer\" placeholder=\"Teilnehmer hinzufügen\" type=\"text\" value=\"\" size=\"40\"  name=\"teilnehmer\" autocomplete=\"off\" style=\"display: block;\" /></center>
-                <div id=\"suggest\" style=\"display:hidden; z-index:10;\"></div>
+                <center><input id=\"teilnehmer\" placeholder=\"{$lang->scenetracker_teilnehmer}\" type=\"text\" value=\"\" size=\"40\"  name=\"teilnehmer\" autocomplete=\"off\" style=\"display: block;\" /></center>
+                <div id=\"suggest\" style=\"display:none; z-index:10;\"></div>
                 <input type=\"date\" id=\"scenetracker_date\" name=\"scenetracker_date\" value=\"{$scenetracker_date}\" /> 
                   <input type=\"time\" id=\"scenetracker_time\" name=\"scenetracker_time\" value=\"{$scenetracker_time}\" />
-                  <input type=\"text\" name=\"scenetrigger\" id=\"scenetrigger\" placeholder=\"Triggerwarnung\" value=\"{$scenetriggerinput}\" />
-                  <input type=\"text\" name=\"sceneplace\" id=\"sceneplace\" placeholder=\"Ort\" value=\"{$sceneplace}\" />
+                  <input type=\"text\" name=\"scenetrigger\" id=\"scenetrigger\" placeholder=\"{$lang->scenetracker_trigger}\" value=\"{$scenetriggerinput}\" />
+                  <input type=\"text\" name=\"sceneplace\" id=\"sceneplace\" placeholder=\"{$lang->scenetracker_place}\" value=\"{$sceneplace}\" />
                   
-            </form><button name=\"edit_sceneinfos\" id=\"edit_sceneinfos\">Submit</button>
+            </form><button name=\"edit_sceneinfos\" id=\"edit_sceneinfos\">{$lang->scenetracker_btnsubmit}</button>
             <script src=\"./jscripts/scenetracker.js\"></script>
             <script type=\"text/javascript\" src=\"./jscripts/suggest.js\"></script>
         </div>
@@ -1758,8 +1768,10 @@ function scenetracker_showthread_showtrackerstuff()
       </div>
  ";
     }
+    $statusscene_new = "<div class=\"bl-sceneinfos__item bl-sceneinfos__item--status bl-smallfont \">" . $scenestatus . $edit . "</div>";
 
-    eval("\$scenetracker_showthread = \"" . $templates->get("scenetracker_showthread") . "\";");
+    eval("\$scene_newshowtread = \"" . $templates->get("scenetracker_showthread_new") . "\";");
+    // eval("\$scenetracker_showthread = \"" . $templates->get("scenetracker_showthread") . "\";");
   }
 
   //delete a participant
@@ -1793,10 +1805,11 @@ function scenetracker_showthread_showtrackerstuff()
 $plugins->add_hook("usercp_start", "scenetracker_usercp");
 function scenetracker_usercp()
 {
-  global $mybb, $db, $templates, $cache, $templates, $themes, $headerinclude, $header, $footer, $usercpnav, $scenetracker_ucp_main, $scenetracker_ucp_bit_char, $scenetracker_ucp_bit_chara_new, $scenetracker_ucp_bit_chara_old, $scenetracker_ucp_bit_chara_closed;
+  global $mybb, $db, $templates, $lang, $cache, $templates, $themes, $headerinclude, $header, $footer, $usercpnav, $scenetracker_ucp_main, $scenetracker_ucp_bit_char, $scenetracker_ucp_bit_chara_new, $scenetracker_ucp_bit_chara_old, $scenetracker_ucp_bit_chara_closed;
   if ($mybb->input['action'] != "scenetracker") {
     return false;
   }
+  $lang->load('scenetracker');
 
   $thisuser = $mybb->user['uid'];
   if ($mybb->user['uid'] == 0) {
@@ -1830,15 +1843,17 @@ function scenetracker_usercp()
 
   // scenetracker_ucp_bit_scene
   $days_reminder =  $mybb->settings['scenetracker_reminder'];
+  $lang->scenetracker_reminderopt = $lang->sprintf($lang->scenetracker_reminderopt, $days_reminder);
+
   if ($days_reminder != 0) {
-    $ucp_main_reminderopt = "  <div class=\"scenefilteroptions__items\">
+    $ucp_main_reminderopt = "<div class=\"scenefilteroptions__items scenefilteroptions__items--alerts\">
   <form action=\"usercp.php?action=scenetracker\" method=\"post\">
-  <fieldset><label for=\"reminder\">Szenenerinnerung nach {$days_reminder} Tage(n)?</label><br/>
+  <fieldset><label for=\"reminder\">{$lang->scenetracker_reminderopt}</label><br/>
   <input type=\"radio\" name=\"reminder\" id=\"reminder_yes\" value=\"1\" {$yes_rem}> 
   <label for=\"index_rem\">Ja</label>
   <input type=\"radio\" name=\"reminder\" id=\"reminder_no\" value=\"0\" {$no_rem}> 
   <label for=\"index_rem\">Nein</label><br />
-  <input type=\"submit\" name=\"opt_reminder\" value=\"speichern\" id=\"reminder_button\" />
+  <input type=\"submit\" name=\"opt_reminder\" value=\"{$lang->scenetracker_btnsubmit}\" id=\"reminder_button\" />
   </fieldset>
 </form>
 </div>";
@@ -1920,7 +1935,7 @@ function scenetracker_usercp()
   }
 
   $selectchara = "<select name=\"charakter\" id=\"charakter\">
-    <option value=\"0\">allen Charas</option>";
+    <option value=\"0\">{$lang->scenetracker_select_allChars}</option>";
   foreach ($charas as $uid_sel => $username) {
     if ($uid_sel == $charakter) {
       $charsel_[$charakter] = "SELECTED";
@@ -1931,8 +1946,8 @@ function scenetracker_usercp()
   }
   $selectchara .= "</select>";
 
-  $users_options_bit = "<option value=\"0\">another user posted</option>
-  <option value=\"-1\">never</option>";
+  $users_options_bit = "<option value=\"0\">{$lang->scenetracker_select_another}</option>
+  <option value=\"-1\">{$lang->scenetracker_select_never}</option>";
   $all_users = array();
 
   $get_users = $db->query("SELECT username, uid FROM " . TABLE_PREFIX . "users ORDER by username");
@@ -1963,7 +1978,7 @@ function scenetracker_usercp()
       $move_str = "Nein";
     }
     if ($charakter == 0) {
-      $charname_str = "Alle Charaktere";
+      $charname_str = $lang->scenetracker_showstring_all;
     } else {
       $charname_str = $charname;
     }
@@ -1982,7 +1997,10 @@ function scenetracker_usercp()
     $scenes = $db->write_query($writequery);
     $cnt += $db->num_rows($scenes);
     $chara_cnt = $db->num_rows($scenes);
-    $scenes_title = "Deine Szenen ({$charname_str} - {$status_str} - dran? {$move_str} - #{$cnt})";
+
+    $scenes_title = $lang->sprintf($lang->scenetracker_showstring, $charname_str, $status_str, $move_str, $cnt);
+
+    // $scenes_title = "Deine Szenen ({$charname_str} - {$status_str} - dran? {$move_str} - #{$cnt})";
 
     if ($db->num_rows($scenes) == 0) {
       $tplcount = 0;
@@ -1991,21 +2009,21 @@ function scenetracker_usercp()
 
       $charaname = build_profile_link($charname, $uid);
       if ($charakter == 0) {
-        $charaname .= " (#{$chara_cnt})";
+        $charaname .= $lang->sprintf($lang->scenetracker_showstring_characount, $chara_cnt);
       }
       $scenetracker_ucp_bit_scene = "";
       while ($data = $db->fetch_array($scenes)) {
-        $statusofscene = $db->fetch_array($db->write_query("SELECT s.*, t.lastposteruid FROM ".TABLE_PREFIX."scenetracker s INNER JOIN ".TABLE_PREFIX."threads t ON s.tid = t.tid WHERE s.tid = {$data['tid']} AND s.uid = {$uid}"));
-        
-        if($statusofscene['type'] == "always" && $statusofscene['lastposteruid'] != $uid ) {
-          $statusclass = "<span class=\"yourturn\">Du bist dran</span>";
-        } else if($statusofscene['type'] == "certain" && $statusofscene['lastposteruid'] == $statusofscene['inform_by'] ) {
-          $statusclass = "<span class=\"yourturn\">Du bist dran</span>";
+        $statusofscene = $db->fetch_array($db->write_query("SELECT s.*, t.lastposteruid FROM " . TABLE_PREFIX . "scenetracker s INNER JOIN " . TABLE_PREFIX . "threads t ON s.tid = t.tid WHERE s.tid = {$data['tid']} AND s.uid = {$uid}"));
+
+        if ($statusofscene['type'] == "always" && $statusofscene['lastposteruid'] != $uid) {
+          $statusclass = "<span class=\"yourturn\">{$lang->scenetracker_yourturn}</span>";
+        } else if ($statusofscene['type'] == "certain" && $statusofscene['lastposteruid'] == $statusofscene['inform_by']) {
+          $statusclass = "<span class=\"yourturn\">{$lang->scenetracker_yourturn}</span>";
         } else {
           $statusclass = "";
         }
         $edit = "";
-        $alert = "[alert]";
+        $alert = $lang->scenetracker_alert;
 
         $user = get_user($uid);
         $tid = $data['tid'];
@@ -2044,27 +2062,27 @@ function scenetracker_usercp()
           $username = build_profile_link($info['username'], $data['inform_by']);
           $alerttype =  $username;
         } else if ($alerttype == 'always') {
-          $alerttype = "immer";
+          $alerttype = $lang->scenetracker_alerttypealways;
           $alertclass = "always";
         } else if ($alerttype == 'never') {
-          $alerttype = "nie";
+          $alerttype = $lang->scenetracker_alerttypenever;
           $alertclass = "never";
         }
         $scene = '<a href="showthread.php?tid=' . $data['tid'] . '&action=lastpost" class="scenelink">' . $data['subject'] . '</a>';
         if ($data['profil_view'] == 1) {
-          $hide = "is displayed (profile) <a href=\"usercp.php?action=scenetracker&showsceneprofil=0&getsid=" . $id . "\"><i class=\"fas fa-toggle-on\"></i></a>";
+          $hide = "{$lang->scenetracker_displaystatus_shown} <a href=\"usercp.php?action=scenetracker&showsceneprofil=0&getsid=" . $id . "\"><i class=\"fas fa-toggle-on\"></i></a>";
         } else {
-          $hide = "is hidden <a href=\"usercp.php?action=scenetracker&showsceneprofil=1&getsid=" . $id . "\"><i class=\"fas fa-toggle-off\"></i></a></a>";
+          $hide = "{$lang->scenetracker_displaystatus_hidden} <a href=\"usercp.php?action=scenetracker&showsceneprofil=1&getsid=" . $id . "\"><i class=\"fas fa-toggle-off\"></i></a></a>";
         }
         if ($data['closed'] == 1) {
-          $close = "is closed <a href=\"usercp.php?action=scenetracker&closed=0&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-unlock\"></i></a>";
+          $close = "{$lang->scenetracker_sceneisclosed} <a href=\"usercp.php?action=scenetracker&closed=0&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-unlock\"></i></a>";
         } else {
-          $close = "is open <a href=\"usercp.php?action=scenetracker&closed=1&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-lock\"></i></a>";
+          $close = "{$lang->scenetracker_sceneisopen} <a href=\"usercp.php?action=scenetracker&closed=1&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-lock\"></i></a>";
         }
 
         if ($data['type'] == 'certain' && $info_by != 0) {
-          $users_options_bit = "<option value=\"0\">another user posted</option>
-                                <option value=\"-1\">never</option>";
+          $users_options_bit = "<option value=\"0\">{$lang->scenetracker_select_another}</option>
+                                <option value=\"-1\">{$lang->scenetracker_select_never}</option>";
           foreach ($all_users as $uid_sel => $username) {
             if ($info_by == $uid_sel) {
               $selected = "selected";
@@ -2213,26 +2231,26 @@ function scenetracker_showinprofile()
     $sceneusers = str_replace(",", ", ", $scenes['scenetracker_user']);
     $sceneplace = $scenes['scenetracker_place'];
     if ($scenes['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon\">Triggerwarnung: {$scenes['scenetracker_trigger']}</div>";
+      $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Triggerwarnung: {$scenes['scenetracker_trigger']}</div>";
     } else {
       $scenetrigger = "";
     }
     if ($scenes['threadclosed'] == 1 or $scenes['threadsolved'] == 1) {
       if ($allowmanage || $mybb->usergroup['canmodcp'] == 1) {
-        $scenestatus = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&closed=0&gettid=" . $tid . "\"><i class=\"fas fa-check-circle\"></i></a>";
+        $scenestatus = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&closed=0&gettid=" . $tid . "\" data-id=\"#trackeropen\" data-tooltip=\"Szene öffnen\" data-position=\"top\" \"><i class=\"fas fa-check-circle\"></i></a>";
       } else {
         $scenestatus = "<i class=\"fas fa-check-circle\"></i>";
       }
     } else {
       if ($allowmanage || $mybb->usergroup['canmodcp'] == 1) {
-        $scenestatus = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&closed=1&gettid=" . $tid . "\"><i class=\"fas fa-times-circle\"></i></a>";
+        $scenestatus = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&closed=1&gettid=" . $tid . "\" data-id=\"#trackerclose\" data-tooltip=\"Szene schließen\" data-position=\"top\" \"><i class=\"fas fa-times-circle\"></i></a>";
       } else {
         $scenestatus = "<i class=\"fas fa-times-circle\"></i>";
       }
     }
 
     if ($allowmanage || $mybb->usergroup['canmodcp'] == 1) {
-      $scenehide = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&show=0&getsid=" . $sid . "\"><i class=\"fas fa-eye-slash\"></i></a>";
+      $scenehide = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&show=0&getsid=" . $sid . "\" data-id=\"#trackerhide\" data-tooltip=\"Szene ausblenden\" data-position=\"top\" \"><i class=\"fas fa-eye-slash\"></i></a>";
     } else {
       $scenehide = "";
     }
@@ -2259,7 +2277,7 @@ $plugins->add_hook('index_start', 'scenetracker_list');
 function scenetracker_list()
 {
   global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara;
-
+  // var_dump($mybb->cookies['mybb']['allow_cookies']);
   //get all charas of this user
   $uid = $mybb->user['uid'];
   $index = $db->fetch_field($db->simple_select("users", "tracker_index", "uid = $uid"), "tracker_index");
@@ -2299,7 +2317,6 @@ function scenetracker_list()
       redirect('index.php');
     }
     $cnts = scenetracker_count_scenes($charas);
-
     $counter = "( {$cnts['open']} / {$cnts['all']} )";
 
     eval("\$scenetracker_index_main =\"" . $templates->get("scenetracker_index_main") . "\";");
@@ -2436,6 +2453,16 @@ function scenetracker_calendar()
       SELECT username, uid FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '{$converteddate}%'");
       // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
       $birth_num = $db->num_rows($get_birthdays);
+    } elseif ($setting_birhtday == "3") {
+      //application ucp
+      $converteddate = date("m-d", $timestamp);
+      $identifier = $mybb->settings['scenetracker_birhdayfid'];
+      $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
+      $get_birthdays = $db->write_query("SELECT uf.uid, username FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
+      LEFT JOIN " . TABLE_PREFIX . "users u ON uf.uid = u.uid 
+      WHERE fieldid = {$feldid} and value LIKE '%{$converteddate}'");
+
+      $birth_num = $db->num_rows($get_birthdays);
     } else {
       $birth_num = 0;
     }
@@ -2459,10 +2486,10 @@ function scenetracker_calendar()
         while ($scene = $db->fetch_array($scenes)) {
           $scene_in .= "
         <div class=\"st_calendar\">
-          <div class=\"st_calendar__sceneitem scene_date icon\"><i class=\"fas fa-calendar\"></i> {$scene['scenetime']}</div>
-          <div class=\"st_calendar__sceneitem scene_title icon\"><i class=\"fas fa-folder-open\"></i> <a href=\"showthread.php?tid={$scene['tid']}\">{$scene['subject']}</a> </div>
-          <div class=\"st_calendar__sceneitem scene_place icon\"><i class=\"fas fa-map-marker-alt\"></i> {$scene['scenetracker_place']}</div>
-          <div class=\"st_calendar__sceneitem scene_users icon \"><i class=\"fas fa-users\"></i> {$scene['scenetracker_user']}</div>
+          <div class=\"st_calendar__sceneitem scene_date icon\">{$scene['scenetime']}</div>
+          <div class=\"st_calendar__sceneitem scene_title icon\"><a href=\"showthread.php?tid={$scene['tid']}\">{$scene['subject']}</a> </div>
+          <div class=\"st_calendar__sceneitem scene_place icon\">{$scene['scenetracker_place']}</div>
+          <div class=\"st_calendar__sceneitem scene_users icon \">{$scene['scenetracker_user']}</div>
          </div> ";
         }
 
@@ -2567,6 +2594,16 @@ function scenetracker_minicalendar()
         $get_birthdays = $db->write_query("
         SELECT username, uid FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '{$converteddate}%'");
         // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
+        $birth_num = $db->num_rows($get_birthdays);
+      } elseif ($setting_birhtday == "3") {
+        //application ucp
+        $converteddate = date("m-d", $timestamp);
+        $identifier = $mybb->settings['scenetracker_birhdayfid'];
+        $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
+        $get_birthdays = $db->write_query("SELECT uf.uid, username FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
+        LEFT JOIN " . TABLE_PREFIX . "users u ON uf.uid = u.uid 
+        WHERE fieldid = {$feldid} and value LIKE '%{$converteddate}'");
+
         $birth_num = $db->num_rows($get_birthdays);
       } else {
         $birth_num = 0;
@@ -3064,7 +3101,6 @@ function scenetracker_scene_change_status($close, $tid, $uid)
     }
     $fid = $db->fetch_field($db->simple_select("threads", "fid", "tid = {$tid}"), "fid");
     redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
-
   } elseif ($close == 0) {
     if (scenetracker_change_allowed($teilnehmer)) {
       $db->query("UPDATE " . TABLE_PREFIX . "threads SET closed = '0' WHERE tid = " . $tid . " ");
@@ -3078,12 +3114,12 @@ function scenetracker_scene_change_status($close, $tid, $uid)
 /**********
  * Change View of Scene (show in profil or not)
  ************/
-function scenetracker_scene_change_view($hide, $id, $uid)
+function scenetracker_scene_change_view($hidescene, $id, $uid)
 {
   global $db, $mybb;
   //security check, is this user allowes to change entry?
   if (scenetracker_check_switcher($uid)) {
-    $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET profil_view = '" . $hide . "' WHERE id = " . $id . " ");
+    $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET profil_view = '" . $hidescene . "' WHERE id = " . $id . " ");
   }
 }
 
