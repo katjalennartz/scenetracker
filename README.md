@@ -1,5 +1,6 @@
 # Szenentracker
 
+## Wichtige Infos: 
 ```diff
 - Ganz unten im Text: HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin
 - Sowie: HOW TO: Minicalender überm Inplay anzeigen.
@@ -22,7 +23,7 @@ darüber einfügen
 ````
 
 
-**Allgemeine Beschreibung**   
+## **Allgemeine Beschreibung**   
 Der Tracker funktioniert automatisch und ermöglicht es so, den Usern eine wunderbaren Überblick über all ihre Szenen zu haben. Beim Erstellen der Szene werden Datum, Zeit und Ort eingetragen. Außerdem kann hier auch direkt eine Triggerwarnung eingestellt werden, welche die Szene mit einem Ausrufezeichen schon im Forumdisplay und auch in der Profilübersicht kennzeichnet.   
 Teilnehmer können beim erstellen der Szene hinzugefügt werden, die Usernamen werden automatisch vervollständigt, so dass keine Tippfehler entstehen können. Anders als bei der Autovervollständigung von Mybb können jedoch auch zusätzliche Infos hinzugefügt werden, also zum Beispiel: 'John Smith, Jane Doe, und alle die möchten'
 Wird eine Szene erstellt, erhalten die eingetragenen Teilnehmer einen Alert, auch wenn sie im Nachhinein hinzugefügt wurden.     
@@ -32,11 +33,11 @@ Die Übersicht der Szenen findet sich im User CP, hier können die Nutzer ihre S
 Im Profil wird automatisch eine Szenenübersicht nach Monaten und Jahren sortiert. Der Charakter kann Szenen aber auch ausblenden, sowie bei Wunsch im UCP dann doch wieder einblenden.    
 Außerdem können User bestimmen, wann sie über eine Antwort informiert werden wollen. Immer (wenn ein anderer Charakter gepostet hat), wenn ein bestimmer Charakter gepostet hat, oder nie.  
 
-**Mini Kalendar**  
+### **Mini Kalendar**  
 Einbindung im Footer oder im Header über
 {$scenetracker_calendar} 
 
-**Admin CP**.
+### **Admin CP**.
 Mögliche (und nötige) Einstellungen im ACP:  
 * Ob der Accountswitcher benutzt wird oder nicht
 * Ob das Thema erledigt/unerledigt benutzt wird. (wenn ja aktiviert, wird beim schließen das Thema auch als erledigt markiert)
@@ -44,11 +45,11 @@ Mögliche (und nötige) Einstellungen im ACP:
 * Wird MyAlerts benutzt?
 * Ingame - Die ID des Ingames
 * ID des Archivs.
-* Geburtsfeld für Kalender. Standard oder als Profilfeld. **Wichtig** (Format dd.mm.YYYY) 
+* Geburtsfeld für Kalender. Standard, Profilfeld ( **Wichtig** (Format dd.mm.YYYY) ) oder Feld des 'Steckbrief im UCP Plugin'
 * Erinnerung: Soll und wenn ja, nach wie vielen Tagen soll der User eine Erinnerung angezeigt bekommen? 
 * Ingame Zeitraum: Auch hier bitte das Format beachten.
 
-**Benutzer CP**. (/usercp.php?action=scenetracker)  
+### **Benutzer CP**. (/usercp.php?action=scenetracker)  
 Hier findet der User 3 Einstellungen.  
  
 * *Szenenübersicht auf der Indexseite?*.  
@@ -60,28 +61,28 @@ Wenn im ACP eingestellt, wird dem User einer Erinnerung auf dem Index angezeigt,
 * *Anzeige / Sortierung der Szenen*  
 Der User kann die Szenen ganz verschieden Filtern. Nach Charakteren, Status und ob er dran ist oder nicht (und in jeglicher Kombination). 
 * *Verwaltung der Szenen*  
-Der User kann verschiedene Einstellungen vornehmen. Zum Beispiel ob die Szene im Profil angezeigt werden soll, ob und wann er benachrichtigt werden soll oder sie öffnen/schließen.
+Der User kann verschiedene Einstellungen vornehmen. Zum Beispiel ob die Szene im Profil angezeigt werden soll, ob und wann er **benachrichtigt** werden soll oder sie öffnen/schließen.
  
-**Beiträge erstellen/bearbeiten**.    
+### **Beiträge erstellen/bearbeiten**.    
 Es kann ein Datum und Zeit, Ort und bei Bedarf eine Triggerwarnung angegeben werden.    
 Teilnehmer können eingetragen werden, Benutzernamen werden automatisch vervollständig, es kann aber auch eine Info wie 'und weitere' hinzugefügt werden.    
 Charaktere, die auf den Beitrag antworten aber noch nicht als Teilnehmer eingetragen sind, können mit einem Häkchen bestimmen ob sie hinzugefügt werden wollen oder nicht. (Per Default auf hinzufügen).      
 
-**Index Anzeige**.
+### **Index Anzeige**.
 Auf dem Index über dem Footer, werden die Szenen des Spielers angezeigt, je nach Einstellung im User CP.     
 Auch hier können direkt die wichtigsten Einstellungen vorgenommen werden      
 
-**Anzeige der Szenen im Profil:**.  
+### **Anzeige der Szenen im Profil:**.  
 Sortiert nach Szenendatum. 
 Szenen können auf Wunsch ausgeblendet werden.
 
-**Anzeige der Szenen im Forumdisplay :**.  
+### **Anzeige der Szenen im Forumdisplay :**.  
 Szeneninfos im Forumdisplay anzeigen:
 forumdisplay_thread öffnen   
 {$scenetrackerforumdisplay} einfügen   
 
 
-**Demo**  
+## **Demo**  
 
 <img src="https://github.com/katjalennartz/scenetracker/blob/main/tracker_answer.png?raw=true" style="width:450px">
 
@@ -99,7 +100,7 @@ forumdisplay_thread öffnen
 
 
 
-**HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin**  
+## **HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin**  
 
 öffne: inc/plugins/scenetracker.php  
 suche nach:
@@ -154,7 +155,7 @@ suche nach:
 ```
 
 
-**HOW TO: Minicalender über dem Ingame**
+## **HOW TO: Minicalender über dem Ingame**
 
 
 suchen nach:
