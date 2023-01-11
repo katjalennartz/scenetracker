@@ -61,10 +61,10 @@ function scenetracker_install()
   // }
 
   // Einfügen der Trackerfelder in die Threadtabelle
-  $db->add_column("threads", "scenetracker_date", "datetime NOT NULL");
-  $db->add_column("threads", "scenetracker_place", "varchar(200) NOT NULL");
-  $db->add_column("threads", "scenetracker_user", "varchar(1500) NOT NULL");
-  $db->add_column("threads", "scenetracker_trigger", "varchar(200) NOT NULL");
+  $db->add_column("threads", "scenetracker_date", "DATETIME NULL DEFAULT NULL");
+  $db->add_column("threads", "scenetracker_place", "varchar(200) NOT NULL DEFAULT ''");
+  $db->add_column("threads", "scenetracker_user", "varchar(1500) NOT NULL DEFAULT ''");
+  $db->add_column("threads", "scenetracker_trigger", "varchar(200) NOT NULL DEFAULT ''");
 
 
   // Einfügen der Trackeroptionen in die user tabelle
@@ -1771,6 +1771,7 @@ function scenetracker_showthread_showtrackerstuff()
             </form><button name=\"edit_sceneinfos\" id=\"edit_sceneinfos\">{$lang->scenetracker_btnsubmit}</button>
             <script src=\"./jscripts/scenetracker.js\"></script>
             <script type=\"text/javascript\" src=\"./jscripts/suggest.js\"></script>
+
         </div>
 
       </div>
@@ -1778,7 +1779,6 @@ function scenetracker_showthread_showtrackerstuff()
     }
     $statusscene_new = "<div class=\"bl-sceneinfos__item bl-sceneinfos__item--status bl-smallfont \">" . $scenestatus . $edit . "</div>";
 
-    // eval("\$scene_newshowtread = \"" . $templates->get("scenetracker_showthread_new") . "\";");
     eval("\$scenetracker_showthread = \"" . $templates->get("scenetracker_showthread") . "\";");
   }
 
@@ -2238,7 +2238,7 @@ function scenetracker_showinprofile()
   while ($scenes = $db->fetch_array($scene_query)) {
     $scenes['threadsolved'] = "";
     if ($solved == "") {
-      $scenes['threadsolved'] == $scenes['threadclosed'];
+      $scenes['threadsolved'] = $scenes['threadclosed'];
     }
 
     $tid = $scenes['tid'];
@@ -2542,7 +2542,7 @@ $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
 function scenetracker_minicalendar()
 {
   global $db, $mybb, $templates, $scenetracker_calendar;
-  $scenetracker_calendar = $scenetracker_calendar_bit = "";
+  $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene =  $eventcss = "";
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
@@ -2654,6 +2654,8 @@ function scenetracker_minicalendar()
             while ($event = $db->fetch_array($get_events)) {
               if ($event['name'] == "Fullmoon") {
                 $fullmoon = "fullmoon";
+              } else {
+                $fullmoon = "";
               }
               $eventshow .= "<div class=\"st_mini_scenelink \"><a href=\"calendar.php?action=event&eid={$event['eid']}\">{$event['name']}</a></div>";
             }
@@ -3119,7 +3121,12 @@ function scenetracker_scene_change_status($close, $tid, $uid)
       }
     }
     $fid = $db->fetch_field($db->simple_select("threads", "fid", "tid = {$tid}"), "fid");
-    redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
+    if ($db->field_exists('archiving_inplay', 'forums')) {
+
+      redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
+    } else {
+      redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
+    }
   } elseif ($close == 0) {
     if (scenetracker_change_allowed($teilnehmer)) {
       $db->query("UPDATE " . TABLE_PREFIX . "threads SET closed = '0' WHERE tid = " . $tid . " ");
