@@ -2542,7 +2542,7 @@ $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
 function scenetracker_minicalendar()
 {
   global $db, $mybb, $templates, $scenetracker_calendar;
-  $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene =  $eventcss = "";
+  $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene = $birthdaycss = $eventcss = "";
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
@@ -3180,7 +3180,6 @@ function scenetracker_alert()
         $this->lang->scenetracker_newScene,
         $outputAlert['from_user'],
         $alertContent['tid'],
-        $outputAlert['dateline']
       );
     }
     /**
@@ -3190,9 +3189,7 @@ function scenetracker_alert()
      */
     public function init()
     {
-      if (!$this->lang->scenetracker) {
-        $this->lang->load('scenetracker');
-      }
+      $this->lang->load('scenetracker');
     }
     /**
      * We want to define where we want to link to. 
@@ -3230,7 +3227,6 @@ function scenetracker_alert()
         $outputAlert['from_user'],
         $alertContent['tid'],
         $alertContent['pid'],
-        $outputAlert['dateline']
       );
     }
     /**
