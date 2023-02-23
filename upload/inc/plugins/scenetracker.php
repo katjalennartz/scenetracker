@@ -1644,30 +1644,30 @@ function scenetracker_forumdisplay_showtrackerstuff()
 {
   global $thread, $templates, $db, $fid, $scenetrackerforumdisplay;
 
-  // if (scenetracker_testParentFid($fid)) {
-  //   $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
+  if (scenetracker_testParentFid($fid)) {
+    $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
 
-  //   $userArray = scenetracker_getUids($thread['scenetracker_user']);
-  //   $scene_place = $thread['scenetracker_place'];
+    $userArray = scenetracker_getUids($thread['scenetracker_user']);
+    $scene_place = $thread['scenetracker_place'];
 
-  //   $author = build_profile_link($thread['username'], $thread['uid']);
-  //   $scenetracker_forumdisplay_user = "";
-  //   if ($thread['scenetracker_trigger'] != "") {
-  //     $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
-  //   } else {
-  //     $scenetrigger = "";
-  //   }
-  //   foreach ($userArray as $uid => $username) {
-  //     if ($uid != $username) {
-  //       $user = build_profile_link($username, $uid);
-  //     } else {
-  //       $user = $username;
-  //     }
-  //     eval("\$scenetracker_forumdisplay_user.= \"" . $templates->get("scenetracker_forumdisplay_user") . "\";");
-  //   }
+    $author = build_profile_link($thread['username'], $thread['uid']);
+    $scenetracker_forumdisplay_user = "";
+    if ($thread['scenetracker_trigger'] != "") {
+      $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
+    } else {
+      $scenetrigger = "";
+    }
+    foreach ($userArray as $uid => $username) {
+      if ($uid != $username) {
+        $user = build_profile_link($username, $uid);
+      } else {
+        $user = $username;
+      }
+      eval("\$scenetracker_forumdisplay_user.= \"" . $templates->get("scenetracker_forumdisplay_user") . "\";");
+    }
 
-  //   eval("\$scenetrackerforumdisplay = \"" . $templates->get("scenetracker_forumdisplay_infos") . "\";");
-  // }
+    eval("\$scenetrackerforumdisplay = \"" . $templates->get("scenetracker_forumdisplay_infos") . "\";");
+  }
 }
 
 /*Anzeige in suchergebnissen */
