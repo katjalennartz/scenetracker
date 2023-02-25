@@ -2373,9 +2373,7 @@ function scenetracker_reminder()
     // $days = 200;
     $cnt = 0;
 
-
     foreach ($charas as $uid => $username) {
-
       $scenetracker_get_scenes = $db->write_query(
         "SELECT * FROM " . TABLE_PREFIX . "scenetracker st, " . TABLE_PREFIX . "threads t WHERE st.tid = t.tid 
             AND st.uid = " . $uid . "
@@ -2398,12 +2396,12 @@ function scenetracker_reminder()
           $cnt = 1;
           $userarr = get_user($uid);
           if (($scenes['type'] == 'always') || ($scenes['type'] == 'never')) {
-            if ($scenes['index_reminder'] == 1) {
+            if ($scenes['index_view'] == 1) {
               eval("\$scenetracker_index_reminder_bit .=\"" . $templates->get("scenetracker_index_reminder_bit") . "\";");
             }
           }
           if ($scenes['type'] == 'certain' &&  ($scenes['lastposteruid'] == $scenes['inform_by'])) {
-            if ($scenes['index_reminder'] == 1) {
+            if ($scenes['index_view'] == 1) {
               eval("\$scenetracker_index_reminder_bit .=\"" . $templates->get("scenetracker_index_reminder_bit") . "\";");
             }
           }
