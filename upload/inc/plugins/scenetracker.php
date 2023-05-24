@@ -3259,3 +3259,33 @@ function scenetracker_alert()
     );
   }
 }
+
+
+$plugins->add_hook("fetch_wol_activity_end", "scenetracker_online_activity");
+function scenetracker_online_activity($user_activity)
+{
+  global $parameters, $user;
+
+  $split_loc = explode(".php", $user_activity['location']);
+  if ($split_loc[0] == $user['location']) {
+    $filename = '';
+  } else {
+    $filename = my_substr($split_loc[0], -my_strpos(strrev($split_loc[0]), "/"));
+  }
+  if ($filename == "getusernames") {
+    $user_activity['activity'] = "getusernames";
+  }
+  return $user_activity;
+}
+
+$plugins->add_hook("build_friendly_wol_location_end", "scenetracker_online_location");
+function scenetracker_online_location($plugin_array)
+{
+  global $mybb, $theme, $lang;
+
+  if ($plugin_array['user_activity']['activity'] == "getusernames") {
+    $plugin_array['location_name'] = "Fügt in einer Szene Teilnehmer hinzu.";
+  }
+
+  return $plugin_array;
+}
