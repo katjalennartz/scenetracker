@@ -2229,10 +2229,14 @@ function scenetracker_showinprofile()
     scenetracker_scene_change_status(0,  $tid,  $userprofil);
     redirect('member.php?action=profile&uid=' . $userprofil);
   }
+	//TODO: Notiz -> mehrere Ingame bereiche 
+	//Settings ändern zu forum auswählen... array explode query bauen AND (concat(',',parentlist,',') LIKE '%," . $ingame . ",%' OR... etc
+	
   $scene_query = $db->write_query("
       SELECT s.*,t.fid, parentlist, subject, dateline, t.closed as threadclosed, scenetracker_date, scenetracker_user, scenetracker_place, scenetracker_trigger" . $solved . " FROM " . TABLE_PREFIX . "scenetracker s, 
       " . TABLE_PREFIX . "threads t LEFT JOIN " . TABLE_PREFIX . "forums fo ON t.fid = fo.fid WHERE t.tid = s.tid AND s.uid = " . $userprofil . " 
       AND (concat(',',parentlist,',') LIKE '%," . $ingame . ",%' OR concat(',',parentlist,',') LIKE '%," . $archiv . ",%' ) AND s.profil_view = 1 ORDER by scenetracker_date DESC");
+
 
   $date_flag = "1";
   while ($scenes = $db->fetch_array($scene_query)) {
@@ -2817,7 +2821,7 @@ function scenetracker_testParentFid($fid)
   // rebuild_settings();
   $ingame =  "," . $mybb->settings['scenetracker_ingame'] . ",";
   $archiv = "," . $mybb->settings['scenetracker_archiv'] . ",";
-
+	//TODO MEHREE INGAMES ARRAY EXPLODE FÜR JEDES TESTEN
   $containsIngame = strpos($parents, $ingame);
   $containsArchiv = strpos($parents, $archiv);
 
