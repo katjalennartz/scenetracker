@@ -122,10 +122,17 @@ function scenetracker_install()
       'value' => '1', // Default
       'disporder' => 1
     ),
+    // 'scenetracker_ingame' => array(
+    //   'title' => 'Ingame',
+    //   'description' => 'ID des Ingames',
+    //   'optionscode' => 'text',
+    //   'value' => '7', // Default
+    //   'disporder' => 4
+    // ),
     'scenetracker_ingame' => array(
       'title' => 'Ingame',
       'description' => 'ID des Ingames',
-      'optionscode' => 'text',
+      'optionscode' => 'forumselect',
       'value' => '7', // Default
       'disporder' => 4
     ),
@@ -183,6 +190,13 @@ function scenetracker_install()
       'description' => 'Gib hier den letzte  Tag eures Ingamezeitraums an. z.B. 15 oder 30.<br><i>Tage im Zeitraum, bekommen die Klasse "activeingame" und können gesondert gestylt werden.</i>',
       'optionscode' => 'text',
       'value' => '30', // Default
+      'disporder' => 11
+    ),
+    'scenetracker_exludedfids' => array(
+      'title' => 'ausgeschlossene Foren',
+      'description' => 'Gibt es Foren, die im Ingame liegen aber nicht zum Tracker gezählt werden sollen (Keine Verfolgung, keine Anzeige im Profil, z.B. Communication).',
+      'optionscode' => 'forumselect',
+      'value' => '', // Default
       'disporder' => 11
     ),
   );
@@ -1280,7 +1294,7 @@ background-color:var(--background-dark);
  * Neuen Thread erstellen - Felder einfügen
  */
 
-$plugins->add_hook("newthread_start", "scenetracker_newthread");
+$plugins->add_hook("newthread_start", "scenetracker_newthread", 20);
 function scenetracker_newthread()
 {
   global $db, $mybb, $templates, $fid, $scenetracker_newthread, $thread, $scenetrackeredit, $post_errors, $scenetracker_date, $scenetracker_time, $scenetracker_user;
@@ -1294,8 +1308,9 @@ function scenetracker_newthread()
       $scenetracker_trigger = $mybb->get_input('scenetracker_trigger');
       $scenetracker_place = $mybb->get_input('place');
     } else {
+      $ingame =  explode(",", str_replace(" ", "", $mybb->settings['scenetracker_ingametime']));
 
-      $scenetracker_date = "2020-04-01";
+      $scenetracker_date = $ingame[0] . "-01";
       $scenetracker_time = "12:00";
       $scenetracker_user = $mybb->user['username'] . ",";
     }
@@ -1322,6 +1337,11 @@ function scenetracker_do_newthread()
     $teilnehmer = $db->escape_string($mybb->get_input('teilnehmer'));
     $trigger = $db->escape_string($mybb->get_input('scenetracker_trigger'));
 
+    //wir wollen nicht, dass das letzte zeichen in Komma ist, also löschen wir es
+    if (substr($teilnehmer, -1, 1) == ",") {
+      $teilnehmer = substr($teilnehmer, 0, -1);
+    }
+    //die uids der Teilnehmer bekommen
     $array_users = scenetracker_getUids($teilnehmer);
     if ($visible == 1) {
       $save = array(
@@ -1333,6 +1353,7 @@ function scenetracker_do_newthread()
       $db->update_query("threads", $save, "tid='{$tid}'");
     }
     if ($visible == 1) {
+      //alle teilnehmer durchgehen
       foreach ($array_users as $uid => $username) {
         if ($uid != $username) {
           $alert_array = array(
@@ -1406,16 +1427,20 @@ function scenetracker_do_newreply()
   if (scenetracker_testParentFid($fid)) {
     // füge den charakter, der gerade antwortet hinzu wenn gewollt und noch nicht in der Szene eingetragen
     if ($mybb->get_input('scenetracker_add') == "add") {
-      $db->write_query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = CONCAT(scenetracker_user, '," . $username . "') WHERE tid = {$tid}");
-      if ($visible == 1) {
-        $to_add = array(
-          "uid" => $thisuser,
-          "tid" => $tid,
-          "type" => "always"
-        );
-        $db->insert_query("scenetracker", $to_add);
+      $isthere = $db->simple_select("scenetracker", "*", "uid = {$thisuser} AND tid = {$tid}");
+      if (!$db->num_rows($isthere)) {
+        $db->write_query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = CONCAT(scenetracker_user, '," . $username . "') WHERE tid = {$tid}");
+        if ($visible == 1) {
+          $to_add = array(
+            "uid" => $thisuser,
+            "tid" => $tid,
+            "type" => "always"
+          );
+          $db->insert_query("scenetracker", $to_add);
+        }
       }
     }
+
     if ($visible == 1) {
       foreach ($array_users as $uid => $username) {
         // Alle teilnehmer bekommen
@@ -1609,6 +1634,10 @@ function scenetracker_do_editpost()
       }
       //Build the new String for users and save it
       $to_save_str = implode(",", $new_userfield);
+      //wir wollen nicht, dass das letzte zeichen ein Komma ist, also löschen wir es
+      if (substr($to_save_str, -1, 1) == ",") {
+        $to_save_str = substr($to_save_str, 0, -1);
+      }
       $save = array(
         "scenetracker_date" => $date,
         "scenetracker_place" => $place,
@@ -2199,6 +2228,8 @@ function scenetracker_showinprofile()
   setlocale(LC_ALL, 'de_DE.utf8', 'de_DE@euro', 'de_DE', 'de', 'ge');
   $ingame =  $mybb->settings['scenetracker_ingame'];
   $archiv = $mybb->settings['scenetracker_archiv'];
+  if ($ingame == '') $ingame = "0";
+  if ($archiv == '') $archiv = "0";
 
   $allowmanage = scenetracker_check_switcher($userprofil);
   $show_monthYear = array();
@@ -2229,14 +2260,59 @@ function scenetracker_showinprofile()
     scenetracker_scene_change_status(0,  $tid,  $userprofil);
     redirect('member.php?action=profile&uid=' . $userprofil);
   }
-	//TODO: Notiz -> mehrere Ingame bereiche 
-	//Settings ändern zu forum auswählen... array explode query bauen AND (concat(',',parentlist,',') LIKE '%," . $ingame . ",%' OR... etc
-	
-  $scene_query = $db->write_query("
-      SELECT s.*,t.fid, parentlist, subject, dateline, t.closed as threadclosed, scenetracker_date, scenetracker_user, scenetracker_place, scenetracker_trigger" . $solved . " FROM " . TABLE_PREFIX . "scenetracker s, 
-      " . TABLE_PREFIX . "threads t LEFT JOIN " . TABLE_PREFIX . "forums fo ON t.fid = fo.fid WHERE t.tid = s.tid AND s.uid = " . $userprofil . " 
-      AND (concat(',',parentlist,',') LIKE '%," . $ingame . ",%' OR concat(',',parentlist,',') LIKE '%," . $archiv . ",%' ) AND s.profil_view = 1 ORDER by scenetracker_date DESC");
+  //TODO: Notiz -> mehrere Ingame bereiche 
+  //Settings ändern zu forum auswählen... array explode query bauen AND (concat(',',parentlist,',') LIKE '%," . $ingame . ",%' OR... etc
 
+  // $scene_query = $db->write_query("
+  //     SELECT s.*,t.fid, parentlist, subject, dateline, t.closed as threadclosed, 
+  // scenetracker_date, scenetracker_user, scenetracker_place, scenetracker_trigger" . $solved . " FROM " . TABLE_PREFIX . "scenetracker s, 
+  //     " . TABLE_PREFIX . "threads t LEFT JOIN " . TABLE_PREFIX . "forums fo ON t.fid = fo.fid WHERE t.tid = s.tid AND s.uid = " . $userprofil . " 
+  //     AND (concat(',',parentlist,',') LIKE '%," . $ingame . ",%' OR 
+  // concat(',',parentlist,',') LIKE '%," . $archiv . ",%' ) AND s.profil_view = 1 ORDER by scenetracker_date DESC");
+
+  //wenn alle foren bei ingame ausgewählt sind oder keins (weil keins macht keinen sinn), alle foren zeigen. 
+  //archiv-> auch immer anzeigen weil inkludiert in 'alle foren' 
+  //Wir brauchen keine Einschränkung
+  if (($ingame == "") || ($ingame == "-1") || ($archiv == "-1")) {
+    $forenquerie = "";
+  } else {
+
+    //ingame -> foren ausgewählt & archiv foren ausgewählt
+    $ingamestr = "";
+    if ($ingame != "") {
+      //ein array mit den fids machen
+      
+      $ingameexplode = explode(",", $ingame);
+      foreach ($ingameexplode as $ingamefid) {
+        //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
+        $ingamestr .= "$ingamefid in (parentlist) OR ";
+      }
+    }
+
+    //wenn kein archiv mehr folgt, das letzte OR rauswerfen
+    if ($archiv == "" || $archiv == "-1") {
+      $ingamestr = substr($ingamestr, 0, -3);
+    }
+
+    $archivstr = "";
+    if ($archiv != "") {
+      $archivexplode = explode(",", $archiv);
+      foreach ($archivexplode as $archivfid) {
+        $archivstr .= "$archivfid in (parentlist) OR ";
+      }
+      // das letzte OR rauswerfen
+      $archivstr = substr($archivstr, 0, -3);
+    }
+    $forenquerie = " AND ($ingamestr $archivstr)";
+  }
+
+  $scene_query = $db->write_query("
+          SELECT s.*,t.fid, parentlist, subject, dateline, t.closed as threadclosed, 
+          scenetracker_date, scenetracker_user, scenetracker_place, scenetracker_trigger" . $solved . " FROM " . TABLE_PREFIX . "scenetracker s, 
+          " . TABLE_PREFIX . "threads t LEFT JOIN " . TABLE_PREFIX . "forums fo ON t.fid = fo.fid 
+          WHERE t.tid = s.tid AND s.uid = " . $userprofil . "  
+          $forenquerie AND s.profil_view = 1 ORDER by scenetracker_date DESC;
+  ");
 
   $date_flag = "1";
   while ($scenes = $db->fetch_array($scene_query)) {
@@ -2817,17 +2893,49 @@ function scenetracker_check_switcher($uid)
 function scenetracker_testParentFid($fid)
 {
   global $db, $mybb;
+
+  // scenetracker_exludedfids
+  // ausgeschlossene fids - leertasten rausschmeißen
+  $excludedfids = explode(",", str_replace(" ", "", $mybb->settings['scenetracker_exludedfids']));
+  // if ($excludedfids != "") {
+  //   $excluded = " AND fid NOT IN ({$excludedfids}) ";
+  // }
   $parents = $db->fetch_field($db->write_query("SELECT CONCAT(',',parentlist,',') as parents FROM " . TABLE_PREFIX . "forums WHERE fid = $fid"), "parents");
   // rebuild_settings();
-  $ingame =  "," . $mybb->settings['scenetracker_ingame'] . ",";
-  $archiv = "," . $mybb->settings['scenetracker_archiv'] . ",";
-	//TODO MEHREE INGAMES ARRAY EXPLODE FÜR JEDES TESTEN
-  $containsIngame = strpos($parents, $ingame);
-  $containsArchiv = strpos($parents, $archiv);
-
-  if ($containsIngame !== false || $containsArchiv !== false) {
+  // echo "parentlist von fid ist $parents - fid ist $fid";
+  $ingame = $mybb->settings['scenetracker_ingame'];
+  $archiv = $mybb->settings['scenetracker_archiv'];
+  $parents = ",".$parents.",";
+  // erst mal testen ob ausgeschlossen 
+  foreach ($excludedfids as $fid) {
+    if (strpos($parents, "," . $fid . ",")) {
+      return false;
+    }
+  }
+  if (($ingame == "") || ($ingame == "-1") || ($archiv == "-1")) {
+    //alle foren, also immer wahr
     return true;
-  } else return false;
+  }
+  //array basteln aus parentids für ingame
+  $ingameexplode = explode(",", $ingame);
+  foreach ($ingameexplode as $ingamefid) {
+    echo "$ingamefid ingame fid ist paretns $parents";
+    //jetzt holen wir uns die parentliste des aktuellen forums und testen, ob die parentid enthalten ist. wenn ja, dann sind wir richtig
+    if (strpos($parents, "," . $ingamefid . ",")) {
+      return true;
+    }
+  }
+  // //array basteln aus parentids für archiv
+  // if ($archiv != "") {
+  //   $archivexplode = explode(",", $archiv);
+  //   foreach ($archivexplode as $archivfid) {
+  //     if (strpos($parents, "," . $archivfid . ",")) {
+  //       return true;
+  //     }
+  //   }
+  // }
+
+  return false;
 }
 
 /**
@@ -3087,6 +3195,7 @@ function scenetracker_change_allowed($str_teilnehmer)
   global $mybb, $db;
   $chars = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
   if ($mybb->user['uid'] == 0) return false;
+
   foreach ($chars as $uid => $username) {
     $pos = stripos($str_teilnehmer, $username);
     if ($pos !== false) {
@@ -3105,26 +3214,30 @@ function scenetracker_change_allowed($str_teilnehmer)
 function scenetracker_scene_change_status($close, $tid, $uid)
 {
   global $db, $mybb;
+
+  //ist das erledigt/unerledigt programmiert?
   $solvplugin = $mybb->settings['scenetracker_solved'];
   if ($db->field_exists("threadsolved", "threads")) {
     $solvplugin = 1;
   } else {
     $solvplugin = 0;
   }
+  //Teilnehmer holen
   $teilnehmer = $db->fetch_field($db->simple_select("threads", "scenetracker_user", "tid={$tid}"), "scenetracker_user");
 
+  //soll geschlossen werden?
   if ($close == 1) {
-    $db->query("UPDATE " . TABLE_PREFIX . "threads SET closed = '1' WHERE tid = " . $tid . " ");
+    //thread schließen
     //prüft ob übergebene id zu dem chara gehört der online ist 
     //-> gesamte teilnehmerliste müsste durchgegangen werden
     if (scenetracker_change_allowed($teilnehmer)) {
+      $db->query("UPDATE " . TABLE_PREFIX . "threads SET closed = '1' WHERE tid = " . $tid . " ");
       if ($solvplugin == "1") {
         $db->query("UPDATE " . TABLE_PREFIX . "threads SET threadsolved = '1' WHERE tid = " . $tid . " ");
       }
     }
     $fid = $db->fetch_field($db->simple_select("threads", "fid", "tid = {$tid}"), "fid");
     if ($db->field_exists('archiving_inplay', 'forums')) {
-
       redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
     } else {
       redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
@@ -3264,8 +3377,11 @@ function scenetracker_alert()
   }
 }
 
-
+###########################
+##### ONLINE LOCATION #####
+###########################
 $plugins->add_hook("fetch_wol_activity_end", "scenetracker_online_activity");
+
 function scenetracker_online_activity($user_activity)
 {
   global $parameters, $user;
