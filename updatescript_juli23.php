@@ -7,7 +7,7 @@ require("global.php");
 global $db, $mybb, $lang;
 echo "Dieses Script fügt eine neue Einstellung und ändert die Foren auswahl des Ingames und Archiv.";
 
-$gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "_settings` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
+$gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settings` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
 
 if ($mybb->settings['scenetracker_ingame']) {
   $setting_array = array(
@@ -29,6 +29,7 @@ if ($mybb->settings['scenetracker_ingame']) {
       'description' => 'Ingame',
       'optionscode' => 'forumselect',
       'value' => '1', // Default
+      'gid' => $gid,
       'disporder' => 4
     )
   );
@@ -61,6 +62,7 @@ if ($mybb->settings['scenetracker_archiv']) {
       'description' => 'ID des Archivs',
       'optionscode' => 'forumselect',
       'value' => '1', // Default
+      'gid' => $gid,
       'disporder' => 4
     )
   );
@@ -79,6 +81,7 @@ if (!$mybb->settings['scenetracker_exludedfids']) {
       'description' => 'Gibt es Foren, die im Ingame liegen aber nicht zum Tracker gezählt werden sollen (Keine Verfolgung, keine Anzeige im Profil, z.B. Communication).',
       'optionscode' => 'forumselect',
       'value' => '1', // Default
+      'gid' => $gid,
       'disporder' => 4
     )
   );
