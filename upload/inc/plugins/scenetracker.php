@@ -3294,7 +3294,7 @@ function scenetracker_alert()
       return $this->lang->sprintf(
         $this->lang->scenetracker_newScene,
         $outputAlert['from_user'],
-        $alertContent['tid'],
+        $alertContent['tid']
       );
     }
     /**
@@ -3341,7 +3341,7 @@ function scenetracker_alert()
         $this->lang->scenetracker_newAnswer,
         $outputAlert['from_user'],
         $alertContent['tid'],
-        $alertContent['pid'],
+        $alertContent['pid']
       );
     }
     /**
