@@ -2919,7 +2919,7 @@ function scenetracker_testParentFid($fid)
   //array basteln aus parentids für ingame
   $ingameexplode = explode(",", $ingame);
   foreach ($ingameexplode as $ingamefid) {
-    echo "$ingamefid ingame fid ist paretns $parents";
+   // echo "$ingamefid ingame fid ist paretns $parents";
     //jetzt holen wir uns die parentliste des aktuellen forums und testen, ob die parentid enthalten ist. wenn ja, dann sind wir richtig
     if (strpos($parents, "," . $ingamefid . ",")) {
       return true;
