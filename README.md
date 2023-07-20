@@ -1,7 +1,8 @@
 # Szenentracker
 ## Updates: 		
-Last: 20. Juli 2023		
-# Todo: 
+Last: 20. Juli 2023			
+
+* # Todo: *
 - inc/plugins/scenetracker.php neu hochladen
 - updatescript_juli23.php ins hauptverzeichnis laden und hochladen. Anschließend auufrufen und dann wieder löschen.		
 
