@@ -2281,7 +2281,7 @@ function scenetracker_showinprofile()
     $ingamestr = "";
     if ($ingame != "") {
       //ein array mit den fids machen
-      
+
       $ingameexplode = explode(",", $ingame);
       foreach ($ingameexplode as $ingamefid) {
         //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
@@ -2897,44 +2897,41 @@ function scenetracker_testParentFid($fid)
   // scenetracker_exludedfids
   // ausgeschlossene fids - leertasten rausschmeißen
   $excludedfids = explode(",", str_replace(" ", "", $mybb->settings['scenetracker_exludedfids']));
-  // if ($excludedfids != "") {
-  //   $excluded = " AND fid NOT IN ({$excludedfids}) ";
-  // }
+
+  //die parents des forums holen in dem wir sind.
   $parents = $db->fetch_field($db->write_query("SELECT CONCAT(',',parentlist,',') as parents FROM " . TABLE_PREFIX . "forums WHERE fid = $fid"), "parents");
-  // rebuild_settings();
-  // echo "parentlist von fid ist $parents - fid ist $fid";
+
+  //gewollte foren aus den settings holen
   $ingame = $mybb->settings['scenetracker_ingame'];
   $archiv = $mybb->settings['scenetracker_archiv'];
-  $parents = ",".$parents.",";
+  //Archiv und ingame zusammenkleben.
+  if ($archiv != "" || $archiv == "-1") {
+    $ingame .= "," . $archiv;
+  }
+
+  //sicher gehen, dass wir nicht ausversehen die falschen foren holen, weil Zahl enthalten ist.
+  $parents = "," . $parents . ",";
   // erst mal testen ob ausgeschlossen 
   foreach ($excludedfids as $fid) {
     if (strpos($parents, "," . $fid . ",")) {
       return false;
     }
   }
+  //es sollen eh alle foren angezeigt werden
   if (($ingame == "") || ($ingame == "-1") || ($archiv == "-1")) {
     //alle foren, also immer wahr
     return true;
   }
-  //array basteln aus parentids für ingame
+  //array basteln aus parentids für ingame und evt. archiv
   $ingameexplode = explode(",", $ingame);
+  //array durchgehen und testen ob gewolltes forum in der parentlist ist.
   foreach ($ingameexplode as $ingamefid) {
-   // echo "$ingamefid ingame fid ist paretns $parents";
     //jetzt holen wir uns die parentliste des aktuellen forums und testen, ob die parentid enthalten ist. wenn ja, dann sind wir richtig
     if (strpos($parents, "," . $ingamefid . ",")) {
       return true;
     }
   }
-  // //array basteln aus parentids für archiv
-  // if ($archiv != "") {
-  //   $archivexplode = explode(",", $archiv);
-  //   foreach ($archivexplode as $archivfid) {
-  //     if (strpos($parents, "," . $archivfid . ",")) {
-  //       return true;
-  //     }
-  //   }
-  // }
-
+  //wenn das alles nicht zutrifft, dann nicht in der parentlist
   return false;
 }
 
