@@ -3237,7 +3237,7 @@ function scenetracker_scene_change_status($close, $tid, $uid)
     if ($db->field_exists('archiving_inplay', 'forums')) {
       redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
     } else {
-      redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
+      redirect("showthread.php?tid={$tid}");
     }
   } elseif ($close == 0) {
     if (scenetracker_change_allowed($teilnehmer)) {
