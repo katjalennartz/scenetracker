@@ -2285,7 +2285,8 @@ function scenetracker_showinprofile()
       $ingameexplode = explode(",", $ingame);
       foreach ($ingameexplode as $ingamefid) {
         //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
-        $ingamestr .= "$ingamefid in (parentlist) OR ";
+        $ingamestr .= "concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR"; 
+        // $ingamestr .= "$ingamefid in (parentlist) OR ";
       }
     }
 
@@ -2296,9 +2297,10 @@ function scenetracker_showinprofile()
 
     $archivstr = "";
     if ($archiv != "") {
+
       $archivexplode = explode(",", $archiv);
       foreach ($archivexplode as $archivfid) {
-        $archivstr .= "$archivfid in (parentlist) OR ";
+        $archivstr .= "concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR"; 
       }
       // das letzte OR rauswerfen
       $archivstr = substr($archivstr, 0, -3);
