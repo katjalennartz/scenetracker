@@ -107,7 +107,7 @@ forumdisplay_thread öffnen
 
 
 ## **HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin**  
-
+**Nur in älteren Versionen nötig** 
 öffne: inc/plugins/scenetracker.php  
 suche nach:
 ```
