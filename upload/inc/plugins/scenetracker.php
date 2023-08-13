@@ -1334,7 +1334,7 @@ function scenetracker_do_newthread()
     $array_users = array();
     $date = $db->escape_string($mybb->get_input('scenetracker_date')) . " " . $db->escape_string($mybb->get_input('scenetracker_time'));
     $scenetracker_place = $db->escape_string($mybb->get_input('place'));
-    $teilnehmer = $db->escape_string($mybb->get_input('teilnehmer'));
+    $teilnehmer = $mybb->get_input('teilnehmer');
     $trigger = $db->escape_string($mybb->get_input('scenetracker_trigger'));
 
     //wir wollen nicht, dass das letzte zeichen in Komma ist, also löschen wir es
@@ -1346,7 +1346,7 @@ function scenetracker_do_newthread()
     if ($visible == 1) {
       $save = array(
         "scenetracker_date" => $date,
-        "scenetracker_user" => $teilnehmer,
+        "scenetracker_user" => $db->escape_string($teilnehmer),
         "scenetracker_place" => $scenetracker_place,
         "scenetracker_trigger" => $trigger
       );
@@ -2950,8 +2950,8 @@ function scenetracker_getUids($string_usernames)
   //no whitespace at beginning and end of name
   $array_usernames = array_map('trim', explode(",", $string_usernames));
   foreach ($array_usernames as $username) {
-    $username = $db->escape_string($username);
-    $uid = $db->fetch_field($db->simple_select("users", "uid", "username='$username'"), "uid");
+    $username_query = $db->escape_string($username);
+    $uid = $db->fetch_field($db->simple_select("users", "uid", "username='$username_query'"), "uid");
     // deleted user or an other string;
     //we need an unique key in case of there is more than one deleted user -> we use the username
     if ($uid == "") $uid = $username;
