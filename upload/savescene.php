@@ -12,7 +12,7 @@ $date = date('Y-m-d H:i:s', strtotime($datetime));
 $scenetracker_place = $db->escape_string($mybb->input['place']);
 $trigger = $db->escape_string($mybb->input['trigger']);
 $tid = intval($mybb->input['id']);
-$teilnehmer = $db->escape_string($mybb->input['user']);
+$teilnehmer = $mybb->input['user'];
 $teilnehmer = str_replace(", ", "", $teilnehmer);
 $einzeln = explode(",", $teilnehmer);
 $user = $db->fetch_field($db->simple_select("threads", "scenetracker_user", "tid={$tid}"), "scenetracker_user");
@@ -29,6 +29,7 @@ $array_users = scenetracker_getUids($teilnehmer);
 $array_users = array_filter($array_users);
 $chrstr = ",";
 foreach ($array_users as $uid => $username) {
+  
   if ($uid != $username) {
     $alert_array = array(
       "uid" => $uid,
@@ -66,7 +67,7 @@ $update = array(
   "scenetracker_date" => $date,
   "scenetracker_place" => $scenetracker_place,
   "scenetracker_trigger" => $trigger,
-  "scenetracker_user" => $user
+  "scenetracker_user" => $db->escape_string($user)
 );
 
 $db->update_query("threads", $update, "tid='{$tid}'");
