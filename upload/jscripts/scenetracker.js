@@ -1,13 +1,3 @@
-// function certain($id) {
-//   $post = document.getElementById($id).innerHTML;
-//   document.getElementById($id).innerHTML = '<form action="" method="post">'
-//   +'<input type="hidden" value="'+$id+'" name="scene_id" />'
-//   +'<input id="certain" type="text" value="username" name="username" autocomplete="off" style="display: block" />'
-//   + '<div id="suggest" style="display:none; z-index:10;"></div>'
-//   +'<input type="submit" value="speichern" name="saveCertain"/>'
-//   +'</form>';
-// }
-
 function certain($id) {
   $post = document.getElementById($id).innerHTML;
   document.getElementById($id).innerHTML = '<form action="" method="post">'
@@ -18,14 +8,7 @@ function certain($id) {
     + '</select>'
     + '</form>';
 }
-{/* <label for="cars">Choose a car:</label>
 
-<select id="cars">
-  <option value="volvo">Volvo</option>
-  <option value="saab">Saab</option>
-  <option value="vw">VW</option>
-  <option value="audi" selected>Audi</option>
-</select> */}
 $(document).ready(function () {
   $('.scene_edit').click(function () {
     $.ajax({
@@ -88,7 +71,7 @@ $(document).ready(function () {
       },
       error: function (xhr, type, exception) {
         // if ajax fails display error alert
-        alert("Irgendwas hat nicht funktioniert. ");
+        alert("Irgendwas hat nicht funktioniert. (savescene.php)");
       }
     });
   });
@@ -112,7 +95,7 @@ $(document).ready(function () {
       },
       error: function (xhr, type, exception) {
         // if ajax fails display error alert
-        alert("Irgendwas hat nicht funktioniert. ");
+        alert("Irgendwas hat nicht funktioniert. (scenetrackerfilter.php) ");
       }
     });
   });
