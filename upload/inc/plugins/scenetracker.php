@@ -66,6 +66,12 @@ function scenetracker_install()
   $db->add_column("threads", "scenetracker_user", "varchar(1500) NOT NULL DEFAULT ''");
   $db->add_column("threads", "scenetracker_trigger", "varchar(200) NOT NULL DEFAULT ''");
 
+  //einfügen der Kalender einstellungen
+  $db->add_column("user", "scenetracker_calendar_settings", "INT(1) NOT NULL DEFAULT '0'");
+  //für großen Kalendar: 0 = nur szenen von diesem Charakter, 1 = Szenen aller eigenen Charas, 2 = Szenen aller Charas
+  $db->add_column("user", "scenetracker_calendarsettings_big", "INT(1) NOT NULL DEFAULT '0'");
+  //für mini Kalendar: 0 = nur szenen von diesem Charakter, 1 = Szenen aller eigenen Charas, 2 = Szenen aller Charas
+  $db->add_column("user", "scenetracker_calendarsettings_mini", "INT(1) NOT NULL DEFAULT '0'");
 
   // Einfügen der Trackeroptionen in die user tabelle
   $db->query("ALTER TABLE `" . TABLE_PREFIX . "users` ADD `tracker_index` INT(1) NOT NULL DEFAULT '1', ADD `tracker_indexall` INT(1) NOT NULL DEFAULT '1', ADD `tracker_reminder` INT(1) NOT NULL DEFAULT '1';");
@@ -122,13 +128,6 @@ function scenetracker_install()
       'value' => '1', // Default
       'disporder' => 1
     ),
-    // 'scenetracker_ingame' => array(
-    //   'title' => 'Ingame',
-    //   'description' => 'ID des Ingames',
-    //   'optionscode' => 'text',
-    //   'value' => '7', // Default
-    //   'disporder' => 4
-    // ),
     'scenetracker_ingame' => array(
       'title' => 'Ingame',
       'description' => 'ID des Ingames',
@@ -157,13 +156,6 @@ function scenetracker_install()
       'value' => '0', // Default
       'disporder' => 7
     ),
-    // 'scenetracker_profil_sort' => array( //TODO
-    //   'title' => 'Profilanzeige',
-    //   'description' => 'Sollen Szenen im Profil des Charakters nach Ingame und Archiv sortiert werden?',
-    //   'optionscode' => 'yesno',
-    //   'value' => '0', // Default
-    //   'disporder' => 6
-    // ),
     'scenetracker_reminder' => array(
       'title' => 'Erinnerung',
       'description' => 'Sollen Charaktere auf dem Index darauf aufmerksam gemacht werden, wenn sie jemanden in einer Szene länger als X Tage warten lassen? 0 wenn nicht',
@@ -199,8 +191,29 @@ function scenetracker_install()
       'value' => '', // Default
       'disporder' => 11
     ),
+    //Kalendar einstellungen
+    'scenetracker_calendarview_all' => array(
+      'title' => 'Kalendar Szenen Ansicht - Alle Szenen',
+      'description' => 'Dürfen Mitglieder auswählen das die Szenen von allen Charakteren angezeigt werden?',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 13
+    ),
+    'scenetracker_calendarview_ownall' => array(
+      'title' => 'Kalendar Szenen Ansicht - Alle eigenen Szenen',
+      'description' => 'Dürfen Mitglieder auswählen das die Szenen von allen eigenen (verbundenen) Charakteren angezeigt werden?',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 14
+    ),
+    'scenetracker_calendarview_own' => array(
+      'title' => 'Kalendar Szenen Ansicht - Szenen des Charaktes',
+      'description' => 'Dürfen Mitglieder auswählen das die Szenen nur von dem Charakter angezeigt werden, mit dem man online ist?',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 14
+    ),
   );
-
 
   foreach ($setting_array as $name => $setting) {
     $setting['name'] = $name;
@@ -239,6 +252,16 @@ function scenetracker_uninstall()
   }
   if ($db->field_exists("tracker_reminder", "users")) {
     $db->write_query("ALTER TABLE " . TABLE_PREFIX . "users DROP tracker_reminder");
+  }
+
+  if ($db->field_exists("scenetracker_calendar_settings", "users")) {
+    $db->drop_column("user", "scenetracker_calendar_settings");
+  }
+  if ($db->field_exists("scenetracker_calendarsettings_big", "users")) {
+    $db->drop_column("user", "scenetracker_calendarsettings_big");
+  }
+  if ($db->field_exists("scenetracker_calendarsettings_mini", "users")) {
+    $db->drop_column("user", "scenetracker_calendarsettings_mini");
   }
 
   // Templates löschen
@@ -540,7 +563,6 @@ function scenetracker_add_templates()
     "version" => "1.0",
     "dateline" => TIME_NOW
   );
-
 
   $template[11] = array(
     "title" => 'scenetracker_profil_active',
@@ -1334,7 +1356,7 @@ function scenetracker_do_newthread()
     $array_users = array();
     $date = $db->escape_string($mybb->get_input('scenetracker_date')) . " " . $db->escape_string($mybb->get_input('scenetracker_time'));
     $scenetracker_place = $db->escape_string($mybb->get_input('place'));
-    $teilnehmer = $db->escape_string($mybb->get_input('teilnehmer'));
+    $teilnehmer = $mybb->get_input('teilnehmer');
     $trigger = $db->escape_string($mybb->get_input('scenetracker_trigger'));
 
     //wir wollen nicht, dass das letzte zeichen in Komma ist, also löschen wir es
@@ -1346,7 +1368,7 @@ function scenetracker_do_newthread()
     if ($visible == 1) {
       $save = array(
         "scenetracker_date" => $date,
-        "scenetracker_user" => $teilnehmer,
+        "scenetracker_user" => $db->escape_string($teilnehmer),
         "scenetracker_place" => $scenetracker_place,
         "scenetracker_trigger" => $trigger
       );
@@ -1643,7 +1665,6 @@ function scenetracker_do_editpost()
         "scenetracker_place" => $place,
         "scenetracker_user" =>  $to_save_str,
         "scenetracker_trigger" =>  $trigger
-
       );
       $db->update_query("threads", $save, "tid='{$tid}'");
       //to delete in scenetracker table
@@ -1842,7 +1863,7 @@ function scenetracker_showthread_showtrackerstuff()
 $plugins->add_hook("usercp_start", "scenetracker_usercp");
 function scenetracker_usercp()
 {
-  global $mybb, $db, $templates, $lang, $cache, $templates, $themes, $headerinclude, $header, $footer, $usercpnav, $scenetracker_ucp_main, $scenetracker_ucp_bit_char, $scenetracker_ucp_bit_chara_new, $scenetracker_ucp_bit_chara_old, $scenetracker_ucp_bit_chara_closed;
+  global $mybb, $db, $templates, $lang, $cache, $templates, $themes, $headerinclude, $header, $footer, $usercpnav, $ucp_main_calendarsettings, $scenetracker_ucp_main, $scenetracker_ucp_bit_char, $scenetracker_ucp_bit_chara_new, $scenetracker_ucp_bit_chara_old, $scenetracker_ucp_bit_chara_closed;
   if ($mybb->get_input('action') != "scenetracker") {
     return false;
   }
@@ -1850,6 +1871,7 @@ function scenetracker_usercp()
 
   $hidden = $yes_ind = $no_ind = $yes_rem = $no_rem = $yes_indall =  $no_indall = $move = $status = "";
   $always  = $scenetracker_ucp_bit_chara  = "";
+
   $sel_s["both"] = $sel_s["closed"] = $sel_m["beides"] = $sel_m["ja"] = $sel_m["nein"] = "";
 
   $thisuser = $mybb->user['uid'];
@@ -1901,7 +1923,125 @@ function scenetracker_usercp()
   } else {
     $ucp_main_reminderopt = "";
   }
+  if (
+    $mybb->settings['scenetracker_calendarview_all'] ||
+    $mybb->settings['scenetracker_calendarview_ownall'] ||
+    $mybb->settings['scenetracker_calendarview_own']
+  ) {
+    $setting_calendar = 1;
+  }
+  $get_calsettings = "";
+  if ($thisuser == 3) {
+    // 'scenetracker_calendarview_all' => array(
+    if ($setting_calendar != 0) {
+      $get_calsettings = $db->fetch_array($db->simple_select("users", "scenetracker_calendar_settings,scenetracker_calendarsettings_big,scenetracker_calendarsettings_mini", "uid = '{$thisuser}'"));
+      $calendar_setting_form = "<form action=\"usercp.php?action=scenetracker\" method=\"post\" class=\"scenetracker_cal_setting\">";
+      if ($mybb->settings['scenetracker_calendarview_all'] == 1) {
+        $setforalls_all = "";
+        $setforalls_this = "";
+        if ($get_calsettings['scenetracker_calendar_settings'] == 0) {
+          $setforalls_all = "";
+          $setforalls_this = " CHECKED";
+        } else {
+          $setforalls_all = " CHECKED";
+          $setforalls_this = "";
+        }
+        $scenetracker_calendarview_all =
+          "<fieldset class='scenefilteroptions__items scenefilteroptions__items--alerts'>
+			<h3>Settings für alle verbundene Charaktere oder nur diesen?</h3><br/>
+            <input type=\"radio\" name=\"calendar_setforalls\" id=\"calendar_setforalls_all\" value=\"1\" {$setforalls_all}> <label for=\"calendar_setforalls_all\">alle</label><br />
+            <input type=\"radio\" name=\"calendar_setforalls\" id=\"calendar_setforalls_this\" value=\"0\" {$setforalls_this}> <label for=\"calendar_setforalls_this\">diesen</label><br />
+            </fieldset>";
+        $calendar_setting_form .= $scenetracker_calendarview_all;
+      } else {
+        $scenetracker_calendarview_all = "";
+      }
+      if ($mybb->settings['scenetracker_calendarview_ownall'] == 1) {
+        $mini_view_all = "";
+        $mini_view_all_own = "";
+        $mini_view_all_this = "";
 
+        if ($get_calsettings['scenetracker_calendarsettings_mini'] == 0) {
+          $mini_view_all = "";
+          $mini_view_all_own = "";
+          $mini_view_all_this = " CHECKED";
+        }
+        
+        if ($get_calsettings['scenetracker_calendarsettings_mini'] == 1) {
+          $mini_view_all = "";
+          $mini_view_all_own = " CHECKED";
+          $mini_view_all_this = "";
+        }
+        if ($get_calsettings['scenetracker_calendarsettings_mini'] == 2) {
+          $mini_view_all = " CHECKED";
+          $mini_view_all_own = "";
+          $mini_view_all_this = "";
+        }
+        //einstellungen kleiner Kalender
+        $scenetracker_calendarview_ownall =  "<fieldset class='scenefilteroptions__items scenefilteroptions__items--alerts'>
+			    <h3>Mini Kalender: Welche Szenen sollen angezeigt werden? </h3><br/>
+            <input type=\"radio\" name=\"mini_view\" id=\"mini_view_all\" value=\"2\" {$mini_view_all}> 
+            <label for=\"mini_view_all\">Von allen Charakteren des Forums.</label><br />
+            <input type=\"radio\" name=\"mini_view\" id=\"mini_view_all_own\" value=\"1\" {$mini_view_all_own}> 
+            <label for=\"mini_view_all_own\">Von deinen Charakteren.</label><br />
+			      <input type=\"radio\" name=\"mini_view\" id=\"mini_view_all_this\" value=\"0\" {$mini_view_all_this}>
+            <label for=\"mini_view_all_this\">Nur von diesem Charakter</label><br />
+            </fieldset>";
+        $calendar_setting_form .= $scenetracker_calendarview_ownall;
+      } else {
+        $scenetracker_calendarview_ownall = "";
+      }
+      //Einstellungen großer Kalendar
+      if ($mybb->settings['scenetracker_calendarview_own'] == 1) {
+        $big_view_all = "";
+        $big_view_all_own = "";
+        $big_view_all_this = "";
+        if ($get_calsettings['scenetracker_calendarsettings_big'] == 0) {
+          $big_view_all = "";
+          $big_view_all_own = "";
+          $big_view_all_this = " CHECKED";
+        }
+        if ($get_calsettings['scenetracker_calendarsettings_big'] == 1) {
+          $big_view_all = "";
+          $big_view_all_own = " CHECKED";
+          $big_view_all_this = "";
+        }
+        if ($get_calsettings['scenetracker_calendarsettings_big'] == 2) {
+          $big_view_all = " CHECKED";
+          $big_view_all_own = "";
+          $big_view_all_this = "";
+        }
+
+        $scenetracker_calendarview_own = "<fieldset class='scenefilteroptions__items scenefilteroptions__items--alerts'>
+			  <h3>Großer Kalendar: Welche Szenen sollen angezeigt werden? </h3><br/>
+        <input type=\"radio\" name=\"big_view\" id=\"big_view_all\" value=\"2\" {$big_view_all}> 
+        <label for=\"big_view_all\">Von allen Charakteren des Forums.</label><br />
+        <input type=\"radio\" name=\"big_view\" id=\"big_view_all_own\" value=\"1\" {$big_view_all_own}> 
+        <label for=\"big_view_all_own\">Von deinen Charakteren.</label><br />
+			  <input type=\"radio\" name=\"big_view\" id=\"big_view_all_this\" value=\"0\" {$big_view_all_this}>
+        <label for=\"big_view_all_this\">Nur von diesem Charakter</label><br />
+        </fieldset>";
+        $calendar_setting_form .= $scenetracker_calendarview_own;
+        $calendar_setting_form .= " <input type=\"submit\" name=\"calendar_settings\" value=\"{$lang->scenetracker_btnsubmit}\" id=\"reminder_button\" />
+        </form>";
+      } else {
+        $scenetracker_calendarview_own = "";
+        $calendar_setting_form = "";
+      }
+
+      //Speichern der Kalendar Settings
+      if ($mybb->get_input('calendar_settings')) {
+        $save = array(
+          "scenetracker_calendar_settings" => $mybb->get_input('scenetracker_calendarview_all', MYBB::INPUT_INT),
+          "scenetracker_calendarsettings_big" => $mybb->get_input('scenetracker_calendarview_ownall', MYBB::INPUT_INT),
+          "scenetracker_calendarsettings_mini" =>  $mybb->get_input('scenetracker_calendarview_own', MYBB::INPUT_INT),
+        );
+        $db->update_query("users", $save, "uid='{$thisuser}'");
+      }
+    }
+  } else {
+    $ucp_main_calendarsettings = "";
+  }
   //welcher user ist online
   //get all charas of this user
   $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
@@ -2274,6 +2414,7 @@ function scenetracker_showinprofile()
   //archiv-> auch immer anzeigen weil inkludiert in 'alle foren' 
   //Wir brauchen keine Einschränkung
   if (($ingame == "") || ($ingame == "-1") || ($archiv == "-1")) {
+
     $forenquerie = "";
   } else {
 
@@ -2285,7 +2426,8 @@ function scenetracker_showinprofile()
       $ingameexplode = explode(",", $ingame);
       foreach ($ingameexplode as $ingamefid) {
         //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
-        $ingamestr .= "$ingamefid in (parentlist) OR ";
+        $ingamestr .= " concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR";
+        // $ingamestr .= "$ingamefid in (parentlist) OR ";
       }
     }
 
@@ -2296,9 +2438,10 @@ function scenetracker_showinprofile()
 
     $archivstr = "";
     if ($archiv != "") {
+
       $archivexplode = explode(",", $archiv);
       foreach ($archivexplode as $archivfid) {
-        $archivstr .= "$archivfid in (parentlist) OR ";
+        $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR";
       }
       // das letzte OR rauswerfen
       $archivstr = substr($archivstr, 0, -3);
@@ -2372,7 +2515,8 @@ function scenetracker_showinprofile()
 $plugins->add_hook('index_start', 'scenetracker_list');
 function scenetracker_list()
 {
-  global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara;
+  global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara, $expthead, $expcolimage, $expaltext, $expaltext, $expdisplay, $theme;
+
   // var_dump($mybb->cookies['mybb']['allow_cookies']);
   //get all charas of this user
   $uid = $mybb->user['uid'];
@@ -2948,8 +3092,8 @@ function scenetracker_getUids($string_usernames)
   //no whitespace at beginning and end of name
   $array_usernames = array_map('trim', explode(",", $string_usernames));
   foreach ($array_usernames as $username) {
-    $username = $db->escape_string($username);
-    $uid = $db->fetch_field($db->simple_select("users", "uid", "username='$username'"), "uid");
+    $username_query = $db->escape_string($username);
+    $uid = $db->fetch_field($db->simple_select("users", "uid", "username='$username_query'"), "uid");
     // deleted user or an other string;
     //we need an unique key in case of there is more than one deleted user -> we use the username
     if ($uid == "") $uid = $username;
@@ -3237,7 +3381,7 @@ function scenetracker_scene_change_status($close, $tid, $uid)
     if ($db->field_exists('archiving_inplay', 'forums')) {
       redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
     } else {
-      redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
+      redirect("showthread.php?tid={$tid}");
     }
   } elseif ($close == 0) {
     if (scenetracker_change_allowed($teilnehmer)) {
