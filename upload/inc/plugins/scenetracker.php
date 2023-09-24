@@ -3386,7 +3386,7 @@ function scenetracker_online_activity($user_activity)
   global $parameters, $user;
 
   $split_loc = explode(".php", $user_activity['location']);
-  if ($split_loc[0] == $user['location']) {
+  if(isset($user['location']) && $split_loc[0] == $user['location']) { 
     $filename = '';
   } else {
     $filename = my_substr($split_loc[0], -my_strpos(strrev($split_loc[0]), "/"));
