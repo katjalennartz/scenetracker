@@ -19,10 +19,12 @@ Last: 25. September 2023
       </form>
       </div>
 ```
+
 ersetzen mit
+
 ```
-      {$ucp_main_reminderopt}
-      {$calendar_setting_form}
+{$ucp_main_reminderopt}
+{$calendar_setting_form}
 ```
 
 ## Wichtige Infos: 
