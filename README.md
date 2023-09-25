@@ -2,7 +2,7 @@
 ## Updates: 		
 Last: 25. September 2023			
 
- ### Todo: 
+ ### Todo nach Update: 
 - inc/plugins/scenetracker.php neu hochladen
 - updatescript_august23.php ins hauptverzeichnis laden und hochladen. Anschließend aufrufen und dann wieder löschen.
 - Es werden neue Felder in den Settings angelegt
@@ -25,6 +25,19 @@ ersetzen mit
 ```
 {$ucp_main_reminderopt}
 {$calendar_setting_form}
+```
+
+CSS einfügen:
+```
+      form.scenetracker_cal_setting {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .scenetracker_cal_setting .scenefilteroptions__items {
+        display: block;
+    }
 ```
 
 ## Wichtige Infos: 
