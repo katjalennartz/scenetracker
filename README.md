@@ -1,10 +1,29 @@
 # Szenentracker
 ## Updates: 		
-Last: 20. Juli 2023			
+Last: 25. September 2023			
 
  ### Todo: 
 - inc/plugins/scenetracker.php neu hochladen
-- updatescript_juli23.php ins hauptverzeichnis laden und hochladen. Anschließend auufrufen und dann wieder löschen.		
+- updatescript_august23.php ins hauptverzeichnis laden und hochladen. Anschließend aufrufen und dann wieder löschen.
+- Es werden neue Felder in den Settings angelegt
+ ### Template änderungen: 
+ - ucp_main_reminderopt:
+```
+<div class="scenefilteroptions__items">
+        <form action="usercp.php?action=scenetracker" method="post">
+        <fieldset><label for="reminder">Szenenerinnerung nach 6 Wochen?</label><br/>
+        <input type="radio" name="reminder" id="reminder_yes" value="1" {$yes_rem}> <label for="index_rem">Ja</label>
+        <input type="radio" name="reminder" id="reminder_no" value="0" {$no_rem}> <label for="index_rem">Nein</label><br />
+        <input type="submit" name="opt_reminder" value="speichern" id="reminder_button" />
+        </fieldset>
+      </form>
+      </div>
+```
+ersetzen mit
+```
+      {$ucp_main_reminderopt}
+      {$calendar_setting_form}
+```
 
 ## Wichtige Infos: 
 ```diff
