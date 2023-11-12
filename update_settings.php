@@ -7,6 +7,7 @@ require("global.php");
 global $db, $mybb, $lang;
 
 $gid = $db->fetch_field($db->simple_select("settinggroups", "gid", "name = 'scenetracker'"), "gid");
+if(!$mybb->settings['scenetracker_ingametime_tagstart']) {
 $setting_array = array(
   'scenetracker_ingametime_tagstart' => array(
     'title' => 'Ingame Zeitraum 1. Tag',
@@ -15,6 +16,16 @@ $setting_array = array(
     'value' => '1', // Default
     'disporder' => 10
   ),
+);
+foreach ($setting_array as $name => $setting) {
+  $setting['name'] = $name;
+  $setting['gid'] = $gid;
+  $db->insert_query('settings', $setting);
+}
+}
+
+if(!$mybb->settings['scenetracker_ingametime_tagend']) {
+$setting_array2 = array(
   'scenetracker_ingametime_tagend' => array(
     'title' => 'Ingame Zeitraum letzter Tag',
     'description' => 'Gib hier den letzte  Tag eures Ingamezeitraums an. z.B. 15 oder 30.<br><i>Tage im Zeitraum, bekommen die Klasse "activeingame" und können gesondert gestylt werden.</i>',
@@ -23,13 +34,12 @@ $setting_array = array(
     'disporder' => 11
   ),
 );
-
-foreach ($setting_array as $name => $setting) {
+foreach ($setting_array2 as $name => $setting) {
   $setting['name'] = $name;
   $setting['gid'] = $gid;
   $db->insert_query('settings', $setting);
 }
-
+}
 rebuild_settings();
 
 echo "Done. Datei jetzt löschen!";
