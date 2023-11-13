@@ -7,6 +7,9 @@ Last: 20. Juli 2023
 - updatescript_juli23.php ins hauptverzeichnis laden und hochladen. Anschließend auufrufen und dann wieder löschen.		
 
 ## Wichtige Infos: 
+
+**Die Updates müssen natürlich nur durchgeführt werden, wenn der Tracker vorher schon installiert war. Wenn nicht, reicht es das Plugin ganz normal zu installieren** 		
+
 ```diff
 - Ganz unten im Text: HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin
 - Sowie: HOW TO: Minicalender überm Inplay anzeigen.
