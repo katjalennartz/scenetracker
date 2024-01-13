@@ -12,7 +12,7 @@
  *  - wenn bestimmte User gepostet hat
  * Benachrichtung ( alert )
  *  - immer bei Antwort
- *  - bei Antwort von bestimmten User
+ *  - bei Antwort von bestimmten User x
  *  - keine Benachrichtigung
  * Postingerinnerung (kann vom Admin aktiviert werden)
  *  - wenn man Postingpartner länger als x Tage warten gelassen hat
@@ -32,7 +32,7 @@ function scenetracker_info()
   return array(
     "name" => "Szenentracker von Risuena",
     "description" => "Automatischer Tracker, mit Benachrichtigungseinstellung, (Mini-)Kalender, Indexanzeige und Reminder.<br/>
-      <b style=\"color: red;\">Achtung</b> Bitte die Infos in der <b>readme</b> beachten, um Szenen im Kalendar angezeigt zu bekommen.",
+      <b style=\"color: red;\">Achtung</b> Bitte die Infos in der <b>readme</b> beachten, um Szenen im Kalender angezeigt zu bekommen.",
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
@@ -87,7 +87,7 @@ function scenetracker_install()
   $setting_group = array(
     'name' => 'scenetracker',
     'title' => 'Szenentracker',
-    'description' => 'Einstellungen für Risuenas Szenentracker.<br/> <b>Achtung</b> Bitte die Infos in der Readme beachten um Szenen im Kalendar angezeigt zu bekommen.',
+    'description' => 'Einstellungen für Risuenas Szenentracker.<br/> <b>Achtung</b> Bitte die Infos in der Readme beachten um Szenen im Kalender angezeigt zu bekommen.',
     'disporder' => 7, // The order your setting group will display
     'isdefault' => 0
   );
@@ -122,14 +122,7 @@ function scenetracker_install()
       'value' => '1', // Default
       'disporder' => 1
     ),
-    // 'scenetracker_ingame' => array(
-    //   'title' => 'Ingame',
-    //   'description' => 'ID des Ingames',
-    //   'optionscode' => 'text',
-    //   'value' => '7', // Default
-    //   'disporder' => 4
-    // ),
-    'scenetracker_ingame' => array(
+        'scenetracker_ingame' => array(
       'title' => 'Ingame',
       'description' => 'ID des Ingames',
       'optionscode' => 'forumselect',
@@ -144,7 +137,7 @@ function scenetracker_install()
       'disporder' => 5
     ),
     'scenetracker_birhday' => array(
-      'title' => 'Geburtstagsfeld für Kalendar',
+      'title' => 'Geburtstagsfeld für Kalender',
       'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet, das Standardgeburtstagsfeld oder benutzt ihr das Steckbrief(Format YYYY-mm-dd wie datumsfeld) im UCP Plugin?',
       'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten\n3=Steckbrief im Profil",
       'value' => '1', // Default
@@ -540,7 +533,6 @@ function scenetracker_add_templates()
     "version" => "1.0",
     "dateline" => TIME_NOW
   );
-
 
   $template[11] = array(
     "title" => 'scenetracker_profil_active',
@@ -1272,7 +1264,16 @@ background-color:var(--background-dark);
   text-decoration: underline;
 }
 
-
+.st_mini_scenelink {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+#calsettings_button {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
 
     ',
     'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
@@ -1643,7 +1644,6 @@ function scenetracker_do_editpost()
         "scenetracker_place" => $place,
         "scenetracker_user" =>  $to_save_str,
         "scenetracker_trigger" =>  $trigger
-
       );
       $db->update_query("threads", $save, "tid='{$tid}'");
       //to delete in scenetracker table
@@ -1668,7 +1668,6 @@ function scenetracker_do_editpost()
  * Anzeige von Datum, Ort und Teilnehmer im Forumdisplay
  *********************/
 $plugins->add_hook("forumdisplay_thread", "scenetracker_forumdisplay_showtrackerstuff");
-
 function scenetracker_forumdisplay_showtrackerstuff()
 {
   global $thread, $templates, $db, $fid, $scenetrackerforumdisplay;
@@ -1837,7 +1836,7 @@ function scenetracker_showthread_showtrackerstuff()
 }
 
 /************
- * Verwaltung der szenen im UCP 
+ * Verwaltung der Einstellungen und Szenen im UCP 
  *********** */
 $plugins->add_hook("usercp_start", "scenetracker_usercp");
 function scenetracker_usercp()
@@ -1850,6 +1849,7 @@ function scenetracker_usercp()
 
   $hidden = $yes_ind = $no_ind = $yes_rem = $no_rem = $yes_indall =  $no_indall = $move = $status = "";
   $always  = $scenetracker_ucp_bit_chara  = "";
+
   $sel_s["both"] = $sel_s["closed"] = $sel_m["beides"] = $sel_m["ja"] = $sel_m["nein"] = "";
 
   $thisuser = $mybb->user['uid'];
@@ -1903,8 +1903,14 @@ function scenetracker_usercp()
   }
 
   //welcher user ist online
+//set as uid
+  if (isset($mybb->user['as_uid'])) {
+    $asuid = $mybb->user['as_uid'];
+  } else {
+    $asuid = 0;
+  }
   //get all charas of this user
-  $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+  $charas = scenetracker_get_accounts($mybb->user['uid'], $asuid);
   $charakter = "0";
   if (isset($mybb->input['scenefilter'])) {
     $charakter = intval($mybb->get_input('charakter'));
@@ -1913,11 +1919,9 @@ function scenetracker_usercp()
   }
 
   if ($charakter == 0) {
-    $charasquery = scenetracker_get_accounts($thisuser, $mybb->user['as_uid']);
-    // $charas = scenetracker_get_accounts($thisuser, $mybb->user['as_uid']); 
+    $charasquery = scenetracker_get_accounts($thisuser, $asuid); 
     $charastr = "";
-    // var_dump($charasquery);
-    foreach ($charasquery as $uid => $username) {
+        foreach ($charasquery as $uid => $username) {
       $charastr .= $uid . ",";
     }
   } else {
@@ -1930,9 +1934,7 @@ function scenetracker_usercp()
     $charastr = substr($charastr, 0, -1);
   }
 
-  if ($status == "") {
-  }
-
+  
   $query = "";
   //Status der Szene
   $status_str = $status;
@@ -1953,7 +1955,6 @@ function scenetracker_usercp()
   }
 
   if ($status == "open") {
-
     $query .=  " AND (closed = 0 {$solved_tozero} ) ";
   } else if ($status == "closed") {
     $query .=  " AND (closed = 1 {$solved_toone} ) ";
@@ -2223,7 +2224,6 @@ function scenetracker_showinprofile()
   $scenetracker_profil_bit = "";
   $sort = "0";
   $dateYear = "";
-  setlocale(LC_ALL, 'de_DE@euro', 'de_DE', 'de', 'ge');
   date_default_timezone_set('Europe/Berlin');
   setlocale(LC_ALL, 'de_DE.utf8', 'de_DE@euro', 'de_DE', 'de', 'ge');
   $ingame =  $mybb->settings['scenetracker_ingame'];
@@ -2274,6 +2274,7 @@ function scenetracker_showinprofile()
   //archiv-> auch immer anzeigen weil inkludiert in 'alle foren' 
   //Wir brauchen keine Einschränkung
   if (($ingame == "") || ($ingame == "-1") || ($archiv == "-1")) {
+
     $forenquerie = "";
   } else {
 
@@ -2305,7 +2306,7 @@ function scenetracker_showinprofile()
       // das letzte OR rauswerfen
       $archivstr = substr($archivstr, 0, -3);
     }
-    $forenquerie = " AND ($ingamestr $archivstr)";
+    $forenquerie = " AND ($ingamestr $archivstr) ";
   }
 
   $scene_query = $db->write_query("
@@ -2374,16 +2375,20 @@ function scenetracker_showinprofile()
 $plugins->add_hook('index_start', 'scenetracker_list');
 function scenetracker_list()
 {
-  global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara;
-  // var_dump($mybb->cookies['mybb']['allow_cookies']);
-  //get all charas of this user
+  global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara, $expthead, $expcolimage, $expaltext, $expaltext, $expdisplay, $theme;
+  //set as uid
+  if (isset($mybb->user['as_uid'])) {
+    $asuid = $mybb->user['as_uid'];
+  } else {
+    $asuid = 0;
+  }
   $uid = $mybb->user['uid'];
   $index = $db->fetch_field($db->simple_select("users", "tracker_index", "uid = $uid"), "tracker_index");
   $index_all = $db->fetch_field($db->simple_select("users", "tracker_indexall", "uid = $uid"), "tracker_indexall");
 
   if ($uid != 0 && $index == 1) {
     if ($index_all == 1) {
-      $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+      $charas = scenetracker_get_accounts($mybb->user['uid'], $asuid);
     } else {
       $charas[$uid] = $mybb->user['username'];
       // $charas[$uid] = $users['username'];
@@ -2425,13 +2430,18 @@ function scenetracker_list()
  * Reminder
  * Erinnerung wenn man den Postpartner X Tage warten lässt
  ******************************/
-
 $plugins->add_hook('index_start', 'scenetracker_reminder');
 function scenetracker_reminder()
 {
   global $mybb, $db, $templates, $scenetracker_index_reminder;
 
   $uid = $mybb->user['uid'];
+//set as uid
+  if (isset($mybb->user['as_uid'])) {
+    $asuid = $mybb->user['as_uid'];
+  } else {
+    $asuid = 0;
+  }
   $reminder = $db->fetch_field($db->simple_select("users", "tracker_reminder", "uid = $uid"), "tracker_reminder");
 
   $solvplugin = $mybb->settings['scenetracker_solved'];
@@ -2450,7 +2460,7 @@ function scenetracker_reminder()
 
   if ($uid != 0 && $reminder == 1) {
     // Alle Charaktere des Users holen
-    $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+    $charas = scenetracker_get_accounts($mybb->user['uid'], $asuid);
     $days = intval($mybb->settings['scenetracker_reminder']);
     // $days = 200;
     $cnt = 0;
@@ -2509,7 +2519,7 @@ function scenetracker_reminder()
 /***
  * shows Scenes and events and birthdays in calendar
  * /***
- * Darstellung der Szenen im mybb Kalendar 
+ * Darstellung der Szenen im mybb Kalender 
  * ACHTUNG! diese Funktion geht nur, wenn die Anleitung zum Hinzufügen des Hakens für die Funktion
  * in der Readme befolgt wird!
  * Am Besten über Patches lösen -> calendar.php
@@ -2520,8 +2530,14 @@ function scenetracker_reminder()
 $plugins->add_hook("calendar_weekview_day", "scenetracker_calendar");
 function scenetracker_calendar()
 {
-  global $db, $mybb, $day, $month, $year, $scene_ouput, $birthday_ouput;
+  global $db, $mybb, $day, $month, $year, $scene_ouput, $birthday_ouput, $teilnehmer_scene;
   $thisuser = $mybb->user['uid'];
+
+  if (isset($mybb->user['as_uid'])) {
+    $thisuseras_id = $mybb->user['as_uid'];
+  } else {
+    $thisuseras_id = 0;
+  }
   $username = $mybb->user['username'];
 
   $showownscenes = 1;
@@ -2556,7 +2572,7 @@ function scenetracker_calendar()
       $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
       $get_birthdays = $db->write_query("SELECT uf.uid, username FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
       LEFT JOIN " . TABLE_PREFIX . "users u ON uf.uid = u.uid 
-      WHERE fieldid = {$feldid} and value LIKE '%{$converteddate}'");
+      WHERE fieldid = '{$feldid}' and value LIKE '%{$converteddate}'");
 
       $birth_num = $db->num_rows($get_birthdays);
     } else {
@@ -2574,7 +2590,8 @@ function scenetracker_calendar()
     if ($db->num_rows($scenes) > 0 || $birth_num > 0) {
       if ($db->num_rows($scenes) > 0) {
         $szene = "<a onclick=\"$('#scene{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Szenen]</a>";
-        $scene_ouput = " {$szene}
+        
+        $scene_ouput = "{$szene}
       <div class=\"modal\" id=\"scene{$day}\" style=\"display: none; padding: 10px; margin: auto; text-align: center;\">
       
       ";
@@ -2591,7 +2608,6 @@ function scenetracker_calendar()
 
         $scene_ouput .= "{$scene_in}</div>";
       }
-
       if ($birth_num > 0) {
         $birthday_show = "<a onclick=\"$('#day{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Geburtstage]</a>";
         $birthday_ouput = " {$birthday_show}
@@ -2626,6 +2642,12 @@ function scenetracker_minicalendar()
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
+$thisuser = $mybb->user['uid'];
+  if (isset($mybb->user['as_uid'])) {
+    $thisuseras_id = $mybb->user['as_uid'];
+  } else {
+    $thisuseras_id = 0;
+  }
   $username = $db->escape_string($mybb->user['username']);
   $ingame =  explode(",", str_replace(" ", "", $mybb->settings['scenetracker_ingametime']));
   foreach ($ingame as $monthyear) {
@@ -2676,20 +2698,19 @@ function scenetracker_minicalendar()
 
       $setting_birhtday = $mybb->settings['scenetracker_birhday'];
 
-      if ($setting_birhtday == "0") { //fid ist eingestellt
+      //Geburtstage anzeige - welches Feld? 
+      if ($setting_birhtday == "0") {
+        //MYBB Profileld
         $converteddate = date("d.m", $timestamp);
         $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
         $get_birthdays = $db->write_query("
         SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid" . $setting_fid . " LIKE '{$converteddate}%'");
         $birth_num = $db->num_rows($get_birthdays);
       } elseif ($setting_birhtday == "1") {
-        // 9-4-1987
-        // echo "geburtstag conv". $converteddate;
+        // MyBB Geburtstagsfeld
         $converteddate = date("j-n", $timestamp);
-
         $get_birthdays = $db->write_query("
         SELECT username, uid FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '{$converteddate}%'");
-        // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
         $birth_num = $db->num_rows($get_birthdays);
       } elseif ($setting_birhtday == "3") {
         //application ucp
@@ -2752,9 +2773,7 @@ function scenetracker_minicalendar()
           $kal_day .= "
             <div class=\"day st_mini_scene {$fullmoon} {$birthdaycss} {$ownscene} {$eventcss} {$ingame}\">
               {$kal_anzeige_heute_tag}
-
               {$showpop}
-
           </div>";
           $fullmoon = "";
           $eventcss = "";
@@ -2791,7 +2810,7 @@ function scenetracker_userdelete()
 
 
 /**************************** */
-/*** HELPERS ***/
+/*** HELPER FUNCTIONS***/
 
 /**************************** */
 
@@ -2800,14 +2819,13 @@ function scenetracker_userdelete()
 /**
  * get all attached account to a given user
  * @param $user which is online, flag if main charakter or not
- * @return array true/false
+ * @return array with uids and names
  * */
 function scenetracker_get_accounts($this_user, $as_uid)
 {
   global $mybb, $db;
   $charas = array();
   if ($as_uid == 0) {
-
     $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE (as_uid = $this_user) OR (uid = $this_user) ORDER BY username");
   } else if ($as_uid != 0) {
     //id des users holen wo alle angehangen sind 
@@ -2871,7 +2889,6 @@ function scenetracker_count_scenes($charas)
   return $cnt_array;
 }
 
-
 /**
  * Check if an uid belongs to the user which is online (switcher)
  * @param $uid uid to check
@@ -2882,7 +2899,12 @@ function scenetracker_check_switcher($uid)
   global $mybb;
 
   if ($mybb->user['uid'] != 0) {
-    $chars = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+    if (isset($mybb->user['as_uid'])) {
+      $uid_as = $mybb->user['as_uid'];
+    } else {
+      $uid_as = 0;
+    }
+    $chars = scenetracker_get_accounts($mybb->user['uid'], $uid_as);
     return array_key_exists($uid, $chars);
   } else return false;
 }
@@ -3042,7 +3064,6 @@ function scenetracker_get_scenes($charas, $tplstring)
         $threadread = $db->simple_select("threadsread", "*", "tid = {$tid} and uid = {$mybb->user['uid']}");
         $threadreadcnt = $db->num_rows($threadread);
 
-        // $readthreaddate = $db->fetch_field($db->simple_select("threadsread", "*", "tid = {$tid} and uid = {$uid}"), "dateline");
         $isread = "newscene";
 
         while ($readthreaddata = $db->fetch_array($threadread)) {
@@ -3192,7 +3213,13 @@ function scenetracker_scene_inform_status($id, $certained)
 function scenetracker_change_allowed($str_teilnehmer)
 {
   global $mybb, $db;
-  $chars = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+  //set as uid
+  if (isset($mybb->user['as_uid'])) {
+    $asuid = $mybb->user['as_uid'];
+  } else {
+    $asuid = 0;
+  }
+  $chars = scenetracker_get_accounts($mybb->user['uid'], $asuid);
   if ($mybb->user['uid'] == 0) return false;
 
   foreach ($chars as $uid => $username) {
@@ -3386,7 +3413,7 @@ function scenetracker_online_activity($user_activity)
   global $parameters, $user;
 
   $split_loc = explode(".php", $user_activity['location']);
-  if(isset($user['location']) && $split_loc[0] == $user['location']) { 
+  if (isset($user['location']) && $split_loc[0] == $user['location']) { 
     $filename = '';
   } else {
     $filename = my_substr($split_loc[0], -my_strpos(strrev($split_loc[0]), "/"));
