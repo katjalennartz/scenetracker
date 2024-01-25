@@ -1,12 +1,12 @@
 # Szenentracker
 ## Updates: 		
-Last: 20. Juli 2023			
+Last: Januar 2024  	
 
  ### Todo: 
-- inc/plugins/scenetracker.php neu hochladen
-- updatescript_juli23.php ins hauptverzeichnis laden und hochladen. Anschließend auufrufen und dann wieder löschen.		
+- Dateien neu hochladen
+- Update Script ausführen
 
-## Wichtige Infos: 
+## Wichtige Infos:  
 
 **Die Updates müssen natürlich nur durchgeführt werden, wenn der Tracker vorher schon installiert war. Wenn nicht, reicht es das Plugin ganz normal zu installieren** 		
 
@@ -160,7 +160,12 @@ suche nach:
 ```
  **ersetze mit** :
 ```    
-	$partners = explode(",", $query);
+$partners_name = explode(",", $query);
+foreach($partners_name as $name) {
+	$partneris = get_user_by_username($name);
+	$partners[] = $partneris['uid'];
+}
+
 ```
 
 
