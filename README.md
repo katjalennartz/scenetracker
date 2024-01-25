@@ -160,7 +160,11 @@ suche nach:
 ```
  **ersetze mit** :
 ```    
-	$partners = explode(",", $query);
+		$partners_name = explode(",", $query);
+		foreach($partners_name as $name) {
+			$partneris = get_user_by_username($name);
+			$partners[] = $partneris['uid'];
+		}
 ```
 
 
@@ -210,11 +214,6 @@ function scenetracker_minicalendar(&$forum)
  
 
 Die Ausgabe erfolgt dann über $forum['minicalender']
-
-
-
-
-
 
 
 
