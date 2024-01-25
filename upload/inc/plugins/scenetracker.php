@@ -12,7 +12,7 @@
  *  - wenn bestimmte User gepostet hat
  * Benachrichtung ( alert )
  *  - immer bei Antwort
- *  - bei Antwort von bestimmten User
+ *  - bei Antwort von bestimmten Userx
  *  - keine Benachrichtigung
  * Postingerinnerung (kann vom Admin aktiviert werden)
  *  - wenn man Postingpartner länger als x Tage warten gelassen hat
@@ -36,7 +36,7 @@ function scenetracker_info()
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
-    "version" => "1.0",
+    "version" => "1.1",
     "compatibility" => "18*"
   );
 }
@@ -53,12 +53,8 @@ function scenetracker_is_installed()
 function scenetracker_install()
 {
   global $db;
+  //
   scenetracker_uninstall();
-
-  // if ($db->field_exists("threadsolved", "threads")) {
-  // } else {
-  //   $db->write_query("ALTER TABLE " . TABLE_PREFIX . "threads ADD `threadsolved` INT(1) NOT NULL DEFAULT '0'");
-  // }
 
   // Einfügen der Trackerfelder in die Threadtabelle
   $db->add_column("threads", "scenetracker_date", "DATETIME NULL DEFAULT NULL");
@@ -67,11 +63,11 @@ function scenetracker_install()
   $db->add_column("threads", "scenetracker_trigger", "varchar(200) NOT NULL DEFAULT ''");
 
   //einfügen der Kalender einstellungen
-  $db->add_column("user", "scenetracker_calendar_settings", "INT(1) NOT NULL DEFAULT '0'");
+  $db->add_column("users", "scenetracker_calendar_settings", "INT(1) NOT NULL DEFAULT '0'");
   //für großen Kalender: 0 = nur szenen von diesem Charakter, 1 = Szenen aller eigenen Charas, 2 = Szenen aller Charas
-  $db->add_column("user", "scenetracker_calendarsettings_big", "INT(1) NOT NULL DEFAULT '0'");
+  $db->add_column("users", "scenetracker_calendarsettings_big", "INT(1) NOT NULL DEFAULT '0'");
   //für mini Kalender: 0 = nur szenen von diesem Charakter, 1 = Szenen aller eigenen Charas, 2 = Szenen aller Charas
-  $db->add_column("user", "scenetracker_calendarsettings_mini", "INT(1) NOT NULL DEFAULT '0'");
+  $db->add_column("users", "scenetracker_calendarsettings_mini", "INT(1) NOT NULL DEFAULT '0'");
 
   // Einfügen der Trackeroptionen in die user tabelle
   $db->query("ALTER TABLE `" . TABLE_PREFIX . "users` ADD `tracker_index` INT(1) NOT NULL DEFAULT '1', ADD `tracker_indexall` INT(1) NOT NULL DEFAULT '1', ADD `tracker_reminder` INT(1) NOT NULL DEFAULT '1';");
@@ -99,130 +95,11 @@ function scenetracker_install()
   );
   $gid = $db->insert_query("settinggroups", $setting_group);
 
-  $setting_array = array(
-    'scenetracker_index' => array(
-      'title' => 'Indexanzeige',
-      'description' => 'Sollen die Szene auf Wunsch des Users auf dem Index angezeigt werden können?',
-      'optionscode' => 'yesno',
-      'value' => '1', // Default
-      'disporder' => 1
-    ),
-    'scenetracker_solved' => array(
-      'title' => 'Thema erledigt/unerledigt',
-      'description' => 'Ist das Thema erledigt/unerledigt Plugin installiert und wird zum kennzeichnen von erledigten Szenen genutzt?',
-      'optionscode' => 'yesno',
-      'value' => '1', // Default
-      'disporder' => 1
-    ),
-    'scenetracker_alert_alerts' => array(
-      'title' => 'My Alerts',
-      'description' => 'Sollen Charaktere per MyAlerts (Plugin muss installiert sein) informiert werden?',
-      'optionscode' => 'yesno',
-      'value' => '0', // Default
-      'disporder' => 3
-    ),
-    'scenetracker_as' => array(
-      'title' => 'Accountswitcher?',
-      'description' => 'Ist der Accountswitcher installiert',
-      'optionscode' => 'yesno',
-      'value' => '1', // Default
-      'disporder' => 1
-    ),
-    'scenetracker_ingame' => array(
-      'title' => 'Ingame',
-      'description' => 'ID des Ingames',
-      'optionscode' => 'forumselect',
-      'value' => '7', // Default
-      'disporder' => 4
-    ),
-    'scenetracker_archiv' => array(
-      'title' => 'Archiv',
-      'description' => 'ID des Archivs',
-      'optionscode' => 'text',
-      'value' => '0', // Default
-      'disporder' => 5
-    ),
-    'scenetracker_birhday' => array(
-      'title' => 'Geburtstagsfeld für Kalender',
-      'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet, das Standardgeburtstagsfeld oder benutzt ihr das Steckbrief(Format YYYY-mm-dd wie datumsfeld) im UCP Plugin?',
-      'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten\n3=Steckbrief im Profil",
-      'value' => '1', // Default
-      'disporder' => 6
-    ),
-    'scenetracker_birhdayfid' => array(
-      'title' => 'Geburtstagsfeld ID?',
-      'description' => 'Wenn der Geburtstags über ein Profilfeld angegeben wird, bitte hier die ID eingeben, wenn das Steckbrieffeld benutzt wird, die Kennung von diesem.',
-      'optionscode' => 'text',
-      'value' => '0', // Default
-      'disporder' => 7
-    ),
-    'scenetracker_reminder' => array(
-      'title' => 'Erinnerung',
-      'description' => 'Sollen Charaktere auf dem Index darauf aufmerksam gemacht werden, wenn sie jemanden in einer Szene länger als X Tage warten lassen? 0 wenn nicht',
-      'optionscode' => 'text',
-      'value' => '0', // Default
-      'disporder' => 8
-    ),
-    'scenetracker_ingametime' => array(
-      'title' => 'Ingame Zeitraum',
-      'description' => 'Bitte Ingamezeitraum eingeben - Monat und Jahr. Bei mehreren mit , getrennt. Z.b für April, Juni und Juli "1997-04, 1997-06, 1997-07. <b>Achtung genauso wie im Beispiel!</b> (Wichtig für Minicalender)."',
-      'optionscode' => 'text',
-      'value' => '2022-04, 2022-06, 2022-07', // Default
-      'disporder' => 9
-    ),
-    'scenetracker_ingametime_tagstart' => array(
-      'title' => 'Ingame Zeitraum 1. Tag',
-      'description' => 'Gib hier den ersten Tag eures Ingamezeitraums an. z.B. 1 oder 15.',
-      'optionscode' => 'text',
-      'value' => '1', // Default
-      'disporder' => 10
-    ),
-    'scenetracker_ingametime_tagend' => array(
-      'title' => 'Ingame Zeitraum letzter Tag',
-      'description' => 'Gib hier den letzte  Tag eures Ingamezeitraums an. z.B. 15 oder 30.<br><i>Tage im Zeitraum, bekommen die Klasse "activeingame" und können gesondert gestylt werden.</i>',
-      'optionscode' => 'text',
-      'value' => '30', // Default
-      'disporder' => 11
-    ),
-    'scenetracker_exludedfids' => array(
-      'title' => 'ausgeschlossene Foren',
-      'description' => 'Gibt es Foren, die im Ingame liegen aber nicht zum Tracker gezählt werden sollen (Keine Verfolgung, keine Anzeige im Profil, z.B. Communication).',
-      'optionscode' => 'forumselect',
-      'value' => '', // Default
-      'disporder' => 11
-    ),
-    //Kalender einstellungen
-    'scenetracker_calendarview_all' => array(
-      'title' => 'Kalender Szenen Ansicht - Alle Szenen',
-      'description' => 'Dürfen Mitglieder auswählen das die Szenen von allen Charakteren angezeigt werden?',
-      'optionscode' => 'yesno',
-      'value' => '1', // Default
-      'disporder' => 13
-    ),
-    'scenetracker_calendarview_ownall' => array(
-      'title' => 'Kalender Szenen Ansicht - Alle eigenen Szenen',
-      'description' => 'Dürfen Mitglieder auswählen das die Szenen von allen eigenen (verbundenen) Charakteren angezeigt werden?',
-      'optionscode' => 'yesno',
-      'value' => '1', // Default
-      'disporder' => 14
-    ),
-    'scenetracker_calendarview_own' => array(
-      'title' => 'Kalender Szenen Ansicht - Szenen des Charaktes',
-      'description' => 'Dürfen Mitglieder auswählen das die Szenen nur von dem Charakter angezeigt werden, mit dem man online ist?',
-      'optionscode' => 'yesno',
-      'value' => '1', // Default
-      'disporder' => 14
-    ),
-  );
+  scenetracker_add_settings();
 
-  foreach ($setting_array as $name => $setting) {
-    $setting['name'] = $name;
-    $setting['gid'] = $gid;
-    $db->insert_query('settings', $setting);
-  }
-  rebuild_settings();
   scenetracker_add_templates();
 }
+
 
 function scenetracker_uninstall()
 {
@@ -358,24 +235,174 @@ function scenetracker_deactivate()
     $alertTypeManager->deleteByCode('scenetracker_newAnswer');
   }
 }
-/**
- * Adds the templates and variables
+
+/***
+ * Adding The settings
  */
-function scenetracker_add_templates()
+function scenetracker_add_settings($type = 'install')
+{
+
+  global $db;
+  $setting_array = array(
+    'scenetracker_index' => array(
+      'title' => 'Indexanzeige',
+      'description' => 'Sollen die Szene auf Wunsch des Users auf dem Index angezeigt werden können?',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 1
+    ),
+    'scenetracker_solved' => array(
+      'title' => 'Thema erledigt/unerledigt',
+      'description' => 'Ist das Thema erledigt/unerledigt Plugin installiert und wird zum kennzeichnen von erledigten Szenen genutzt?',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 1
+    ),
+    'scenetracker_alert_alerts' => array(
+      'title' => 'My Alerts',
+      'description' => 'Sollen Charaktere per MyAlerts (Plugin muss installiert sein) informiert werden?',
+      'optionscode' => 'yesno',
+      'value' => '0', // Default
+      'disporder' => 3
+    ),
+    'scenetracker_as' => array(
+      'title' => 'Accountswitcher?',
+      'description' => 'Ist der Accountswitcher installiert',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 1
+    ),
+    'scenetracker_ingame' => array(
+      'title' => 'Ingame',
+      'description' => 'ID des Ingames',
+      'optionscode' => 'forumselect',
+      'value' => '7', // Default
+      'disporder' => 4
+    ),
+    'scenetracker_archiv' => array(
+      'title' => 'Archiv',
+      'description' => 'ID des Archivs',
+      'optionscode' => 'text',
+      'value' => '0', // Default
+      'disporder' => 5
+    ),
+    'scenetracker_birhday' => array(
+      'title' => 'Geburtstagsfeld für Kalender',
+      'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet, das Standardgeburtstagsfeld oder benutzt ihr das Steckbrief(Format YYYY-mm-dd wie datumsfeld) im UCP Plugin?',
+      'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten\n3=Steckbrief im Profil",
+      'value' => '1', // Default
+      'disporder' => 6
+    ),
+    'scenetracker_birhdayfid' => array(
+      'title' => 'Geburtstagsfeld ID?',
+      'description' => 'Wenn der Geburtstags über ein Profilfeld angegeben wird, bitte hier die ID eingeben, wenn das Steckbrieffeld benutzt wird, die Kennung von diesem.',
+      'optionscode' => 'text',
+      'value' => '0', // Default
+      'disporder' => 7
+    ),
+    'scenetracker_reminder' => array(
+      'title' => 'Erinnerung',
+      'description' => 'Sollen Charaktere auf dem Index darauf aufmerksam gemacht werden, wenn sie jemanden in einer Szene länger als X Tage warten lassen? 0 wenn nicht',
+      'optionscode' => 'text',
+      'value' => '0', // Default
+      'disporder' => 8
+    ),
+    'scenetracker_ingametime' => array(
+      'title' => 'Ingame Zeitraum',
+      'description' => 'Bitte Ingamezeitraum eingeben - Monat und Jahr. Bei mehreren mit , getrennt. Z.b für April, Juni und Juli "1997-04, 1997-06, 1997-07. <b>Achtung genauso wie im Beispiel!</b> (Wichtig für Minicalender)."',
+      'optionscode' => 'text',
+      'value' => '2022-04, 2022-06, 2022-07', // Default
+      'disporder' => 9
+    ),
+    'scenetracker_ingametime_tagstart' => array(
+      'title' => 'Ingame Zeitraum 1. Tag',
+      'description' => 'Gib hier den ersten Tag eures Ingamezeitraums an. z.B. 1 oder 15.',
+      'optionscode' => 'text',
+      'value' => '1', // Default
+      'disporder' => 10
+    ),
+    'scenetracker_ingametime_tagend' => array(
+      'title' => 'Ingame Zeitraum letzter Tag',
+      'description' => 'Gib hier den letzte  Tag eures Ingamezeitraums an. z.B. 15 oder 30.<br><i>Tage im Zeitraum, bekommen die Klasse "activeingame" und können gesondert gestylt werden.</i>',
+      'optionscode' => 'text',
+      'value' => '30', // Default
+      'disporder' => 11
+    ),
+    'scenetracker_exludedfids' => array(
+      'title' => 'ausgeschlossene Foren',
+      'description' => 'Gibt es Foren, die im Ingame liegen aber nicht zum Tracker gezählt werden sollen (Keine Verfolgung, keine Anzeige im Profil, z.B. Communication).',
+      'optionscode' => 'forumselect',
+      'value' => '', // Default
+      'disporder' => 11
+    ),
+    //Kalender einstellungen
+    'scenetracker_calendarview_all' => array(
+      'title' => 'Kalender Szenen Ansicht - Alle Szenen',
+      'description' => 'Dürfen Mitglieder auswählen das die Szenen von allen Charakteren angezeigt werden?',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 13
+    ),
+    'scenetracker_calendarview_ownall' => array(
+      'title' => 'Kalender Szenen Ansicht - Alle eigenen Szenen',
+      'description' => 'Dürfen Mitglieder auswählen das die Szenen von allen eigenen (verbundenen) Charakteren angezeigt werden?',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 14
+    ),
+    'scenetracker_calendarview_own' => array(
+      'title' => 'Kalender Szenen Ansicht - Szenen des Charaktes',
+      'description' => 'Dürfen Mitglieder auswählen das die Szenen nur von dem Charakter angezeigt werden, mit dem man online ist?',
+      'optionscode' => 'yesno',
+      'value' => '1', // Default
+      'disporder' => 14
+    ),
+  );
+  $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settings` WHERE name like 'scenetracker_ucp%' LIMIT 1;"), "gid");
+
+  if ($type == 'install') {
+    foreach ($setting_array as $name => $setting) {
+      $setting['name'] = $name;
+      $setting['gid'] = $gid;
+      $db->insert_query('settings', $setting);
+    }
+  }
+  if ($type == 'update') {
+    foreach ($setting_array as $name => $setting) {
+      $setting['name'] = $name;
+      $check = $db->write_query("SELECT name FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
+      $check = $db->num_rows($check);
+      $setting['gid'] = $gid;
+      if ($check == 0) {
+        $db->insert_query('settings', $setting);
+        echo "Setting: {$name} wurde hinzugefügt.";
+      }
+    }
+    echo "<p>Einstellungen wurden aktualisiert</p>";
+  }
+
+  rebuild_settings();
+}
+
+
+/**
+ * Adds the templates and stylesheet
+ */
+function scenetracker_add_templates($type = 'install')
 {
   global $db;
 
   //add templates and stylesheets
   // Add templategroup
-  $templategrouparray = array(
-    'prefix' => 'scenetracker',
-    'title'  => $db->escape_string('Szenentracker'),
-    'isdefault' => 1
-  );
-  $db->insert_query("templategroups", $templategrouparray);
-
-  // überprüfe ob templates schon vorhanden, wenn ja tue nichts
-  // else füge sie neu ein
+  //templategruppe nur beim installieren hinzufügen
+  if ($type == 'install') {
+    $templategrouparray = array(
+      'prefix' => 'scenetracker',
+      'title'  => $db->escape_string('Szenentracker'),
+      'isdefault' => 1
+    );
+    $db->insert_query("templategroups", $templategrouparray);
+  }
   $template[0] = array(
     "title" => 'scenetracker_forumdisplay_infos',
     "template" => '<div class="author smalltext">
@@ -713,7 +740,7 @@ function scenetracker_add_templates()
             </form>
           </div>
           {$ucp_main_reminderopt}
-    
+          {$calendar_setting_form}
         </div>
         </div><!--scene_ucp manage alert_item-->
       <form action="usercp.php?action=scenetracker" method="post">
@@ -805,14 +832,19 @@ function scenetracker_add_templates()
 
 
   foreach ($template as $row) {
-    $db->insert_query("templates", $row);
+
+    $check = $db->num_rows($db->simple_select("templates", "title", "title LIKE '{$row['title']}'"));
+    if ($check == 0) {
+      $db->insert_query("templates", $row);
+    }
   }
 
-  $css = array(
-    'name' => 'scenetracker.css',
-    'tid' => 1,
-    'attachedto' => '',
-    "stylesheet" =>    '
+  if ($type = 'install') {
+    $css = array(
+      'name' => 'scenetracker.css',
+      'tid' => 1,
+      'attachedto' => '',
+      "stylesheet" =>    '
     :root {
       --background-light: #bcbcbc;
       --background-dark: #898989;
@@ -1306,18 +1338,19 @@ background-color:var(--background-dark);
 }
 
     ',
-    'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
-    'lastmodified' => time()
-  );
+      'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
+      'lastmodified' => time()
+    );
 
-  require_once MYBB_ADMIN_DIR . "inc/functions_themes.php";
+    require_once MYBB_ADMIN_DIR . "inc/functions_themes.php";
 
-  $sid = $db->insert_query("themestylesheets", $css);
-  $db->update_query("themestylesheets", array("cachefile" => "css.php?stylesheet=" . $sid), "sid = '" . $sid . "'", 1);
+    $sid = $db->insert_query("themestylesheets", $css);
+    $db->update_query("themestylesheets", array("cachefile" => "css.php?stylesheet=" . $sid), "sid = '" . $sid . "'", 1);
 
-  $tids = $db->simple_select("themes", "tid");
-  while ($theme = $db->fetch_array($tids)) {
-    update_theme_stylesheet_list($theme['tid']);
+    $tids = $db->simple_select("themes", "tid");
+    while ($theme = $db->fetch_array($tids)) {
+      update_theme_stylesheet_list($theme['tid']);
+    }
   }
 }
 
@@ -1741,7 +1774,7 @@ function scenetracker_search_showtrackerstuff()
     $author = build_profile_link($thread['username'], $thread['uid']);
     $scenetracker_forumdisplay_user = "";
     if ($thread['scenetracker_trigger'] != "") {
-      $scenetrigger = "<span style=\"color: var(--alert-color);\"><i class=\"fas fa-circle-exclamation\"></i>Triggerwarnung: {$thread['scenetracker_trigger']}</span><br/>";
+      $scenetrigger = "<div class=\"scenetracker_trigger\"><span style=\"color: var(--alert-color);\"><i class=\"fas fa-circle-exclamation\"></i>Triggerwarnung: {$thread['scenetracker_trigger']}</span></div>";
     } else {
       $scenetrigger = "";
     }
@@ -1754,10 +1787,12 @@ function scenetracker_search_showtrackerstuff()
       }
     }
     $user .= "</div>";
-    $sceneinfos =  "<i class=\"fas fa-calendar\"></i>{$scene_date} 
-    <i class=\"fas fa-map-marker-alt\"></i>{$thread['scenetracker_place']}<br/> 
+    $sceneinfos =  "<div class=\"sceneinfo-container\">
+    <div class=\"scenetracker_date\"><i class=\"fas fa-calendar\"></i>{$scene_date}</div>
+    <div class=\"scenetracker_place\"><i class=\"fas fa-map-marker-alt\"></i>{$thread['scenetracker_place']}</div>
     {$scenetrigger}
-    <i class=\"fas fa-users\"></i>{$user} <br/> ";
+    <div class=\"scenetracker_user\"><i class=\"fas fa-users\"></i>{$user}</div>
+    </div>";
   } else {
     $sceneinfos = "";
   }
@@ -2076,8 +2111,14 @@ function scenetracker_usercp()
     $ucp_main_calendarsettings = "";
   }
   //welcher user ist online
+  //set as uid
+  if (isset($mybb->user['as_uid'])) {
+    $asuid = $mybb->user['as_uid'];
+  } else {
+    $asuid = 0;
+  }
   //get all charas of this user
-  $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+  $charas = scenetracker_get_accounts($mybb->user['uid'], $asuid);
   $charakter = "0";
   if (isset($mybb->input['scenefilter'])) {
     $charakter = intval($mybb->get_input('charakter'));
@@ -2086,10 +2127,8 @@ function scenetracker_usercp()
   }
 
   if ($charakter == 0) {
-    $charasquery = scenetracker_get_accounts($thisuser, $mybb->user['as_uid']);
-    // $charas = scenetracker_get_accounts($thisuser, $mybb->user['as_uid']); 
+    $charasquery = scenetracker_get_accounts($thisuser, $asuid);
     $charastr = "";
-    // var_dump($charasquery);
     foreach ($charasquery as $uid => $username) {
       $charastr .= $uid . ",";
     }
@@ -2455,7 +2494,7 @@ function scenetracker_showinprofile()
       $ingameexplode = explode(",", $ingame);
       foreach ($ingameexplode as $ingamefid) {
         //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
-        $ingamestr .= " concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR";
+        $ingamestr .= " concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR ";
         // $ingamestr .= "$ingamefid in (parentlist) OR ";
       }
     }
@@ -2470,12 +2509,12 @@ function scenetracker_showinprofile()
 
       $archivexplode = explode(",", $archiv);
       foreach ($archivexplode as $archivfid) {
-        $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR";
+        $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR ";
       }
       // das letzte OR rauswerfen
       $archivstr = substr($archivstr, 0, -3);
     }
-    $forenquerie = " AND ($ingamestr $archivstr)";
+    $forenquerie = " AND ($ingamestr $archivstr) ";
   }
 
   $scene_query = $db->write_query("
@@ -2545,16 +2584,19 @@ $plugins->add_hook('index_start', 'scenetracker_list');
 function scenetracker_list()
 {
   global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara, $expthead, $expcolimage, $expaltext, $expaltext, $expdisplay, $theme;
-
-  // var_dump($mybb->cookies['mybb']['allow_cookies']);
-  //get all charas of this user
+  //set as uid
+  if (isset($mybb->user['as_uid'])) {
+    $asuid = $mybb->user['as_uid'];
+  } else {
+    $asuid = 0;
+  }
   $uid = $mybb->user['uid'];
   $index = $db->fetch_field($db->simple_select("users", "tracker_index", "uid = $uid"), "tracker_index");
   $index_all = $db->fetch_field($db->simple_select("users", "tracker_indexall", "uid = $uid"), "tracker_indexall");
 
   if ($uid != 0 && $index == 1) {
     if ($index_all == 1) {
-      $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+      $charas = scenetracker_get_accounts($mybb->user['uid'], $asuid);
     } else {
       $charas[$uid] = $mybb->user['username'];
       // $charas[$uid] = $users['username'];
@@ -2602,6 +2644,12 @@ function scenetracker_reminder()
   global $mybb, $db, $templates, $scenetracker_index_reminder;
 
   $uid = $mybb->user['uid'];
+  //set as uid
+  if (isset($mybb->user['as_uid'])) {
+    $asuid = $mybb->user['as_uid'];
+  } else {
+    $asuid = 0;
+  }
   $reminder = $db->fetch_field($db->simple_select("users", "tracker_reminder", "uid = $uid"), "tracker_reminder");
 
   $solvplugin = $mybb->settings['scenetracker_solved'];
@@ -2620,7 +2668,7 @@ function scenetracker_reminder()
 
   if ($uid != 0 && $reminder == 1) {
     // Alle Charaktere des Users holen
-    $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+    $charas = scenetracker_get_accounts($mybb->user['uid'], $asuid);
     $days = intval($mybb->settings['scenetracker_reminder']);
     // $days = 200;
     $cnt = 0;
@@ -2692,11 +2740,16 @@ function scenetracker_calendar()
 {
   global $db, $mybb, $day, $month, $year, $scene_ouput, $birthday_ouput, $teilnehmer_scene;
   $thisuser = $mybb->user['uid'];
-  $thisuseras_id = $mybb->user['as_uid'];
+
+  if (isset($mybb->user['as_uid'])) {
+    $thisuseras_id = $mybb->user['as_uid'];
+  } else {
+    $thisuseras_id = 0;
+  }
   $username = $mybb->user['username'];
 
   $showownscenes = 1;
-  //TODO
+
   //Nur eigenen Szenen anzeigen
   //alle szenen anzeigen
   // 0 Szenen des Charas der online ist
@@ -2833,7 +2886,11 @@ function scenetracker_minicalendar()
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
   $thisuser = $mybb->user['uid'];
-  $thisuseras_id = $mybb->user['as_uid'];
+  if (isset($mybb->user['as_uid'])) {
+    $thisuseras_id = $mybb->user['as_uid'];
+  } else {
+    $thisuseras_id = 0;
+  }
   $username = $db->escape_string($mybb->user['username']);
   $ingame =  explode(",", str_replace(" ", "", $mybb->settings['scenetracker_ingametime']));
   foreach ($ingame as $monthyear) {
@@ -3028,7 +3085,7 @@ function scenetracker_userdelete()
 
 
 /**************************** */
-/*** HELPERS FUNCTIONS***/
+/*** HELPER FUNCTIONS***/
 
 /**************************** */
 
@@ -3042,7 +3099,6 @@ function scenetracker_get_accounts($this_user, $as_uid)
   global $mybb, $db;
   $charas = array();
   if ($as_uid == 0) {
-
     $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE (as_uid = $this_user) OR (uid = $this_user) ORDER BY username");
   } else if ($as_uid != 0) {
     //id des users holen wo alle angehangen sind 
@@ -3116,7 +3172,12 @@ function scenetracker_check_switcher($uid)
   global $mybb;
 
   if ($mybb->user['uid'] != 0) {
-    $chars = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+    if (isset($mybb->user['as_uid'])) {
+      $uid_as = $mybb->user['as_uid'];
+    } else {
+      $uid_as = 0;
+    }
+    $chars = scenetracker_get_accounts($mybb->user['uid'], $uid_as);
     return array_key_exists($uid, $chars);
   } else return false;
 }
@@ -3425,7 +3486,13 @@ function scenetracker_scene_inform_status($id, $certained)
 function scenetracker_change_allowed($str_teilnehmer)
 {
   global $mybb, $db;
-  $chars = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
+  //set as uid
+  if (isset($mybb->user['as_uid'])) {
+    $asuid = $mybb->user['as_uid'];
+  } else {
+    $asuid = 0;
+  }
+  $chars = scenetracker_get_accounts($mybb->user['uid'], $asuid);
   if ($mybb->user['uid'] == 0) return false;
 
   foreach ($chars as $uid => $username) {
@@ -3619,7 +3686,7 @@ function scenetracker_online_activity($user_activity)
   global $parameters, $user;
 
   $split_loc = explode(".php", $user_activity['location']);
-  if(isset($user['location']) && $split_loc[0] == $user['location']) {
+  if (isset($user['location']) && $split_loc[0] == $user['location']) {
     $filename = '';
   } else {
     $filename = my_substr($split_loc[0], -my_strpos(strrev($split_loc[0]), "/"));
