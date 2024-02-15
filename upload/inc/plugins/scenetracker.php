@@ -563,9 +563,9 @@ function scenetracker_add_templates($type = 'install')
 
   $template[9] = array(
     "title" => 'scenetracker_popup',
-    "template" => '<div id="trackerpop{$id}" class="trackerpop">
-    <div class="pop">
-      <form method="post" action="">
+    "template" => '<a onclick="$(\\\'#certain{$id}\\\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \\\'undefined\\\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;"><i class="fas fa-cogs"></i></a>
+    <div class="modal addrela" id="certain{$id}" style="display: none; padding: 10px; margin: auto; text-align: center;">
+            <form method="post" action="usercp.php?action=scenetracker">
         {$hidden}
         <input type="hidden" value="{$data[\\\'id\\\']}" name="getid">
        <select name="charakter">
@@ -573,10 +573,7 @@ function scenetracker_add_templates($type = 'install')
         </select><br />
         <input type="submit" name="certainuser" />
       </form>
-      </div><a href="#closepop" class="closepop"></a>
-  </div>
-  
-  <a href="#trackerpop{$id}"><i class="fas fa-cogs"></i></a>',
+      </div>',
     "sid" => "-2",
     "version" => "1.0",
     "dateline" => TIME_NOW
@@ -2642,7 +2639,7 @@ $plugins->add_hook('index_start', 'scenetracker_reminder');
 function scenetracker_reminder()
 {
   global $mybb, $db, $templates, $scenetracker_index_reminder;
-
+$scenetracker_index_reminder_bit = "";
   $uid = $mybb->user['uid'];
   //set as uid
   if (isset($mybb->user['as_uid'])) {
@@ -2738,7 +2735,7 @@ function scenetracker_reminder()
 $plugins->add_hook("calendar_weekview_day", "scenetracker_calendar");
 function scenetracker_calendar()
 {
-  global $db, $mybb, $day, $month, $year, $scene_ouput, $birthday_ouput, $teilnehmer_scene;
+  global $db, $mybb, $day, $month, $year, $scene_ouput, $birthday_ouput, $teilnehmer_scene, $plotoutput;
   $thisuser = $mybb->user['uid'];
 
   if (isset($mybb->user['as_uid'])) {
@@ -2755,8 +2752,10 @@ function scenetracker_calendar()
   // 0 Szenen des Charas der online ist
   // 1 Szenen aller eignen Charas
   // 2 Szenen aller Charas des Boars
-  if ($showownscenes == 1) {
+  
 
+
+  //get day and month mit null bitte
     $daynew = sprintf("%02d", $day);
     $monthzero  = sprintf("%02d", $month);
 
@@ -2793,6 +2792,20 @@ function scenetracker_calendar()
       $birth_num = 0;
     }
 
+  //Jules Plottracker ist installiert
+  if ($db->table_exists("plots")) {
+    $plottracker = 1;
+  } else {
+    $plottracker = 0;
+  }
+  $plotoutput = "";
+  if ($plottracker == 1) {
+    $plotquery =  $db->simple_select("plots", "*", "{$timestamp} BETWEEN startdate AND enddate;");
+    while ($plot = $db->fetch_array($plotquery)) {
+      $plotoutput = "<a href=\"plottracker.php?action=view&plid={$plot['plid']}\">" . $plot['name'] . "</a>";
+    }
+  }
+
     //Einstellungen des Users für Kalender bekommen
     $viewsetting = $db->fetch_field($db->simple_select("users", "scenetracker_calendarsettings_big", "uid='$thisuser'"), "scenetracker_calendarsettings_big");
 
@@ -2802,7 +2815,7 @@ function scenetracker_calendar()
       $charstring = implode(",", $chararray);
       $scene_querie = " AND s.uid in ($charstring) GROUP BY tid";
     } else if ($viewsetting == 2) {
-      // alle Szenen des Forums
+      // alle Szenen des aller Charaktere des Forums
       $scene_querie = " GROUP BY tid";
     } else { // viewsetting == 0 -> default nur vom chara von dem man online ist
       // 0 Szenen des Charas der online ist
@@ -2851,6 +2864,7 @@ function scenetracker_calendar()
             <span>{$charlist}</span></details>";
         $scene_ouput .= "{$scene_in}</div>";
       }
+
       if ($birth_num > 0) {
         $birthday_show = "<a onclick=\"$('#day{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Geburtstage]</a>";
         $birthday_ouput = " {$birthday_show}
@@ -2867,7 +2881,6 @@ function scenetracker_calendar()
       }
     }
   }
-}
 
 /***
  * shows minicalender 
@@ -2924,8 +2937,6 @@ function scenetracker_minicalendar()
       $kal_anzeige_heute_timestamp = strtotime($kal_anzeige_akt_tag . " day", $kal_start_timestamp);
       $kal_anzeige_heute_tag = date("j", $kal_anzeige_heute_timestamp);
       $daynew = sprintf("%02d", $kal_anzeige_heute_tag);
-
-
 
       //Einstellungen des Users für Kalender bekommen
       $viewsetting = $db->fetch_field($db->simple_select("users", "scenetracker_calendarsettings_mini", "uid='$thisuser'"), "scenetracker_calendarsettings_mini");
@@ -2999,14 +3010,28 @@ function scenetracker_minicalendar()
       }
       $get_events = $db->write_query(
         "
-            SELECT * FROM " . TABLE_PREFIX . "events WHERE DATE_FORMAT(FROM_UNIXTIME(starttime), '%Y-%m-%d') LIKE '{$datetoconvert}%'"
+            SELECT * FROM " . TABLE_PREFIX . "events WHERE '{$timestamp}' BETWEEN starttime and endtime"
       );
+
+      //Jules Plottracker ist installiert
+      if ($db->table_exists("plots")) {
+        $plottracker = 1;
+      } else {
+        $plottracker = 0;
+      }
+
+      $plotoutput = "";
+      if ($plottracker == 1) {
+        $plotquery =  $db->simple_select("plots", "*", "{$timestamp} BETWEEN startdate AND enddate;");
+      }
+
 
       if ($kal_anzeige_akt_tag >= 0 and $kal_anzeige_akt_tag < $kal_tage_gesamt) {
         $sceneshow = "";
         $birthdayshow = "";
         $eventshow = "";
-        if ($db->num_rows($scenes) > 0 || $birth_num > 0 || $db->num_rows($get_events) > 0) {
+        $plotshow = "";
+        if ($db->num_rows($scenes) > 0 || $birth_num > 0 || $db->num_rows($get_events) > 0 || $db->num_rows($plotquery) > 0) {
           if ($db->num_rows($scenes) > 0) {
             $sceneshow = "<span class=\"st_mini_scene_title\">Szenen</span>";
             while ($scene = $db->fetch_array($scenes)) {
@@ -3036,11 +3061,18 @@ function scenetracker_minicalendar()
               $eventshow .= "<div class=\"st_mini_scenelink \"><a href=\"calendar.php?action=event&eid={$event['eid']}\">{$event['name']}</a></div>";
             }
           }
+if ($db->num_rows($plotquery) > 0) {
+            $plotshow = "<span class=\"st_mini_scene_title\">Plots</span>";
+            while ($plot = $db->fetch_array($plotquery)) {
+              $plotshow .= "<div class=\"st_mini_scenelink plot\"><a href=\"plottracker.php?action=view&plid={$plot['plid']}\">" . $plot['name'] . "</a></div>";
+            }
+          }
           if ($mybb->user['uid'] != 0) {
             $showpop = "<div class=\"st_mini_scene_show\">
                        {$sceneshow}
                         {$birthdayshow}
                         {$eventshow}
+{$plotshow}
                       </div>";
           } else {
             $showpop = "";
