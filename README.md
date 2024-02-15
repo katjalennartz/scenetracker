@@ -1,9 +1,9 @@
 # Szenentracker
 ## Updates: 		
-Last: 25. September 2023			
+Last: 15. Feb 2024			
 
  ### Todo nach Update: 
-- inc/plugins/scenetracker.php neu hochladen
+- Dateien neu hochladen
 - update_scenetracker.php ins hauptverzeichnis laden und aufrufen. Anschließend aufrufen und dann wieder löschen.
 - Es werden neue Felder in den Settings angelegt
  ### Template änderungen: 
