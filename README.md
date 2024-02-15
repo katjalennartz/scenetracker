@@ -4,7 +4,7 @@ Last: 25. September 2023
 
  ### Todo nach Update: 
 - inc/plugins/scenetracker.php neu hochladen
-- updatescript_august23.php ins hauptverzeichnis laden und hochladen. Anschließend aufrufen und dann wieder löschen.
+- update_scenetracker.php ins hauptverzeichnis laden und aufrufen. Anschließend aufrufen und dann wieder löschen.
 - Es werden neue Felder in den Settings angelegt
  ### Template änderungen: 
  - ucp_main_reminderopt:
