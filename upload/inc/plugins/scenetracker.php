@@ -12,7 +12,7 @@
  *  - wenn bestimmte User gepostet hat
  * Benachrichtung ( alert )
  *  - immer bei Antwort
- *  - bei Antwort von bestimmten Userx
+ *  - bei Antwort von bestimmten User x
  *  - keine Benachrichtigung
  * Postingerinnerung (kann vom Admin aktiviert werden)
  *  - wenn man Postingpartner länger als x Tage warten gelassen hat
@@ -2124,9 +2124,9 @@ function scenetracker_usercp()
   }
 
   if ($charakter == 0) {
-    $charasquery = scenetracker_get_accounts($thisuser, $asuid);
+    $charasquery = scenetracker_get_accounts($thisuser, $asuid); 
     $charastr = "";
-    foreach ($charasquery as $uid => $username) {
+        foreach ($charasquery as $uid => $username) {
       $charastr .= $uid . ",";
     }
   } else {
@@ -2491,7 +2491,7 @@ function scenetracker_showinprofile()
       $ingameexplode = explode(",", $ingame);
       foreach ($ingameexplode as $ingamefid) {
         //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
-        $ingamestr .= " concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR ";
+        $ingamestr .= " concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR "; 
         // $ingamestr .= "$ingamefid in (parentlist) OR ";
       }
     }
@@ -2506,7 +2506,7 @@ function scenetracker_showinprofile()
 
       $archivexplode = explode(",", $archiv);
       foreach ($archivexplode as $archivfid) {
-        $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR ";
+        $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR "; 
       }
       // das letzte OR rauswerfen
       $archivstr = substr($archivstr, 0, -3);
@@ -2641,7 +2641,7 @@ function scenetracker_reminder()
   global $mybb, $db, $templates, $scenetracker_index_reminder;
 $scenetracker_index_reminder_bit = "";
   $uid = $mybb->user['uid'];
-  //set as uid
+//set as uid
   if (isset($mybb->user['as_uid'])) {
     $asuid = $mybb->user['as_uid'];
   } else {
@@ -2842,7 +2842,7 @@ function scenetracker_calendar()
     if ($db->num_rows($scenes) > 0 || $birth_num > 0) {
       if ($db->num_rows($scenes) > 0) {
         $szene = "<a onclick=\"$('#scene{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Szenen]</a>";
-
+        
         $scene_ouput = "{$szene}
       <div class=\"modal\" id=\"scene{$day}\" style=\"display: none; padding: 10px; margin: auto; text-align: center;\">
       
@@ -2864,7 +2864,6 @@ function scenetracker_calendar()
             <span>{$charlist}</span></details>";
         $scene_ouput .= "{$scene_in}</div>";
       }
-
       if ($birth_num > 0) {
         $birthday_show = "<a onclick=\"$('#day{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Geburtstage]</a>";
         $birthday_ouput = " {$birthday_show}
@@ -2898,7 +2897,7 @@ function scenetracker_minicalendar()
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
-  $thisuser = $mybb->user['uid'];
+$thisuser = $mybb->user['uid'];
   if (isset($mybb->user['as_uid'])) {
     $thisuseras_id = $mybb->user['as_uid'];
   } else {
@@ -3718,7 +3717,7 @@ function scenetracker_online_activity($user_activity)
   global $parameters, $user;
 
   $split_loc = explode(".php", $user_activity['location']);
-  if (isset($user['location']) && $split_loc[0] == $user['location']) {
+  if (isset($user['location']) && $split_loc[0] == $user['location']) { 
     $filename = '';
   } else {
     $filename = my_substr($split_loc[0], -my_strpos(strrev($split_loc[0]), "/"));

@@ -41,6 +41,9 @@ CSS einfügen:
 ```
 
 ## Wichtige Infos: 
+
+**Die Updates müssen natürlich nur durchgeführt werden, wenn der Tracker vorher schon installiert war. Wenn nicht, reicht es das Plugin ganz normal zu installieren** 		
+
 ```diff
 - Ganz unten im Text: HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin
 - Sowie: HOW TO: Minicalender überm Inplay anzeigen.
@@ -141,7 +144,7 @@ forumdisplay_thread öffnen
 
 
 ## **HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin**  
-
+**Nur in älteren Versionen nötig** 
 öffne: inc/plugins/scenetracker.php  
 suche nach:
 ```
@@ -191,7 +194,11 @@ suche nach:
 ```
  **ersetze mit** :
 ```    
-	$partners = explode(",", $query);
+		$partners_name = explode(",", $query);
+		foreach($partners_name as $name) {
+			$partneris = get_user_by_username($name);
+			$partners[] = $partneris['uid'];
+		}
 ```
 
 
@@ -241,11 +248,6 @@ function scenetracker_minicalendar(&$forum)
  
 
 Die Ausgabe erfolgt dann über $forum['minicalender']
-
-
-
-
-
 
 
 
