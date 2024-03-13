@@ -3022,6 +3022,9 @@ $thisuser = $mybb->user['uid'];
       $plotoutput = "";
       if ($plottracker == 1) {
         $plotquery =  $db->simple_select("plots", "*", "{$timestamp} BETWEEN startdate AND enddate;");
+	$plotquery_num = $db->num_rows($plotquery);
+      }  else {
+	$plotquery_num = 0;
       }
 
 
@@ -3030,7 +3033,7 @@ $thisuser = $mybb->user['uid'];
         $birthdayshow = "";
         $eventshow = "";
         $plotshow = "";
-        if ($db->num_rows($scenes) > 0 || $birth_num > 0 || $db->num_rows($get_events) > 0 || $db->num_rows($plotquery) > 0) {
+        if ($db->num_rows($scenes) > 0 || $birth_num > 0 || $db->num_rows($get_events) > 0 || $plotquery_num > 0) {
           if ($db->num_rows($scenes) > 0) {
             $sceneshow = "<span class=\"st_mini_scene_title\">Szenen</span>";
             while ($scene = $db->fetch_array($scenes)) {
