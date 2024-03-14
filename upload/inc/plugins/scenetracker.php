@@ -256,7 +256,7 @@ function scenetracker_add_settings($type = 'install')
       'description' => 'Ist das Thema erledigt/unerledigt Plugin installiert und wird zum kennzeichnen von erledigten Szenen genutzt?',
       'optionscode' => 'yesno',
       'value' => '1', // Default
-      'disporder' => 1
+      'disporder' => 2
     ),
     'scenetracker_alert_alerts' => array(
       'title' => 'My Alerts',
@@ -270,70 +270,70 @@ function scenetracker_add_settings($type = 'install')
       'description' => 'Ist der Accountswitcher installiert',
       'optionscode' => 'yesno',
       'value' => '1', // Default
-      'disporder' => 1
+      'disporder' => 4
     ),
     'scenetracker_ingame' => array(
       'title' => 'Ingame',
       'description' => 'ID des Ingames',
       'optionscode' => 'forumselect',
       'value' => '7', // Default
-      'disporder' => 4
+      'disporder' => 5
     ),
     'scenetracker_archiv' => array(
       'title' => 'Archiv',
       'description' => 'ID des Archivs',
-      'optionscode' => 'text',
+      'optionscode' => 'forumselect',
       'value' => '0', // Default
-      'disporder' => 5
+      'disporder' => 6
     ),
     'scenetracker_birhday' => array(
       'title' => 'Geburtstagsfeld für Kalender',
       'description' => 'Wird ein Profilfeld (Format dd.mm.YYYY) verwendet, das Standardgeburtstagsfeld oder benutzt ihr das Steckbrief(Format YYYY-mm-dd wie datumsfeld) im UCP Plugin?',
       'optionscode' => "select\n0=fid\n1=standard\n2=ausschalten\n3=Steckbrief im Profil",
       'value' => '1', // Default
-      'disporder' => 6
+      'disporder' => 7
     ),
     'scenetracker_birhdayfid' => array(
       'title' => 'Geburtstagsfeld ID?',
       'description' => 'Wenn der Geburtstags über ein Profilfeld angegeben wird, bitte hier die ID eingeben, wenn das Steckbrieffeld benutzt wird, die Kennung von diesem.',
       'optionscode' => 'text',
       'value' => '0', // Default
-      'disporder' => 7
+      'disporder' => 8
     ),
     'scenetracker_reminder' => array(
       'title' => 'Erinnerung',
       'description' => 'Sollen Charaktere auf dem Index darauf aufmerksam gemacht werden, wenn sie jemanden in einer Szene länger als X Tage warten lassen? 0 wenn nicht',
       'optionscode' => 'text',
       'value' => '0', // Default
-      'disporder' => 8
+      'disporder' => 9
     ),
     'scenetracker_ingametime' => array(
       'title' => 'Ingame Zeitraum',
       'description' => 'Bitte Ingamezeitraum eingeben - Monat und Jahr. Bei mehreren mit , getrennt. Z.b für April, Juni und Juli "1997-04, 1997-06, 1997-07. <b>Achtung genauso wie im Beispiel!</b> (Wichtig für Minicalender)."',
       'optionscode' => 'text',
       'value' => '2022-04, 2022-06, 2022-07', // Default
-      'disporder' => 9
+      'disporder' => 10
     ),
     'scenetracker_ingametime_tagstart' => array(
       'title' => 'Ingame Zeitraum 1. Tag',
       'description' => 'Gib hier den ersten Tag eures Ingamezeitraums an. z.B. 1 oder 15.',
       'optionscode' => 'text',
       'value' => '1', // Default
-      'disporder' => 10
+      'disporder' => 11
     ),
     'scenetracker_ingametime_tagend' => array(
       'title' => 'Ingame Zeitraum letzter Tag',
       'description' => 'Gib hier den letzte  Tag eures Ingamezeitraums an. z.B. 15 oder 30.<br><i>Tage im Zeitraum, bekommen die Klasse "activeingame" und können gesondert gestylt werden.</i>',
       'optionscode' => 'text',
       'value' => '30', // Default
-      'disporder' => 11
+      'disporder' => 12
     ),
     'scenetracker_exludedfids' => array(
       'title' => 'ausgeschlossene Foren',
       'description' => 'Gibt es Foren, die im Ingame liegen aber nicht zum Tracker gezählt werden sollen (Keine Verfolgung, keine Anzeige im Profil, z.B. Communication).',
       'optionscode' => 'forumselect',
       'value' => '', // Default
-      'disporder' => 11
+      'disporder' => 13
     ),
     //Kalender einstellungen
     'scenetracker_calendarview_all' => array(
@@ -341,24 +341,24 @@ function scenetracker_add_settings($type = 'install')
       'description' => 'Dürfen Mitglieder auswählen das die Szenen von allen Charakteren angezeigt werden?',
       'optionscode' => 'yesno',
       'value' => '1', // Default
-      'disporder' => 13
+      'disporder' => 14
     ),
     'scenetracker_calendarview_ownall' => array(
       'title' => 'Kalender Szenen Ansicht - Alle eigenen Szenen',
       'description' => 'Dürfen Mitglieder auswählen das die Szenen von allen eigenen (verbundenen) Charakteren angezeigt werden?',
       'optionscode' => 'yesno',
       'value' => '1', // Default
-      'disporder' => 14
+      'disporder' => 15
     ),
     'scenetracker_calendarview_own' => array(
       'title' => 'Kalender Szenen Ansicht - Szenen des Charaktes',
       'description' => 'Dürfen Mitglieder auswählen das die Szenen nur von dem Charakter angezeigt werden, mit dem man online ist?',
       'optionscode' => 'yesno',
       'value' => '1', // Default
-      'disporder' => 14
+      'disporder' => 16
     ),
   );
-  $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settings` WHERE name like 'scenetracker_ucp%' LIMIT 1;"), "gid");
+  $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settings` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
 
   if ($type == 'install') {
     foreach ($setting_array as $name => $setting) {
@@ -376,6 +376,14 @@ function scenetracker_add_settings($type = 'install')
       if ($check == 0) {
         $db->insert_query('settings', $setting);
         echo "Setting: {$name} wurde hinzugefügt.";
+      }
+	
+      if ($name == 'scenetracker_ingame' || $name == 'scenetracker_archiv' || $name == 'scenetracker_exludedfids') {
+	      $change = array( 
+                  'optionscode' => 'forumselect'
+            );
+            $db->update_query("settings", $change, "name='{name}'s");
+	      echo "Setting: {$name} zu forumselect auswahl geändert.";
       }
     }
     echo "<p>Einstellungen wurden aktualisiert</p>";
@@ -3063,7 +3071,7 @@ $thisuser = $mybb->user['uid'];
               $eventshow .= "<div class=\"st_mini_scenelink \"><a href=\"calendar.php?action=event&eid={$event['eid']}\">{$event['name']}</a></div>";
             }
           }
-if ($db->num_rows($plotquery) > 0) {
+	if ($plotquery_num > 0) {
             $plotshow = "<span class=\"st_mini_scene_title\">Plots</span>";
             while ($plot = $db->fetch_array($plotquery)) {
               $plotshow .= "<div class=\"st_mini_scenelink plot\"><a href=\"plottracker.php?action=view&plid={$plot['plid']}\">" . $plot['name'] . "</a></div>";
