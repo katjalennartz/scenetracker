@@ -1,8 +1,8 @@
 <?php
 define("IN_MYBB", 1);
 require("global.php");
-error_reporting(-1);
-ini_set('display_errors', 1);
+// error_reporting(-1);
+// ini_set('display_errors', 1);
 
 global $db, $mybb, $lang;
 
@@ -100,6 +100,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
       echo "Feld tracker_reminder wurde zu users hinzugefügt.<br>";
       $dbcheck = 1;
     }
+    
 
     // Neue Tabelle um Szenen zu speichern und informationen, wie die benachrichtigungen sein sollen.
     if (!$db->table_exists("scenetracker")) {
@@ -135,7 +136,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
   echo '<b>scenetracker_ucp_main</b>: Suche nach {$ucp_main_reminderopt} füge darunter ein: {$calendar_setting_form} <br>';
 
   echo 'zum Stylesheet hinzufügen:<br>
-  <textarea>.scenetracker_cal_setting {
+  <textarea> .scenetracker_cal_setting {
     width: 92%;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -160,7 +161,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
 #calsettings_button {
     grid-column: 1 / -1;
     justify-self: center;
-}</teaxtarea><br><br>';
+}</textarea><br><br>';
 
 
 
