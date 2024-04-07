@@ -4,49 +4,23 @@ Last: 7. April 2024
 Version: 1.0.1 			
 
  ### Todo nach Update: 
+ - Einstellungen für Minikalender und Kalender werden hinzugefügt
+ - User können nun entscheiden welche Szenen sie angezeigt bekommen wollen: Von allen Usern, Von allen eigenen Charas, nur vom eingeloggten Chara.
+
+		
+ ### Todo nach Update: 
 - Dateien neu hochladen
 - update_scenetracker.php ins hauptverzeichnis laden und aufrufen. Anschließend aufrufen und dann wieder löschen.
 - Es werden neue Felder in den Settings angelegt
- ### Template änderungen: 
- - ucp_main_reminderopt:
-```
-<div class="scenefilteroptions__items">
-        <form action="usercp.php?action=scenetracker" method="post">
-        <fieldset><label for="reminder">Szenenerinnerung nach 6 Wochen?</label><br/>
-        <input type="radio" name="reminder" id="reminder_yes" value="1" {$yes_rem}> <label for="index_rem">Ja</label>
-        <input type="radio" name="reminder" id="reminder_no" value="0" {$no_rem}> <label for="index_rem">Nein</label><br />
-        <input type="submit" name="opt_reminder" value="speichern" id="reminder_button" />
-        </fieldset>
-      </form>
-      </div>
-```
+- Es werden neue Felder in der User Tabelle angelegt
 
-ersetzen mit
-
-```
-{$ucp_main_reminderopt}
-{$calendar_setting_form}
-```
-
-CSS einfügen:
-```
-      form.scenetracker_cal_setting {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    .scenetracker_cal_setting .scenefilteroptions__items {
-        display: block;
-    }
-```
 
 ## Wichtige Infos: 
 
 **Die Updates müssen natürlich nur durchgeführt werden, wenn der Tracker vorher schon installiert war. Wenn nicht, reicht es das Plugin ganz normal zu installieren** 		
 
 ```diff
-- Ganz unten im Text: HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin
+- Ganz unten im Text: HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin - sollte schon automatisch drin sein. 
 - Sowie: HOW TO: Minicalender überm Inplay anzeigen.
 ```
 Hier findet ihr einen weiteren Szenentracker für RPGs. Damit könnt ihr direkt beim Threaderstellen Teilnehemr, Ort und Datum, sowie auch eine Triggerwarnung eingeben. Die Szenen werden im Profil automatisch nach Datum sortiert angezeigt und können im Benutzer CP verwaltet werden. Es gibt verschiedene Benachrichtigungseinstellungen. 
@@ -145,7 +119,7 @@ forumdisplay_thread öffnen
 
 
 ## **HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin**  
-**Nur in älteren Versionen nötig** 
+**Nur in älteren Versionen des Plugins nötig** 
 öffne: inc/plugins/scenetracker.php  
 suche nach:
 ```
