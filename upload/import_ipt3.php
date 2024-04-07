@@ -29,7 +29,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
   echo "<h1>Import IPT3 von jule zu Szenentracker </h1>";
 
   echo '<form action="" method="post">';
-  echo '<input type="submit" name="import" value="Szenen importiere">';
+  echo '<input type="submit" name="import" value="Szenen importieren">';
   echo '</form>';
   //Szenen bekommen
   if (isset($_POST['import'])) {
