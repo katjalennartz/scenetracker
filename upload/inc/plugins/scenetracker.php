@@ -382,7 +382,7 @@ function scenetracker_add_settings($type = 'install')
         $change = array(
           'optionscode' => 'forumselect'
         );
-        $db->update_query("settings", $change, "name='{name}'s");
+        $db->update_query("settings", $change, "name='{$name}'");
         echo "Setting: {$name} zu forumselect auswahl geändert.";
       }
     }
