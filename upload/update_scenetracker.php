@@ -28,7 +28,7 @@ $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "s
 
 if ($mybb->usergroup['canmodcp'] == 1) {
 
-  require_once "inc/plugins/scenetracker.php";
+  // require_once "inc/plugins/scenetracker.php";
 
   echo "<h1>Update Script für Szenentracker Plugin November</h1>";
   echo "<p>Updatescript wurde zuletzt im Januar 2024 aktualisiert</p>";
@@ -48,56 +48,56 @@ if ($mybb->usergroup['canmodcp'] == 1) {
 
     if (!$db->field_exists("scenetracker_date", "threads")) {
       $db->add_column("threads", "scenetracker_date", "DATETIME NULL DEFAULT NULL");
-      echo "Feld scenetracker_date wurde zu threads hinzugefügt.";
+      echo "Feld scenetracker_date wurde zu threads hinzugefügt.<br>";
       $dbcheck = 1;
     }
     if (!$db->field_exists("scenetracker_place", "threads")) {
       $db->add_column("threads", "scenetracker_place", "varchar(200) NOT NULL DEFAULT ''");
-      echo "Feld scenetracker_place wurde zu threads hinzugefügt.";
+      echo "Feld scenetracker_place wurde zu threads hinzugefügt.<br>";
       $dbcheck = 1;
     }
     if (!$db->field_exists("scenetracker_user", "threads")) {
       $db->add_column("threads", "scenetracker_user", "varchar(1500) NOT NULL DEFAULT ''");
-      echo "Feld scenetracker_user wurde zu threads hinzugefügt.";
+      echo "Feld scenetracker_user wurde zu threads hinzugefügt.<br>";
       $dbcheck = 1;
     }
     if (!$db->field_exists("scenetracker_trigger", "threads")) {
       $db->add_column("threads", "scenetracker_trigger", "varchar(200) NOT NULL DEFAULT ''");
-      echo "Feld scenetracker_trigger wurde zu threads hinzugefügt.";
+      echo "Feld scenetracker_trigger wurde zu threads hinzugefügt.<br>";
       $dbcheck = 1;
     }
 
     //einfügen der Kalender einstellungen
     if (!$db->field_exists("scenetracker_calendar_settings", "users")) {
       $db->add_column("users", "scenetracker_calendar_settings", "INT(1) NOT NULL DEFAULT '0'");
-      echo "Feld scenetracker_calendar_settings wurde zu threads hinzugefügt.";
+      echo "Feld scenetracker_calendar_settings wurde zu threads hinzugefügt.<br>";
       $dbcheck = 1;
     }
     if (!$db->field_exists("scenetracker_calendarsettings_big", "users")) {
       $db->add_column("users", "scenetracker_calendarsettings_big", "INT(1) NOT NULL DEFAULT '0'");
-      echo "Feld scenetracker_calendar_settings wurde zu threads hinzugefügt.";
+      echo "Feld scenetracker_calendar_settings wurde zu threads hinzugefügt.<br>";
       $dbcheck = 1;
     }
     if (!$db->field_exists("scenetracker_calendarsettings_mini", "users")) {
       $db->add_column("users", "scenetracker_calendarsettings_mini", "INT(1) NOT NULL DEFAULT '0'");
-      echo "Feld scenetracker_calendar_settings wurde zu threads hinzugefügt.";
+      echo "Feld scenetracker_calendar_settings wurde zu threads hinzugefügt.<br>";
       $dbcheck = 1;
     }
 
     // Einfügen der Trackeroptionen in die user tabelle
     if (!$db->field_exists("tracker_index", "users")) {
       $db->query("ALTER TABLE `" . TABLE_PREFIX . "users` ADD `tracker_index` INT(1) NOT NULL DEFAULT '1';");
-      echo "Feld tracker_index wurde zu users hinzugefügt.";
+      echo "Feld tracker_index wurde zu users hinzugefügt.<br>";
       $dbcheck = 1;
     }
     if (!$db->field_exists("tracker_indexall", "users")) {
       $db->query("ALTER TABLE `" . TABLE_PREFIX . "users` ADD `tracker_indexall` INT(1) NOT NULL DEFAULT '1'");
-      echo "Feld tracker_indexall wurde zu users hinzugefügt.";
+      echo "Feld tracker_indexall wurde zu users hinzugefügt.<br>";
       $dbcheck = 1;
     }
     if (!$db->field_exists("tracker_reminder", "users")) {
       $db->query("ALTER TABLE `" . TABLE_PREFIX . "users` ADD `tracker_reminder` INT(1) NOT NULL DEFAULT '1';");
-      echo "Feld tracker_reminder wurde zu users hinzugefügt.";
+      echo "Feld tracker_reminder wurde zu users hinzugefügt.<br>";
       $dbcheck = 1;
     }
 
@@ -114,7 +114,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
           `profil_view` int(1) NOT NULL DEFAULT 1,
           PRIMARY KEY (`id`)
       ) ENGINE=MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
-      echo "Tabelle scenetracker wurde hinzugefügt hinzugefügt.";
+      echo "Tabelle scenetracker wurde hinzugefügt hinzugefügt.<br>";
       $dbcheck = 1;
     }
 
