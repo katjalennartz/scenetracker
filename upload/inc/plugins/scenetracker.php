@@ -377,13 +377,13 @@ function scenetracker_add_settings($type = 'install')
         $db->insert_query('settings', $setting);
         echo "Setting: {$name} wurde hinzugefügt.";
       }
-	
+
       if ($name == 'scenetracker_ingame' || $name == 'scenetracker_archiv' || $name == 'scenetracker_exludedfids') {
-	      $change = array( 
-                  'optionscode' => 'forumselect'
-            );
-            $db->update_query("settings", $change, "name='{name}'s");
-	      echo "Setting: {$name} zu forumselect auswahl geändert.";
+        $change = array(
+          'optionscode' => 'forumselect'
+        );
+        $db->update_query("settings", $change, "name='{name}'s");
+        echo "Setting: {$name} zu forumselect auswahl geändert.";
       }
     }
     echo "<p>Einstellungen wurden aktualisiert</p>";
@@ -844,7 +844,7 @@ function scenetracker_add_templates($type = 'install')
     }
   }
 
-  if ($type = 'install') {
+  if ($type == 'install') {
     $css = array(
       'name' => 'scenetracker.css',
       'tid' => 1,
@@ -2132,9 +2132,9 @@ function scenetracker_usercp()
   }
 
   if ($charakter == 0) {
-    $charasquery = scenetracker_get_accounts($thisuser, $asuid); 
+    $charasquery = scenetracker_get_accounts($thisuser, $asuid);
     $charastr = "";
-        foreach ($charasquery as $uid => $username) {
+    foreach ($charasquery as $uid => $username) {
       $charastr .= $uid . ",";
     }
   } else {
@@ -2499,7 +2499,7 @@ function scenetracker_showinprofile()
       $ingameexplode = explode(",", $ingame);
       foreach ($ingameexplode as $ingamefid) {
         //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
-        $ingamestr .= " concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR "; 
+        $ingamestr .= " concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR ";
         // $ingamestr .= "$ingamefid in (parentlist) OR ";
       }
     }
@@ -2514,7 +2514,7 @@ function scenetracker_showinprofile()
 
       $archivexplode = explode(",", $archiv);
       foreach ($archivexplode as $archivfid) {
-        $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR "; 
+        $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR ";
       }
       // das letzte OR rauswerfen
       $archivstr = substr($archivstr, 0, -3);
@@ -2647,9 +2647,9 @@ $plugins->add_hook('index_start', 'scenetracker_reminder');
 function scenetracker_reminder()
 {
   global $mybb, $db, $templates, $scenetracker_index_reminder;
-$scenetracker_index_reminder_bit = "";
+  $scenetracker_index_reminder_bit = "";
   $uid = $mybb->user['uid'];
-//set as uid
+  //set as uid
   if (isset($mybb->user['as_uid'])) {
     $asuid = $mybb->user['as_uid'];
   } else {
@@ -2760,45 +2760,45 @@ function scenetracker_calendar()
   // 0 Szenen des Charas der online ist
   // 1 Szenen aller eignen Charas
   // 2 Szenen aller Charas des Boars
-  
+
 
 
   //get day and month mit null bitte
-    $daynew = sprintf("%02d", $day);
-    $monthzero  = sprintf("%02d", $month);
+  $daynew = sprintf("%02d", $day);
+  $monthzero  = sprintf("%02d", $month);
 
-    //wir müssen das Datum in das gleiche format wie den geburtstag bekommen
-    $datetoconvert = "{$daynew}.{$monthzero}.{$year}";
-    $timestamp = strtotime($datetoconvert);
-    // echo $converteddate;
-    $setting_birhtday = $mybb->settings['scenetracker_birhday'];
-    if ($setting_birhtday == "0") {
-      $converteddate = date("d.m", $timestamp);
-      $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
-      $get_birthdays = $db->write_query("
+  //wir müssen das Datum in das gleiche format wie den geburtstag bekommen
+  $datetoconvert = "{$daynew}.{$monthzero}.{$year}";
+  $timestamp = strtotime($datetoconvert);
+  // echo $converteddate;
+  $setting_birhtday = $mybb->settings['scenetracker_birhday'];
+  if ($setting_birhtday == "0") {
+    $converteddate = date("d.m", $timestamp);
+    $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
+    $get_birthdays = $db->write_query("
       SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid" . $setting_fid . " LIKE '{$converteddate}%'");
-      $birth_num = $db->num_rows($get_birthdays);
-    } elseif ($setting_birhtday == "1") {
-      // 9-4-1987
-      $converteddate = date("j-n", $timestamp);
-      //convert date setting_fid 
-      $get_birthdays = $db->write_query("
+    $birth_num = $db->num_rows($get_birthdays);
+  } elseif ($setting_birhtday == "1") {
+    // 9-4-1987
+    $converteddate = date("j-n", $timestamp);
+    //convert date setting_fid 
+    $get_birthdays = $db->write_query("
       SELECT username, uid FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '{$converteddate}%'");
-      // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
-      $birth_num = $db->num_rows($get_birthdays);
-    } elseif ($setting_birhtday == "3") {
-      //application ucp
-      $converteddate = date("m-d", $timestamp);
-      $identifier = $mybb->settings['scenetracker_birhdayfid'];
-      $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
-      $get_birthdays = $db->write_query("SELECT uf.uid, username FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
+    // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
+    $birth_num = $db->num_rows($get_birthdays);
+  } elseif ($setting_birhtday == "3") {
+    //application ucp
+    $converteddate = date("m-d", $timestamp);
+    $identifier = $mybb->settings['scenetracker_birhdayfid'];
+    $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
+    $get_birthdays = $db->write_query("SELECT uf.uid, username FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
       LEFT JOIN " . TABLE_PREFIX . "users u ON uf.uid = u.uid 
       WHERE fieldid = '{$feldid}' and value LIKE '%{$converteddate}'");
 
-      $birth_num = $db->num_rows($get_birthdays);
-    } else {
-      $birth_num = 0;
-    }
+    $birth_num = $db->num_rows($get_birthdays);
+  } else {
+    $birth_num = 0;
+  }
 
   //Jules Plottracker ist installiert
   if ($db->table_exists("plots")) {
@@ -2814,23 +2814,23 @@ function scenetracker_calendar()
     }
   }
 
-    //Einstellungen des Users für Kalender bekommen
-    $viewsetting = $db->fetch_field($db->simple_select("users", "scenetracker_calendarsettings_big", "uid='$thisuser'"), "scenetracker_calendarsettings_big");
+  //Einstellungen des Users für Kalender bekommen
+  $viewsetting = $db->fetch_field($db->simple_select("users", "scenetracker_calendarsettings_big", "uid='$thisuser'"), "scenetracker_calendarsettings_big");
 
-    if ($viewsetting == 1) {
-      // 1 Szenen aller Charas des Users
-      $chararray = array_keys(scenetracker_get_accounts($thisuser, $thisuseras_id));
-      $charstring = implode(",", $chararray);
-      $scene_querie = " AND s.uid in ($charstring) GROUP BY tid";
-    } else if ($viewsetting == 2) {
-      // alle Szenen des aller Charaktere des Forums
-      $scene_querie = " GROUP BY tid";
-    } else { // viewsetting == 0 -> default nur vom chara von dem man online ist
-      // 0 Szenen des Charas der online ist
-      $scene_querie = " AND s.uid = '{$thisuser} GROUP BY tid'";
-    }
+  if ($viewsetting == 1) {
+    // 1 Szenen aller Charas des Users
+    $chararray = array_keys(scenetracker_get_accounts($thisuser, $thisuseras_id));
+    $charstring = implode(",", $chararray);
+    $scene_querie = " AND s.uid in ($charstring) GROUP BY tid";
+  } else if ($viewsetting == 2) {
+    // alle Szenen des aller Charaktere des Forums
+    $scene_querie = " GROUP BY tid";
+  } else { // viewsetting == 0 -> default nur vom chara von dem man online ist
+    // 0 Szenen des Charas der online ist
+    $scene_querie = " AND s.uid = '{$thisuser} GROUP BY tid'";
+  }
 
-    $scenes = $db->write_query("
+  $scenes = $db->write_query("
         SELECT subject, scenetracker_date, TIME_FORMAT(scenetracker_date, '%H:%i') scenetime, 
         scenetracker_place, scenetracker_user, scenetracker_trigger, s.* 
         FROM " . TABLE_PREFIX . "threads t 
@@ -2839,55 +2839,55 @@ function scenetracker_calendar()
         {$scene_querie} 
         ");
 
-    $szene = "";
-    $scene_in = "";
-    $scene_ouput = "";
-    $birthday_show = "";
-    $birthday_ouput = "";
-    $birthday_in = "";
-    $poster_array = array();
-    $teilnehmer_scene = "";
-    if ($db->num_rows($scenes) > 0 || $birth_num > 0) {
-      if ($db->num_rows($scenes) > 0) {
-        $szene = "<a onclick=\"$('#scene{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Szenen]</a>";
-        
-        $scene_ouput = "{$szene}
+  $szene = "";
+  $scene_in = "";
+  $scene_ouput = "";
+  $birthday_show = "";
+  $birthday_ouput = "";
+  $birthday_in = "";
+  $poster_array = array();
+  $teilnehmer_scene = "";
+  if ($db->num_rows($scenes) > 0 || $birth_num > 0) {
+    if ($db->num_rows($scenes) > 0) {
+      $szene = "<a onclick=\"$('#scene{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Szenen]</a>";
+
+      $scene_ouput = "{$szene}
       <div class=\"modal\" id=\"scene{$day}\" style=\"display: none; padding: 10px; margin: auto; text-align: center;\">
       
       ";
-        $scene_in = "";
-        while ($scene = $db->fetch_array($scenes)) {
-          $scene_in .= "
+      $scene_in = "";
+      while ($scene = $db->fetch_array($scenes)) {
+        $scene_in .= "
         <div class=\"st_calendar\">
           <div class=\"st_calendar__sceneitem scene_date icon\">{$scene['scenetime']}</div>
           <div class=\"st_calendar__sceneitem scene_title icon\"><a href=\"showthread.php?tid={$scene['tid']}\">{$scene['subject']}</a> </div>
           <div class=\"st_calendar__sceneitem scene_place icon\">{$scene['scenetracker_place']}</div>
           <div class=\"st_calendar__sceneitem scene_users icon \">{$scene['scenetracker_user']}</div>
          </div> ";
-          $scenearray = explode(",", $scene['scenetracker_user']);
-          $poster_array = array_unique(array_merge($scenearray, $poster_array));
-        }
-        $charlist = implode(", ", $poster_array);
-        $teilnehmer_scene = "<details style=\"font-size: 0.8em;\"><summary>von...</summary> 
-            <span>{$charlist}</span></details>";
-        $scene_ouput .= "{$scene_in}</div>";
+        $scenearray = explode(",", $scene['scenetracker_user']);
+        $poster_array = array_unique(array_merge($scenearray, $poster_array));
       }
-      if ($birth_num > 0) {
-        $birthday_show = "<a onclick=\"$('#day{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Geburtstage]</a>";
-        $birthday_ouput = " {$birthday_show}
+      $charlist = implode(", ", $poster_array);
+      $teilnehmer_scene = "<details style=\"font-size: 0.8em;\"><summary>von...</summary> 
+            <span>{$charlist}</span></details>";
+      $scene_ouput .= "{$scene_in}</div>";
+    }
+    if ($birth_num > 0) {
+      $birthday_show = "<a onclick=\"$('#day{$day}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">[Geburtstage]</a>";
+      $birthday_ouput = " {$birthday_show}
       <div class=\"modal\" id=\"day{$day}\" style=\"display: none; padding: 10px; margin: auto; text-align: center;\">
       ";
-        $birthday_in = "";
-        while ($birthd = $db->fetch_array($get_birthdays)) {
-          $birthday_in .= "
+      $birthday_in = "";
+      while ($birthd = $db->fetch_array($get_birthdays)) {
+        $birthday_in .= "
         <div class=\"st_calendar\">
           <div class=\"st_calendar__sceneitem birthday icon\">" . build_profile_link($birthd['username'], $birthd['uid']) . "</div>
          </div> ";
-        }
-        $birthday_ouput .= "{$birthday_in}</div>";
       }
+      $birthday_ouput .= "{$birthday_in}</div>";
     }
   }
+}
 
 /***
  * shows minicalender 
@@ -2905,7 +2905,7 @@ function scenetracker_minicalendar()
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
-$thisuser = $mybb->user['uid'];
+  $thisuser = $mybb->user['uid'];
   if (isset($mybb->user['as_uid'])) {
     $thisuseras_id = $mybb->user['as_uid'];
   } else {
@@ -2946,8 +2946,9 @@ $thisuser = $mybb->user['uid'];
       $daynew = sprintf("%02d", $kal_anzeige_heute_tag);
 
       //Einstellungen des Users für Kalender bekommen
-      $viewsetting = $db->fetch_field($db->simple_select("users", "scenetracker_calendarsettings_mini", "uid='$thisuser'"), "scenetracker_calendarsettings_mini");
-
+      if ($db->field_exists("scenetracker_calendarsettings_mini", "users")) {
+        $viewsetting = $db->fetch_field($db->simple_select("users", "scenetracker_calendarsettings_mini", "uid='$thisuser'"), "scenetracker_calendarsettings_mini");
+      }
       if ($viewsetting == 1) {
         // 1 Szenen aller Charas des Users
         $chararray = array_keys(scenetracker_get_accounts($thisuser, $thisuseras_id));
@@ -3030,9 +3031,9 @@ $thisuser = $mybb->user['uid'];
       $plotoutput = "";
       if ($plottracker == 1) {
         $plotquery =  $db->simple_select("plots", "*", "{$timestamp} BETWEEN startdate AND enddate;");
-	$plotquery_num = $db->num_rows($plotquery);
-      }  else {
-	$plotquery_num = 0;
+        $plotquery_num = $db->num_rows($plotquery);
+      } else {
+        $plotquery_num = 0;
       }
 
 
@@ -3071,7 +3072,7 @@ $thisuser = $mybb->user['uid'];
               $eventshow .= "<div class=\"st_mini_scenelink \"><a href=\"calendar.php?action=event&eid={$event['eid']}\">{$event['name']}</a></div>";
             }
           }
-	if ($plotquery_num > 0) {
+          if ($plotquery_num > 0) {
             $plotshow = "<span class=\"st_mini_scene_title\">Plots</span>";
             while ($plot = $db->fetch_array($plotquery)) {
               $plotshow .= "<div class=\"st_mini_scenelink plot\"><a href=\"plottracker.php?action=view&plid={$plot['plid']}\">" . $plot['name'] . "</a></div>";
@@ -3728,7 +3729,7 @@ function scenetracker_online_activity($user_activity)
   global $parameters, $user;
 
   $split_loc = explode(".php", $user_activity['location']);
-  if (isset($user['location']) && $split_loc[0] == $user['location']) { 
+  if (isset($user['location']) && $split_loc[0] == $user['location']) {
     $filename = '';
   } else {
     $filename = my_substr($split_loc[0], -my_strpos(strrev($split_loc[0]), "/"));
