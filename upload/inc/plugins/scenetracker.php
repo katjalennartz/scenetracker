@@ -12,7 +12,6 @@
  *  - wenn bestimmte User gepostet hat
  * Benachrichtung ( alert )
  *  - immer bei Antwort
- *  - bei Antwort von bestimmten User x
  *  - keine Benachrichtigung
  * Postingerinnerung (kann vom Admin aktiviert werden)
  *  - wenn man Postingpartner länger als x Tage warten gelassen hat
@@ -132,13 +131,13 @@ function scenetracker_uninstall()
   }
 
   if ($db->field_exists("scenetracker_calendar_settings", "users")) {
-    $db->drop_column("user", "scenetracker_calendar_settings");
+    $db->drop_column("users", "scenetracker_calendar_settings");
   }
   if ($db->field_exists("scenetracker_calendarsettings_big", "users")) {
-    $db->drop_column("user", "scenetracker_calendarsettings_big");
+    $db->drop_column("users", "scenetracker_calendarsettings_big");
   }
   if ($db->field_exists("scenetracker_calendarsettings_mini", "users")) {
-    $db->drop_column("user", "scenetracker_calendarsettings_mini");
+    $db->drop_column("users", "scenetracker_calendarsettings_mini");
   }
 
   // Templates löschen
