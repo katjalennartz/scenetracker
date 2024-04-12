@@ -357,7 +357,7 @@ function scenetracker_add_settings($type = 'install')
       'disporder' => 16
     ),
   );
-  $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settings` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
+  $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settinggroups` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
 
   if ($type == 'install') {
     foreach ($setting_array as $name => $setting) {
