@@ -25,7 +25,6 @@ $(document).ready(function () {
         });
         // new Suggest.LocalMulti("text", "suggest", list, {dispAllKey: true});
         $('#teilnehmer').keydown(function () {
-          console.log("teilnehmer");
           new Suggest.LocalMulti("teilnehmer", "suggest", usernames, { dispAllKey: true, delim: "," })
         });
       }
@@ -46,7 +45,6 @@ $(document).ready(function () {
         });
         // new Suggest.LocalMulti("text", "suggest", list, {dispAllKey: true});
         $('#teilnehmer').keydown(function () {
-          console.log("teilnehmer");
           new Suggest.LocalMulti("teilnehmer", "suggest", usernames, { dispAllKey: true, delim: "," })
         });
       }
@@ -59,8 +57,6 @@ $(document).ready(function () {
     let trigger = $("#scenetrigger").val();
     let datetime = $("#scenetracker_date").val() + $("#scenetracker_time").val();
     let user = $("#teilnehmer").val();
-    // console.log('place=' + place + '&trigger=' + trigger + '&datetime=' + datetime + ' &user=' + user + ' &user=' + id);
-
     $.ajax({
       type: 'GET',
       url: 'savescene.php',
