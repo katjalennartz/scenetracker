@@ -536,7 +536,7 @@ function scenetracker_add_templates($type = 'install')
     <td class="trow2" width="20%"><strong>Szenendatum:</strong></td>
     <td class="trow2">
     <input type="date" value="{$scenetracker_date}" name="scenetracker_date" />
-    <input type="{$time_input_type}" value="{$scenetracker_time}" name="{$time_input_name}" {$placeholder}/>
+    <input type="{$time_input_type}" value="{$scenetracker_time}" name="{$time_input_name}" {$input_time_placeholder}/>
     </td>
     </tr>
   <tr>
@@ -901,59 +901,6 @@ function scenetracker_add_templates($type = 'install')
     }
     
     /* **********
-    *POP UP
-    ******** */
-    .trackerpop { 
-      position: fixed; 
-      top: 0; 
-      right: 0; 
-      bottom: 0; 
-      left: 0; 
-      background: hsla(0, 0%, 0%, 0.5); 
-      z-index: 9; 
-      opacity:0; 
-      -webkit-transition: .5s ease-in-out; 
-      -moz-transition: .5s ease-in-out; 
-      transition: .5s ease-in-out; 
-      pointer-events: none; 
-    } 
-    
-    .trackerpop:target {
-      opacity:1;
-      pointer-events: auto;
-      z-index: 20;
-    } 
-    
-    .trackerpop > .pop {
-      background: var(--background-dark);
-      width: 200px;
-      position: relative;
-      margin: 10% auto;
-      padding: 15px;
-      z-index: 50;
-      text-align: center;
-    } 
-    
-    .trackerclosepop { 
-      position: absolute; 
-      right: -5px; 
-      top:-5px; 
-      width: 100%; 
-      height: 100%; 
-      z-index: 10; 
-    }
-    
-    .trackerpop input[type="submit"] {
-      background-color: var(--background-light);
-      border: none;
-      color: white;
-      padding: 8px 20px;
-      text-decoration: none;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-    
-    /* **********
     * UCP
     ******** */
     .scene_ucp.container.alerts {
@@ -1245,11 +1192,11 @@ function scenetracker_add_templates($type = 'install')
 }
  
 .calendar {
-  background-color: var(--dark-slate-gray-50);
+  background-color: var(--background-light);
   width: 205px;
   padding-left: 5px;
   padding: 5px;
-  border: 1px solid var(--dark-border-color);
+  border: 1px solid var(--background-dark);
 }
 
 .calendar:first-child {
@@ -1258,8 +1205,6 @@ function scenetracker_add_templates($type = 'install')
 
 /* For the month*/
 .month-indicator {
-  font-family: var(--main-font);
-  color: var(--scrollbar-hell);
   text-transform: uppercase;
   font-weight: 700;
   text-align: center;
@@ -1275,7 +1220,6 @@ function scenetracker_add_templates($type = 'install')
 /* Styles for the weekday/weekend header*/
 .day-of-week > * {
   font-size: 12px;
-  color: var(--blue-grey-400);
   font-weight: 700;
   text-align: center;
   margin-top: 5px;
@@ -1699,22 +1643,39 @@ function scenetracker_editpost()
   global $thread, $templates, $db, $lang, $mybb, $templates, $fid, $post_errors, $post, $scenetrackeredit, $postinfo;
   $scenetrackeredit = "";
   if (scenetracker_testParentFid($fid)) {
+    if ($mybb->settings['scenetracker_time_text'] == 0) {
+      $time_input_type = "time";
+      $input_time_placeholder = "";
+      $time_input_name = "scenetracker_time";
+    } else {
+      $time_input_type = "text";
+      $input_time_placeholder = "placeholder=\"z.B. mittags\"";
+      $time_input_name = "scenetracker_time_str";
+    }
+
     if ($thread['firstpost'] == $mybb->get_input('pid')) {
       $scenetrackeredit = "";
       $date = explode(" ", $thread['scenetracker_date']);
       if ($mybb->get_input('previewpost') || $post_errors) {
         $scenetracker_date = $mybb->get_input('scenetracker_date');
-        $scenetracker_time = $mybb->get_input('scenetracker_time');
-        $scenetracker_time_text = $mybb->get_input('scenetracker_time_str');
+
+        if ($mybb->settings['scenetracker_time_text'] != 0) {
+          $scenetracker_time = $mybb->get_input('scenetracker_time');
+        } else {
+          $scenetracker_time = $mybb->get_input('scenetracker_time_str');
+        }
+
         $scenetracker_user = $mybb->get_input('teilnehmer');
         $scenetracker_place = $mybb->get_input('place');
         $scenetracker_trigger = $mybb->get_input('scenetracker_trigger');
       } else {
         $scenetracker_date = $date[0];
-        if ($mybb->settings['scenetracker_time_text'] != 0) {
+
+        if ($mybb->settings['scenetracker_time_text'] == 0) {
+       
           $scenetracker_time = $date[1];
         } else {
-          $scenetracker_time = $thread['scenetracker_time_str'];
+          $scenetracker_time = $thread['scenetracker_time_text'];
         }
         if ($thread['scenetracker_user'] == "") {
           $scenetracker_user = "";
@@ -1776,6 +1737,7 @@ function scenetracker_do_editpost()
         $date = $db->escape_string($mybb->get_input('scenetracker_date'));
         $time_text = $db->escape_string($mybb->get_input('scenetracker_time_str'));
       }
+
       $place = $db->escape_string($mybb->get_input('place'));
       $trigger = $db->escape_string($mybb->get_input('scenetracker_trigger'));
       $teilnehmer_alt = array_map('trim', explode(",",  $thread['scenetracker_user']));
@@ -1873,7 +1835,7 @@ function scenetracker_do_editpost()
       }
       $save = array(
         "scenetracker_date" => $date,
-        "scenetracker_time_str" => $time_text,
+        "scenetracker_time_text" => $time_text,
         "scenetracker_place" => $place,
         "scenetracker_user" =>  $to_save_str,
         "scenetracker_trigger" =>  $trigger
@@ -2006,7 +1968,6 @@ function scenetracker_showthread_showtrackerstuff()
 
     $scenetracker_date = date('Y-m-d', strtotime($thread['scenetracker_date']));
     $scenetracker_date_thread = date('d.m.Y', strtotime($thread['scenetracker_date']));
-    $scenetracker_time = date('H:i', strtotime($thread['scenetracker_date']));
     $sceneplace = $thread['scenetracker_place'];
     $scenetriggerinput = $thread['scenetracker_trigger'];
     $scenetracker_user = $thread['scenetracker_user'];
@@ -2040,6 +2001,20 @@ function scenetracker_showthread_showtrackerstuff()
         $mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=close\">{$lang->scenetracker_closescene}</a></span>";
         $scenestatus = "<span class=\"scenestate bl-btn bl-btn--scenetracker\">{$lang->scenetracker_openscenestatus} " . $mark;
       }
+
+      if ($mybb->settings['scenetracker_time_text'] == 0) {
+        $scenetracker_time = date('H:i', strtotime($thread['scenetracker_date']));
+        $time_input_type = "time";
+        $input_time_placeholder = "";
+        $time_input_name = "scenetracker_time";
+      } else {
+        $scenetracker_time = $thread['scenetracker_time_text'];
+
+        $time_input_type = "text";
+        $input_time_placeholder = "placeholder=\"z.B. mittags\"";
+        $time_input_name = "scenetracker_time_str";
+      }
+
       $edit = "
       <div class=\"scenetracker__sceneitem scene_edit icon bl-btn bl-btn--scenetracker\">
       <a onclick=\"$('#sceneinfos{$tid}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">{$lang->scenetracker_editinfos}</a>
@@ -2049,8 +2024,8 @@ function scenetracker_showthread_showtrackerstuff()
                 <center><input id=\"teilnehmer\" placeholder=\"{$lang->scenetracker_teilnehmer}\" type=\"text\" value=\"\" size=\"40\"  name=\"teilnehmer\" autocomplete=\"off\" style=\"display: block;\" /></center>
                 <div id=\"suggest\" style=\"display:none; z-index:10;\"></div>
                 <input type=\"date\" id=\"scenetracker_date\" name=\"scenetracker_date\" value=\"{$scenetracker_date}\" /> 
-                  <input type=\"time\" id=\"scenetracker_time\" name=\"scenetracker_time\" value=\"{$scenetracker_time}\" />
-                  <input type=\"text\" name=\"scenetrigger\" id=\"scenetrigger\" placeholder=\"{$lang->scenetracker_trigger}\" value=\"{$scenetriggerinput}\" />
+                <input type=\"{$time_input_type}\" id=\"scenetracker_time\" name=\"{$time_input_name}\" value=\"{$scenetracker_time}\" />
+                <input type=\"text\" name=\"scenetrigger\" id=\"scenetrigger\" placeholder=\"{$lang->scenetracker_trigger}\" value=\"{$scenetriggerinput}\" />
                   <input type=\"text\" name=\"sceneplace\" id=\"sceneplace\" placeholder=\"{$lang->scenetracker_place}\" value=\"{$sceneplace}\" />
                   
             </form><button name=\"edit_sceneinfos\" id=\"edit_sceneinfos\">{$lang->scenetracker_btnsubmit}</button>
