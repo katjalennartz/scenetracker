@@ -12,7 +12,6 @@
  *  - wenn bestimmte User gepostet hat
  * Benachrichtung ( alert )
  *  - immer bei Antwort
- *  - bei Antwort von bestimmten User x
  *  - keine Benachrichtigung
  * Postingerinnerung (kann vom Admin aktiviert werden)
  *  - wenn man Postingpartner länger als x Tage warten gelassen hat
@@ -377,7 +376,6 @@ function scenetracker_add_settings($type = 'install')
     ),
   );
   $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settinggroups` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
-
 
   if ($type == 'install') {
     foreach ($setting_array as $name => $setting) {
