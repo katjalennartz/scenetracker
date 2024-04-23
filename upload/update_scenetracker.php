@@ -66,6 +66,11 @@ if ($mybb->usergroup['canmodcp'] == 1) {
       echo "Feld scenetracker_trigger wurde zu threads hinzugefügt.<br>";
       $dbcheck = 1;
     }
+    if (!$db->field_exists("scenetracker_time_text", "threads")) {
+      $db->add_column("threads", "scenetracker_time_text", "varchar(200) NOT NULL DEFAULT ''");
+      echo "Feld scenetracker_time_text wurde zu threads hinzugefügt.<br>";
+      $dbcheck = 1;
+    }
 
     //einfügen der Kalender einstellungen
     if (!$db->field_exists("scenetracker_calendar_settings", "users")) {
@@ -129,9 +134,16 @@ if ($mybb->usergroup['canmodcp'] == 1) {
   echo '<form action="" method="post">';
   echo '<input type="submit" name="templates" value="Templates hinzufügen">';
   echo '</form>';
+
   if (isset($_POST['templates'])) {
     scenetracker_add_templates("update");
+  
+    include MYBB_ROOT . "/inc/adminfunctions_templates.php";
+    find_replace_templatesets("scenetracker_newthread", "#" . preg_quote('<input type="time" name="scenetracker_time" value="{$scenetracker_time}" />') . "#i", '<input type="{$time_input_type}" value="{$scenetracker_time}" name="{$time_input_name}" {$placeholder}/>');
+    echo "scenetracker_newthread - wurde aktualisiert";
+    // <input type="time" name="scenetracker_time" value="{$scenetracker_time}" />
   }
+
   echo "<h2>Folgende Änderungen müssen manuell durchgeführt werden (Änderungen in vorhandenen Templates):</h2>";
   echo '<b>scenetracker_ucp_main</b>: Suche nach {$ucp_main_reminderopt} füge darunter ein: {$calendar_setting_form} <br>';
 
@@ -183,519 +195,441 @@ if ($mybb->usergroup['canmodcp'] == 1) {
         'tid' => 1,
         'attachedto' => '',
         "stylesheet" =>    '
-              :root {
-                --background-light: #bcbcbc;
-                --background-dark: #898989;
-              }
-              
-              /* **********
-              * Showthread
-              ******** */
-              .scenetracker_user {
-                display:inline-block;
-              }
-              .scenetracker_user:after {
-                content: ", ";
-              }
-              .scenetracker_user:last-child:after {
-                content: none;
-              }
-              
-              .breadcrumbs li {
-                display: inline-block;
-              }
-              .breadcrumbs li:after {
-                content: ">";
-                margin-left: 10px;
-              }
-              .breadcrumbs li:last-child:after {
-                content: none;
-              }
-              
-              /* **********
-              *POP UP
-              ******** */
-              .trackerpop { 
-                position: fixed; 
-                top: 0; 
-                right: 0; 
-                bottom: 0; 
-                left: 0; 
-                background: hsla(0, 0%, 0%, 0.5); 
-                z-index: 9; 
-                opacity:0; 
-                -webkit-transition: .5s ease-in-out; 
-                -moz-transition: .5s ease-in-out; 
-                transition: .5s ease-in-out; 
-                pointer-events: none; 
-              } 
-              
-              .trackerpop:target {
-                opacity:1;
-                pointer-events: auto;
-                z-index: 20;
-              } 
-              
-              .trackerpop > .pop {
-                background: var(--background-dark);
-                width: 200px;
-                position: relative;
-                margin: 10% auto;
-                padding: 15px;
-                z-index: 50;
-                text-align: center;
-              } 
-              
-              .trackerclosepop { 
-                position: absolute; 
-                right: -5px; 
-                top:-5px; 
-                width: 100%; 
-                height: 100%; 
-                z-index: 10; 
-              }
-              
-              .trackerpop input[type="submit"] {
-                background-color: var(--background-light);
-                border: none;
-                color: white;
-                padding: 8px 20px;
-                text-decoration: none;
-                margin-top: 10px;
-                cursor: pointer;
-              }
-              
-              /* **********
-              * UCP
-              ******** */
-              .scene_ucp.container.alerts {
+                :root {
+                  --background-light: #bcbcbc;
+                  --background-dark: #898989;
+                }
+                
+                /* **********
+                * Showthread
+                ******** */
+                .scenetracker_user {
+                  display:inline-block;
+                }
+                .scenetracker_user:after {
+                  content: ", ";
+                }
+                .scenetracker_user:last-child:after {
+                  content: none;
+                }
+                
+                .breadcrumbs li {
+                  display: inline-block;
+                }
+                .breadcrumbs li:after {
+                  content: ">";
+                  margin-left: 10px;
+                }
+                .breadcrumbs li:last-child:after {
+                  content: none;
+                }
+                
+                /* **********
+                * UCP
+                ******** */
+                .scene_ucp.container.alerts {
+                  display: flex;
+                  justify-content: space-around;
+                }
+                .scene_ucp.alerts_item {
+                  display: block;
+                  width: 48%;
+                }
+                
+                .scene_ucp.overview_chara_con {
+                  display: grid;
+                  grid-template-columns: 49% 49%;
+                }
+                
+                .scene_ucp.chara_item__scenes-con {
+                  max-height: 120px;
+                  overflow: auto;
+                  margin: 5px;
+                  margin-top:0px;
+                }
+                
+                .scene_ucp.chara_item__scene {
+                  padding: 8px;
+                }
+                
+                .scene_ucp.chara_item__scene:nth-child(even) {
+                  background-color: var(--background-dark);
+                }
+                
+                .scene_ucp.chara_item__scene:nth-child(odd) {
+                  background-color: var(--background-light);
+                }
+                
+                .scene_ucp > h2 {
+                  position: relative;
+                }
+                
+                .scene_ucp > h2::after {
+                  content: " ";
+                  display: block;
+                  position: relative;
+                  height: 1px;
+                  background: black;
+                  top: 0px;
+                }
+                
+                .sceneucp__scenebox {
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                }
+                
+                .sceneucp__sceneitem.scene_status{
+                  grid-column-start: 1 ;
+                }
+                
+                .sceneucp__sceneitem.scene_profil {
+                  grid-column-start: span 2;
+                }
+                
+                .scenetracker.scenebit.scenetracker_profil {
+                  padding: 5px 10px;
+                  display: flex;
+                  flex-wrap: wrap;
+                }
+                
+                .scenetracker_profil .scenetracker__sceneitem.scene_title {
+                  width: 100%;
+                }
+                
+                .scenetracker_profil .scenetracker__sceneitem {
+                  padding: 0px 5px;
+                }
+                
+                .sceneucp__sceneitem.scene_alert.certain,
+                .sceneucp__sceneitem.sceneinfos,
+                .sceneucp__sceneitem.scene_alert.always,
+                .sceneucp__sceneitem.scene_title,
+                .sceneucp__sceneitem.scene_last,
+                .sceneucp__sceneitem.scene_users,
+                .sceneucp__sceneitem.scene_infos {
+                  grid-column-start: span 3;
+                }
+                
+                .sceneucp__sceneitem.scene_infos {
+                  display: flex;
+                }
+                
+                .sceneucp__sceneitem > .flexitem {
+                  padding: 3px;
+                }
+                .sceneucp__sceneitem > .flexitem.left {
+                  width: 40%;
+                }
+                .sceneucp__sceneitem.scene_title a:after { 
+                  content: "";
+                  display: block;
+                  margin-top: -5px;
+                  height: 1px;
+                  background: black;
+                }
+                
+                
+                /*****************
+                **PROFIL
+                *****************/ 
+                .scenetracker.container {
+                  width: 90%;
+                  height: 400px;
+                  overflow: auto;
+                  margin: auto auto;
+                  background: var(--background-light);
+                  padding: 10px;
+                }
+                
+                span.scentracker.month {
+                  margin-top:10px;
+                  width: 90%;
+                  font-weight: 600;
+                  font-size: 1.3em;
+                  border-bottom: 1px solid black;
+                  display: block;
+                }
+                
+                .scenetracker.scenebit {
+                  padding-left: 10px;
+                  padding-right:20px;
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr;
+                }
+                
+                .scenetracker__sceneitem.scene_users {
+                  grid-column: 1 / -2;
+                  grid-row: 2;
+                }
+                
+                .scenetracker__sceneitem.scene_title {
+                  grid-column: 1 / 2;
+                  grid-row: 2;
+                }
+                
+                .scenetracker__sceneitem.scene_status {
+                
+                }
+                
+                .scenetracker__sceneitem.scene_date {
+                
+                }
+                .scenetracker__sceneitem.scene_hide {
+                  grid-row: 2;
+                  grid-column: -1;
+                }
+                
+                
+                /*****************
+                *Forumdisplay
+                *****************/ 
+                
+                .scenetracker_forumdisplay.scene_infos {
+                  display: grid;
+                  grid-template-columns: 1fr 2fr;
+                }
+                
+                .scenetracker_forumdisplay.scene_users.icon {
+                  grid-column: span 2;
+                }
+                
+                /*********************
+                *INDEX
+                *********************/
+                
+                .scenetracker_index.character.container {
+                  /* display: grid; */
+                  width: 100%;
+                  max-height: 150px;
+                  overflow: auto;
+                }
+                
+                .scenetracker_index.wrapper_container{
+                  background-color: var(--background-dark);
+                  padding: 10px
+                }
+                
+                .scenetracker_index.chara_item__scene:nth-child(even) {
+                  background-color: var(--background-dark);
+                }
+            
+                .closepop { 
+                  position: absolute; 
+                 right: -5px; 
+                 top:-5px; 
+                 width: 100%; 
+                 height: 100%; 
+                 z-index:0; 
+             } 
+                
+                .scenetracker_index h1 {
+                  position:relative;
+                  font-size: 1.5em;
+                  z-index: 20;
+                  margin-bottom: 5px;
+                  padding-left:15px;
+                }
+                
+                .scenetracker_index h1:after {
+                  content: " ";
+                  display: block;
+                  height: 1px;
+                  background: black;
+                  margin-top:-10px;
+                  margin-bottom:-5px;
+                }
+                
+                .scenetracker_index.chara_item__scene:nth-child(odd) {
+                  background-color: var(--background-light);
+                  width: 100%;
+                }
+                
+                .sceneindex__scenebox.container {
+                  /* width:100%; */
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                }
+                
+                .sceneindex__sceneitem.scene_users {
+                  grid-column: 1 / -1;
+                }
+                .sceneindex__sceneitem.scene_title {
+                  padding-top: 5px;
+                  font-weight: 600;
+                  grid-row: 1;
+                  grid-column: 1;
+                }
+                .sceneindex__sceneitem.scene_status.scene_place {
+                  grid-column: 3;
+                  grid-row: 1;
+                }
+                .sceneindex__sceneitem.scene_place.scene_date {
+                  grid-column: 1 / -1;
+                  grid-row: 2;
+                }
+                
+                .sceneindex__sceneitem.scene_last {
+                  grid-row: 1;
+                  grid-column: 2;
+                }
+                
+                .sceneindex__sceneitem.scene_alert {
+                  grid-column: 4;
+                  grid-row: span 2;
+                  margin-right: 10px;
+                }
+                
+                .sceneindex__sceneitem.scene_last {
+                  padding-top: 5px;
+                }
+                
+                /*INDEX REMINDER */ 
+                .scenetracker_reminder.box {
+                  margin-bottom: 20px;
+                }
+                
+                .scenetracker_reminder.container {
+                  max-height: 100px;
+                  overflow: auto
+                  padding-left: 30px;
+                }
+                
+                .scenetracker_reminder.item:before {
+                  content: "» ";
+                }
+                
+                span.senetracker_reminder.text {
+                  text-align: center;
+                  display: block;
+                }
+                
+                .scenetracker_index.character_box {
+                  background-color: var(--background-dark);
+                }    
+            
+            /*calendar*/ 
+            
+            .calendar-container {
                 display: flex;
-                justify-content: space-around;
-              }
-              .scene_ucp.alerts_item {
-                display: block;
-                width: 48%;
-              }
-              
-              .scene_ucp.overview_chara_con {
-                display: grid;
-                grid-template-columns: 49% 49%;
-              }
-              
-              .scene_ucp.chara_item__scenes-con {
-                max-height: 120px;
-                overflow: auto;
-                margin: 5px;
-                margin-top:0px;
-              }
-              
-              .scene_ucp.chara_item__scene {
-                padding: 8px;
-              }
-              
-              .scene_ucp.chara_item__scene:nth-child(even) {
-                background-color: var(--background-dark);
-              }
-              
-              .scene_ucp.chara_item__scene:nth-child(odd) {
-                background-color: var(--background-light);
-              }
-              
-              .scene_ucp > h2 {
-                position: relative;
-              }
-              
-              .scene_ucp > h2::after {
-                content: " ";
-                display: block;
-                position: relative;
-                height: 1px;
-                background: black;
-                top: 0px;
-              }
-              
-              .sceneucp__scenebox {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-              }
-              
-              .sceneucp__sceneitem.scene_status{
-                grid-column-start: 1 ;
-              }
-              
-              .sceneucp__sceneitem.scene_profil {
-                grid-column-start: span 2;
-              }
-              
-              .scenetracker.scenebit.scenetracker_profil {
-                padding: 5px 10px;
-                display: flex;
-                flex-wrap: wrap;
-              }
-              
-              .scenetracker_profil .scenetracker__sceneitem.scene_title {
-                width: 100%;
-              }
-              
-              .scenetracker_profil .scenetracker__sceneitem {
-                padding: 0px 5px;
-              }
-              
-              .sceneucp__sceneitem.scene_alert.certain,
-              .sceneucp__sceneitem.sceneinfos,
-              .sceneucp__sceneitem.scene_alert.always,
-              .sceneucp__sceneitem.scene_title,
-              .sceneucp__sceneitem.scene_last,
-              .sceneucp__sceneitem.scene_users,
-              .sceneucp__sceneitem.scene_infos {
-                grid-column-start: span 3;
-              }
-              
-              .sceneucp__sceneitem.scene_infos {
-                display: flex;
-              }
-              
-              .sceneucp__sceneitem > .flexitem {
-                padding: 3px;
-              }
-              .sceneucp__sceneitem > .flexitem.left {
-                width: 40%;
-              }
-              .sceneucp__sceneitem.scene_title a:after { 
-                content: "";
-                display: block;
-                margin-top: -5px;
-                height: 1px;
-                background: black;
-              }
-              
-              
-              /*****************
-              **PROFIL
-              *****************/ 
-              .scenetracker.container {
-                width: 90%;
-                height: 400px;
-                overflow: auto;
-                margin: auto auto;
-                background: var(--background-light);
-                padding: 10px;
-              }
-              
-              span.scentracker.month {
-                margin-top:10px;
-                width: 90%;
-                font-weight: 600;
-                font-size: 1.3em;
-                border-bottom: 1px solid black;
-                display: block;
-              }
-              
-              .scenetracker.scenebit {
-                padding-left: 10px;
-                padding-right:20px;
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr;
-              }
-              
-              .scenetracker__sceneitem.scene_users {
-                grid-column: 1 / -2;
-                grid-row: 2;
-              }
-              
-              .scenetracker__sceneitem.scene_title {
-                grid-column: 1 / 2;
-                grid-row: 2;
-              }
-              
-              .scenetracker__sceneitem.scene_status {
-              
-              }
-              
-              .scenetracker__sceneitem.scene_date {
-              
-              }
-              .scenetracker__sceneitem.scene_hide {
-                grid-row: 2;
-                grid-column: -1;
-              }
-              
-              
-              /*****************
-              *Forumdisplay
-              *****************/ 
-              
-              .scenetracker_forumdisplay.scene_infos {
-                display: grid;
-                grid-template-columns: 1fr 2fr;
-              }
-              
-              .scenetracker_forumdisplay.scene_users.icon {
-                grid-column: span 2;
-              }
-              
-              /*********************
-              *INDEX
-              *********************/
-              
-              .scenetracker_index.character.container {
-                /* display: grid; */
-                width: 100%;
-                max-height: 150px;
-                overflow: auto;
-              }
-              
-              .scenetracker_index.wrapper_container{
-                background-color: var(--background-dark);
-                padding: 10px
-              }
-              
-              .scenetracker_index.chara_item__scene:nth-child(even) {
-                background-color: var(--background-dark);
-              }
-          
-              .closepop { 
-                position: absolute; 
-              right: -5px; 
-              top:-5px; 
-              width: 100%; 
-              height: 100%; 
-              z-index:0; 
-          } 
-              
-              .scenetracker_index h1 {
-                position:relative;
-                font-size: 1.5em;
-                z-index: 20;
-                margin-bottom: 5px;
-                padding-left:15px;
-              }
-              
-              .scenetracker_index h1:after {
-                content: " ";
-                display: block;
-                height: 1px;
-                background: black;
-                margin-top:-10px;
-                margin-bottom:-5px;
-              }
-              
-              .scenetracker_index.chara_item__scene:nth-child(odd) {
-                background-color: var(--background-light);
-                width: 100%;
-              }
-              
-              .sceneindex__scenebox.container {
-                /* width:100%; */
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-              }
-              
-              .sceneindex__sceneitem.scene_users {
-                grid-column: 1 / -1;
-              }
-              .sceneindex__sceneitem.scene_title {
-                padding-top: 5px;
-                font-weight: 600;
-                grid-row: 1;
-                grid-column: 1;
-              }
-              .sceneindex__sceneitem.scene_status.scene_place {
-                grid-column: 3;
-                grid-row: 1;
-              }
-              .sceneindex__sceneitem.scene_place.scene_date {
-                grid-column: 1 / -1;
-                grid-row: 2;
-              }
-              
-              .sceneindex__sceneitem.scene_last {
-                grid-row: 1;
-                grid-column: 2;
-              }
-              
-              .sceneindex__sceneitem.scene_alert {
-                grid-column: 4;
-                grid-row: span 2;
-                margin-right: 10px;
-              }
-              
-              .sceneindex__sceneitem.scene_last {
-                padding-top: 5px;
-              }
-              
-              /*INDEX REMINDER */ 
-              .scenetracker_reminder.box {
-                margin-bottom: 20px;
-              }
-              
-              .scenetracker_reminder.container {
-                max-height: 100px;
-                overflow: auto
-                padding-left: 30px;
-              }
-              
-              .scenetracker_reminder.item:before {
-                content: "» ";
-              }
-              
-              span.senetracker_reminder.text {
-                text-align: center;
-                display: block;
-              }
-              
-              .scenetracker_index.character_box {
-                background-color: var(--background-dark);
-              }    
-          
-          /*calendar*/ 
-          
-          .calendar-container {
-              display: flex;
-              justify-content: center;
-            gap: 20px;
-          }
-          
-          .calendar {
-            background-color: var(--dark-slate-gray-50);
-            width: 205px;
-            padding-left: 5px;
-            padding: 5px;
-            border: 1px solid var(--dark-border-color);
-          }
-          
-          .calendar:first-child {
-            padding: 0px;
-          }
-          
-          /* For the month*/
-          .month-indicator {
-            font-family: var(--main-font);
-            color: var(--scrollbar-hell);
-            text-transform: uppercase;
-            font-weight: 700;
-            text-align: center;
-          }
-          
-          /* CSS grid used for the dates */
-          .day-of-week,
-          .date-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-          }
-          
-          /* Styles for the weekday/weekend header*/
-          .day-of-week > * {
-            font-size: 12px;
-            color: var(--blue-grey-400);
-            font-weight: 700;
-            text-align: center;
-            margin-top: 5px;
-          }
-          
-          /* Dates */
-          .date-grid {
-            margin-top: 0;
-            text-align: center;
-          }
-              
-          .calendar .day.old {
-            opacity: 0.3;
-          }
-          
-          .st_mini_scene {
-          cursor: pointer;
-          position: relative;
-          display: inline-block;
-          font-weight:bold;
-          }
-          
-          
-          .day.st_mini_scene.fullmoon {
-          text-decoration: underline;
-          }
-          
-          .st_mini_scene_show {
-          opacity: 0;
-          z-index: 300;
-          width: 200px;
-          display: block;
-          font-size: 11px;
-          padding: 5px 10px;
-          text-align: center;
-          background: var(--background-dark);
-          border: 5px solid var(--background-light);
-          -webkit-transition: all .2s ease-in-out;
-          -moz-transition: all .2s ease-in-out;
-          -o-transition: all .2s ease-in-out;
-          -ms-transition: all .2s ease-in-out;
-          transition: all .2s ease-in-out;
-          -webkit-transform: scale(0);
-          -moz-transform: scale(0);
-          -o-transform: scale(0);
-          -ms-transform: scale(0);
-          transform: scale(0);
-          position: absolute;
-          left: -65px;
-          bottom: 20px;
-          }
-          
-          .st_mini_scene_show:before,.st_mini_scene_show:after {
-          content: "";
-          border-left: 10px solid transparent;
-          border-right: 10px solid transparent;
-          border-top: 10px solid var(--background-light);
-          position: absolute;
-          bottom: -13px;
-          left: 59px;
-          }
-          
-          .st_mini_scene:hover .st_mini_scene_show,a:hover .st_mini_scene_show {
-          opacity: 1;
-          -webkit-transform: scale(1);
-          -moz-transform: scale(1);
-          -o-transform: scale(1);
-          -ms-transform: scale(1);
-          transform: scale(1);
-          background-color:var(--background-dark);
-          }
-          
-          .st_mini_scene_title {
+                justify-content: center;
+              gap: 20px;
+            }
+             
+            .calendar {
+              background-color: var(--background-light);
+              width: 205px;
+              padding-left: 5px;
+              padding: 5px;
+              border: 1px solid var(--background-dark);
+            }
+            
+            .calendar:first-child {
+              padding: 0px;
+            }
+            
+            /* For the month*/
+            .month-indicator {
+              text-transform: uppercase;
+              font-weight: 700;
+              text-align: center;
+            }
+            
+            /* CSS grid used for the dates */
+            .day-of-week,
+            .date-grid {
+              display: grid;
+              grid-template-columns: repeat(7, 1fr);
+            }
+            
+            /* Styles for the weekday/weekend header*/
+            .day-of-week > * {
+              font-size: 12px;
+              font-weight: 700;
+              text-align: center;
+              margin-top: 5px;
+            }
+            
+            /* Dates */
+            .date-grid {
+              margin-top: 0;
+              text-align: center;
+            }
+                
+            .calendar .day.old {
+              opacity: 0.3;
+            }
+            
+            .st_mini_scene {
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+            font-weight:bold;
+            }
+            
+            
+            .day.st_mini_scene.fullmoon {
             text-decoration: underline;
-          }
-          
-          .st_mini_scenelink {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding-bottom: 4px;
-          }
-          .scenetracker_cal_setting {
-            width: 92%;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-        }
-        
-        .scenetracker_cal_setting .scenefilteroptions__items {
-            width: 100%;
-        }
-        
-        .st_mini_scenelink {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding-bottom: 4px;
-        }
-        
-        .st_mini_scenelink span {
+            }
+            
+            .st_mini_scene_show {
+            opacity: 0;
+            z-index: 300;
+            width: 200px;
+            display: block;
+            font-size: 11px;
+            padding: 5px 10px;
             text-align: center;
-        }
-        
-        #calsettings_button {
-            grid-column: 1 / -1;
-            justify-self: center;
-        }
+            background: var(--background-dark);
+            border: 5px solid var(--background-light);
+            -webkit-transition: all .2s ease-in-out;
+            -moz-transition: all .2s ease-in-out;
+            -o-transition: all .2s ease-in-out;
+            -ms-transition: all .2s ease-in-out;
+            transition: all .2s ease-in-out;
+            -webkit-transform: scale(0);
+            -moz-transform: scale(0);
+            -o-transform: scale(0);
+            -ms-transform: scale(0);
+            transform: scale(0);
+            position: absolute;
+            left: -65px;
+            bottom: 20px;
+            }
+            
+            .st_mini_scene_show:before,.st_mini_scene_show:after {
+            content: "";
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid var(--background-light);
+            position: absolute;
+            bottom: -13px;
+            left: 59px;
+            }
+            
+            .st_mini_scene:hover .st_mini_scene_show,a:hover .st_mini_scene_show {
+            opacity: 1;
+            -webkit-transform: scale(1);
+            -moz-transform: scale(1);
+            -o-transform: scale(1);
+            -ms-transform: scale(1);
+            transform: scale(1);
+            background-color:var(--background-dark);
+            }
+            
+            .st_mini_scene_title {
+              text-decoration: underline;
+            }
+            
+            .st_mini_scenelink {
+              display: flex;
+              flex-wrap: wrap;
+              justify-content: center;
+              padding-bottom: 4px;
+            }
+            #calsettings_button {
+              grid-column: 1 / -1;
+              justify-self: center;
+            }
       ',
         'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
         'lastmodified' => time()

@@ -1,12 +1,7 @@
 # Szenentracker
 ## Updates: 		
-Last: 7. April 2024
-Version: 1.0.1 			
-
- ### Todo nach Update: 
- - Einstellungen für Minikalender und Kalender werden hinzugefügt
- - User können nun entscheiden welche Szenen sie angezeigt bekommen wollen: Von allen Usern, Von allen eigenen Charas, nur vom eingeloggten Chara.
-
+Last: 22. April 2024
+Version: 1.0.2		
 		
  ### Todo nach Update: 
 - Dateien neu hochladen
@@ -23,7 +18,8 @@ Version: 1.0.1
 - Ganz unten im Text: HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin - sollte schon automatisch drin sein. 
 - Sowie: HOW TO: Minicalender überm Inplay anzeigen.
 ```
-Hier findet ihr einen weiteren Szenentracker für RPGs. Damit könnt ihr direkt beim Threaderstellen Teilnehemr, Ort und Datum, sowie auch eine Triggerwarnung eingeben. Die Szenen werden im Profil automatisch nach Datum sortiert angezeigt und können im Benutzer CP verwaltet werden. Es gibt verschiedene Benachrichtigungseinstellungen. 
+
+Hier findet ihr einen weiteren Szenentracker für RPGs. Damit könnt ihr direkt beim Threaderstellen Teilnehmer, Ort und Datum, sowie auch eine Triggerwarnung eingeben. Die Szenen werden im Profil automatisch nach Datum sortiert angezeigt und können im Benutzer CP verwaltet werden. Es gibt verschiedene Benachrichtigungseinstellungen. 
 
 **Wichtiges TODO für die Darstellung im mybb Kalender:**.      
 Damit Szenen und Geburtstage direkt im Kalender von MyBB angezeigt werden können, ist diese Änderung **zwingend** nötig.  
@@ -42,7 +38,7 @@ darüber einfügen
 
 
 ## **Allgemeine Beschreibung**   
-Der Tracker funktioniert automatisch und ermöglicht es so, den Usern eine wunderbaren Überblick über all ihre Szenen zu haben. Beim Erstellen der Szene werden Datum, Zeit und Ort eingetragen. Außerdem kann hier auch direkt eine Triggerwarnung eingestellt werden, welche die Szene mit einem Ausrufezeichen schon im Forumdisplay und auch in der Profilübersicht kennzeichnet.   
+Der Tracker funktioniert automatisch und ermöglicht es so, den Usern eine wunderbaren Überblick über all ihre Szenen zu haben. Beim Erstellen der Szene werden Datum, Zeit(feste Zeit oder freier String) und Ort eingetragen. Außerdem kann hier auch direkt eine Triggerwarnung eingestellt werden, welche die Szene mit einem Ausrufezeichen schon im Forumdisplay und auch in der Profilübersicht kennzeichnet.   
 Teilnehmer können beim erstellen der Szene hinzugefügt werden, die Usernamen werden automatisch vervollständigt, so dass keine Tippfehler entstehen können. Anders als bei der Autovervollständigung von Mybb können jedoch auch zusätzliche Infos hinzugefügt werden, also zum Beispiel: 'John Smith, Jane Doe, und alle die möchten'
 Wird eine Szene erstellt, erhalten die eingetragenen Teilnehmer einen Alert, auch wenn sie im Nachhinein hinzugefügt wurden.     
 Antwortet auf die Szene ein Charakter der noch nicht eingetragen ist, kann er sich automatisch hinzufügen. Desweiteren können **alle** Teilnehmer die Szeneninformationen auch im Nachhinein bearbeiten.   
@@ -60,15 +56,24 @@ Mögliche (und nötige) Einstellungen im ACP:
 * Ob der Accountswitcher benutzt wird oder nicht
 * Ob das Thema erledigt/unerledigt benutzt wird. (wenn ja aktiviert, wird beim schließen das Thema auch als erledigt markiert)
 * Indexanzeige - Werden die Szenen auf dem Index angezeigt?
-* Wird MyAlerts benutzt?
+* Ob MyAlerts benutzt werden soll um den Benutzer über neue Szenen/Antworten zu informieren.
+* Ob eine Private Nachricht verschickt werden soll um den Benutzer über neue Szenen/Antworten zu informieren.
 * Ingame - Die ID des Ingames
 * ID des Archivs.
 * Geburtsfeld für Kalender. Standard, Profilfeld ( **Wichtig** (Format dd.mm.YYYY) ) oder Feld des 'Steckbrief im UCP Plugin'
-* Erinnerung: Soll und wenn ja, nach wie vielen Tagen soll der User eine Erinnerung angezeigt bekommen? 
-* Ingame Zeitraum: Auch hier bitte das Format beachten.
+* Geburtstagsfeld ID? Angabe der Profilfelds-ID oder der Bezeichnung für das Feld im 'Steckbrief im UCP Plugin'
+* Erinnerung: Soll und wenn ja, nach wie vielen Tagen soll der User eine Erinnerung angezeigt bekommen?
+* Ingame Zeitaum. Format: 2024-04, 2024-06, 2024-07
+* Ingame Zeitraum 1. Tag: Datum des 1. Tags
+* Ingame Zeitraum letzter Tag: Datum des letzter Tags
+* ausgeschlossene Foren
+* Kalender Szenen Ansicht - Alle Szenen: Dürfen Mitglieder auswählen das die Szenen von allen Charakteren angezeigt werden?
+* Kalender Szenen Ansicht - Alle eigenen Szenen: Dürfen Mitglieder auswählen das die Szenen von allen eigenen (verbundenen) Charakteren angezeigt werden?
+* Kalender Szenen Ansicht - Szenen des Charaktes: Dürfen Mitglieder auswählen das die Szenen nur von dem Charakter angezeigt werden, mit dem man online ist?
+* Angabe Tageszeit: Soll das Datum für eine Szene mit fester Zeit (Datum + Zeit z.B. 24.02.01 - 11:00) oder mit offener Zeit, als Textfenster (z.B. Mittags) angegeben werden?
 
 ### **Benutzer CP**. (/usercp.php?action=scenetracker)  
-Hier findet der User 3 Einstellungen.  
+Hier findet der User folgende Einstellungen.  
  
 * *Szenenübersicht auf der Indexseite?*.  
 Der User kann einstellen ob ihm die Szenen, in denen er mit posten dran ist auf dem Index angezeigt werden. 
@@ -76,6 +81,9 @@ Der User kann einstellen ob ihm die Szenen, in denen er mit posten dran ist auf 
 Der User kann einstellen ob ihm die Szenen, aller Charaktere (accountswitcher) oder nur des Charakters angezeigt werden soll, mit dem er online ist. 
 * *Szenenerinnerung nach x Tage(n)?*  
 Wenn im ACP eingestellt, wird dem User einer Erinnerung auf dem Index angezeigt, wenn er in einer Szene zu lange nicht gepostet hat.
+* *Settings für alle verbundene Charaktere oder nur diesen?* Sollen vorgenommene Einstellungen für den Kalender für alle Charaktere oder nur dem eingeloggten vorgenommen werden?
+* *Mini Kalender: Welche Szenen sollen angezeigt werden?* (alle, alle des users, nur dieser)
+* Großer Kalender: Welche Szenen sollen angezeigt werden?  (alle, alle des users, nur dieser)
 * *Anzeige / Sortierung der Szenen*  
 Der User kann die Szenen ganz verschieden Filtern. Nach Charakteren, Status und ob er dran ist oder nicht (und in jeglicher Kombination). 
 * *Verwaltung der Szenen*  
