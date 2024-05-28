@@ -1,15 +1,26 @@
 # Szenentracker
 ## Updates: 		
-Last: 22. April 2024
-Version: 1.0.2		
+Last: 28. Mai 2024
+Version: 1.0.3		
 		
- ### Todo nach Update: 
+### Todo nach Update: 
 - Dateien neu hochladen
 - update_scenetracker.php ins hauptverzeichnis laden und aufrufen. Anschließend aufrufen und dann wieder löschen.
-- Es werden neue Felder in den Settings angelegt
-- Es werden neue Felder in der User Tabelle angelegt
+- savescenes.php und getusernames.php können gelöscht werden
 
+### Changelog: 
+1.0.2 -> 1.0.3    
 
+***Bugfix:***
+- Korrektur Javascript in scenetracker.js / anpassung auf neues Feld / Anpassung AJAX Request
+- Verschieben der ausgelagerten php Datein in Plugin datei  
+
+***New Feature:***   
+- Auflistung aller Szenen aller User nach Datum unter /misc.php?action=scenelist
+  
+***Neues Template:***
+- scenetracker_misc_allscenes  
+   
 ## Wichtige Infos: 
 
 **Die Updates müssen natürlich nur durchgeführt werden, wenn der Tracker vorher schon installiert war. Wenn nicht, reicht es das Plugin ganz normal zu installieren** 		
