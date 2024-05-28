@@ -121,19 +121,19 @@ forumdisplay_thread öffnen
 
 ## **Demo**  
 
-<img src="https://github.com/katjalennartz/scenetracker/blob/main/tracker_answer.png?raw=true" style="width:450px">
+<img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/tracker_answer.png?raw=true" style="width:450px">
 
-<img src="https://github.com/katjalennartz/scenetracker/blob/main/tracker_index.png?raw=true" style="width:450px">
+<img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/tracker_index.png?raw=true" style="width:450px">
 
-<img src="https://github.com/katjalennartz/scenetracker/blob/main/tracker_newscene.png?raw=true" style="width:450px">
+<img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/tracker_newscene.png?raw=true" style="width:450px">
 
-<img src="https://github.com/katjalennartz/scenetracker/blob/main/tracker_profil.png?raw=true" style="width:450px">
+<img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/tracker_profil.png?raw=true" style="width:450px">
 
-<img src="https://github.com/katjalennartz/scenetracker/blob/main/tracker_thread.png?raw=true" style="width:450px">
+<img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/tracker_thread.png?raw=true" style="width:450px">
 
-<img src="https://github.com/katjalennartz/scenetracker/blob/main/tracker_ucp.png?raw=true" style="width:450px">
+<img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/tracker_ucp.png?raw=true" style="width:450px">
 
-<img src="https://github.com/katjalennartz/scenetracker/blob/main/treacker_threadedit.png?raw=true" style="width:450px">
+<img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/treacker_threadedit.png?raw=true" style="width:450px">
 
 
 
