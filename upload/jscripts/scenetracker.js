@@ -9,11 +9,12 @@ function certain($id) {
     + '</form>';
 }
 
+
 $(document).ready(function () {
   $('.scene_edit').click(function () {
     $.ajax({
       //we get our usernames with php. The script gives us a Json. (key value paur -> something like 0: {username: "user1"} 1: {username: "user2"} )
-      url: './getusernames.php',
+      url: 'xmlhttp.php?action=xml_st_getusers',
       type: 'get',
       dataType: 'JSON',
       success: function (response) {
@@ -33,7 +34,7 @@ $(document).ready(function () {
   $('#teilnehmer').click(function () {
     $.ajax({
       //we get our usernames with php. The script gives us a Json. (key value paur -> something like 0: {username: "user1"} 1: {username: "user2"} )
-      url: './getusernames.php',
+      url: 'xmlhttp.php?action=xml_st_getusers',
       type: 'get',
       dataType: 'JSON',
       success: function (response) {
@@ -45,55 +46,61 @@ $(document).ready(function () {
         });
         // new Suggest.LocalMulti("text", "suggest", list, {dispAllKey: true});
         $('#teilnehmer').keydown(function () {
+          console.log("teilnehmer");
           new Suggest.LocalMulti("teilnehmer", "suggest", usernames, { dispAllKey: true, delim: "," })
         });
       }
     });
   });
+
   $('#edit_sceneinfos').click(function () {
     // console.log("submit");
     let id = $("#id").val();
     let place = $("#sceneplace").val();
     let trigger = $("#scenetrigger").val();
-    let datetime = $("#scenetracker_date").val() + $("#scenetracker_time").val();
+    let date = $("#scenetracker_date").val()
+    let time = $("#scenetracker_time").val();
     let user = $("#teilnehmer").val();
+
     $.ajax({
       type: 'GET',
-      url: 'savescene.php',
-      data: 'place=' + place + '&trigger=' + trigger + '&datetime=' + datetime + ' &user=' + user + ' &id=' + id,
+      url: 'xmlhttp.php?action=xml_st_savescenes',
+      // url: 'savescene.php',
+      data: 'place=' + place + '&trigger=' + trigger + '&date=' + date + '&time=' + time + '&user=' + user + '&id=' + id,
 
       success: function (data) {
         window.location = "showthread.php?tid=" + id;
       },
       error: function (xhr, type, exception) {
         // if ajax fails display error alert
-        alert("Irgendwas hat nicht funktioniert. (savescene.php)");
+        var err = xhr.responseText;
+        console.log(err);
+        alert("Irgendwas hat nicht funktioniert. (edit infos scenetracker)");
       }
     });
   });
 
-  $('#scenefilter').click(function () {
-    // console.log("submit");
-    let charakter = $("#charakter").val();
-    let uid = $("#uid").val();
-    let status = $("#status").val();
-    let move = $("#move").val();
+  // $('#scenefilter').click(function () {
+  //   let charakter = $("#charakter").val();
+  //   let uid = $("#uid").val();
+  //   let status = $("#status").val();
+  //   let move = $("#move").val();
 
-    console.log('charakter=' + charakter + '&status=' + status + '&move=' + move);
+  //   console.log('charakter=' + charakter + '&status=' + status + '&move=' + move);
 
-    $.ajax({
-      type: 'GET',
-      url: 'scenetrackerfilter.php',
-      data: 'charakter=' + charakter + '&status=' + status + '&move=' + move,
+  //   $.ajax({
+  //     type: 'GET',
+  //     url: 'scenetrackerfilter.php',
+  //     data: 'charakter=' + charakter + '&status=' + status + '&move=' + move,
 
-      success: function (data) {
+  //     success: function (data) {
 
-      },
-      error: function (xhr, type, exception) {
-        // if ajax fails display error alert
-        alert("Irgendwas hat nicht funktioniert. (scenetrackerfilter.php) ");
-      }
-    });
-  });
+  //     },
+  //     error: function (xhr, type, exception) {
+  //       // if ajax fails display error alert
+  //       alert("Irgendwas hat nicht funktioniert. ");
+  //     }
+  //   });
+  // });
 
 });
