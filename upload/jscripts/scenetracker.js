@@ -46,7 +46,6 @@ $(document).ready(function () {
         });
         // new Suggest.LocalMulti("text", "suggest", list, {dispAllKey: true});
         $('#teilnehmer').keydown(function () {
-          console.log("teilnehmer");
           new Suggest.LocalMulti("teilnehmer", "suggest", usernames, { dispAllKey: true, delim: "," })
         });
       }
@@ -54,7 +53,6 @@ $(document).ready(function () {
   });
 
   $('#edit_sceneinfos').click(function () {
-    // console.log("submit");
     let id = $("#id").val();
     let place = $("#sceneplace").val();
     let trigger = $("#scenetrigger").val();
