@@ -86,16 +86,6 @@ function scenetracker_install()
         PRIMARY KEY (`id`)
     ) ENGINE=MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
 
-  $db->write_query("CREATE TABLE `" . TABLE_PREFIX . "scenetracker_planing` (
-      `id` int(10) NOT NULL AUTO_INCREMENT,
-      `uid` int(10) NOT NULL,
-      `participants` int(10) NOT NULL,
-      `alert` int(1) varchar(500) NOT NULL DEFAULT '',
-      `plans` varchar(1500) NOT NULL DEFAULT '',
-      `inform` varchar(1500) NOT NULL DEFAULT '',
-      PRIMARY KEY (`id`)
-  ) ENGINE=MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
-
   // Admin Einstellungen
   $setting_group = array(
     'name' => 'scenetracker',
