@@ -1,7 +1,7 @@
 # Szenentracker
 ## Updates: 		
-Last: 28. Mai 2024
-Version: 1.0.3		
+Last: 18. Juni 2024
+Version: 1.0.4		
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
@@ -9,16 +9,25 @@ Version: 1.0.3
 - savescenes.php und getusernames.php können gelöscht werden
 
 ### Changelog: 
-1.0.2 -> 1.0.3    
+#### 1.0.3 -> 1.0.4    
 
-***Bugfix:***
+##### Bugfix:
+- Korrektur Anzeige von Events die nur einen Tag dauern.
+
+##### Improvements:
+- Abfangen wenn der Accountswitcher nicht installiert ist
+- automatisches einfügen der Minikalender Variabel in den Footer
+
+#### 1.0.2 -> 1.0.3    
+
+##### Bugfix
 - Korrektur Javascript in scenetracker.js / anpassung auf neues Feld / Anpassung AJAX Request
 - Verschieben der ausgelagerten php Datein in Plugin datei  
 
-***New Feature:***   
+##### New Feature:   
 - Auflistung aller Szenen aller User nach Datum unter /misc.php?action=scenelist
   
-***Neues Template:***
+##### Neues Template:
 - scenetracker_misc_allscenes  
    
 ## Wichtige Infos: 
