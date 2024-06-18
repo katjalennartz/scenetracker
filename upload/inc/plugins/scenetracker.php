@@ -36,7 +36,7 @@ function scenetracker_info()
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
-    "version" => "1.0.3",
+    "version" => "1.0.4",
     "compatibility" => "18*"
   );
 }
@@ -185,6 +185,7 @@ function scenetracker_activate()
   <tbody style="{$collapsed[\'usercpmisc_e\']}" id="usercpmisc_e"><tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>
   ');
   find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$day_events}') . "#i", '{$day_events}{$scene_ouput}{$birthday_ouput}');
+  find_replace_templatesets("footer", "#" . preg_quote('<div id="footer">') . "#i", '<div id="footer">{$scenetracker_calendar}');
 
   //  find_replace_templatesets("newthread", "#" . preg_quote('{$thread[\'profilelink\']}') . "#i", '{$scenetrackerforumdisplay}{$thread[\'profilelink\']}');
 
@@ -228,7 +229,8 @@ function scenetracker_deactivate()
   find_replace_templatesets("member_profile", "#" . preg_quote('</tr><tr><td colspan="2">{$scenetracker_profil}</td>') . "#i", '');
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>') . "#i", '');
   find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}') . "#i", '');
-
+  find_replace_templatesets("footer", "#" . preg_quote('{$scenetracker_calendar}') . "#i", '');
+  
   // Alerts deaktivieren
   if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
     $alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::getInstance();
@@ -1427,7 +1429,9 @@ function scenetracker_do_newthread()
     if ($mybb->settings['scenetracker_time_text'] == 0) {
       //einstellungen Zeit als feste Uhrzeit
       $date = $db->escape_string($mybb->get_input('scenetracker_date')) . " " . $db->escape_string($mybb->get_input('scenetracker_time'));
-    } else if ($mybb->settings['scenetracker_time_text'] == 1) {
+      //sollte später von feste zeit auf freies umgestellt werden, speichern wir die uhrzeit einfach auch zusätzlich als string 
+      $time_text = $db->escape_string($mybb->get_input('scenetracker_time'));
+      } else if ($mybb->settings['scenetracker_time_text'] == 1) {
       //einstellunge Zeit als offenes textfeld
       $date = $db->escape_string($mybb->get_input('scenetracker_date'));
       $time_text = $db->escape_string($mybb->get_input('scenetracker_time_str'));
@@ -1772,6 +1776,7 @@ function scenetracker_do_editpost()
       if ($mybb->settings['scenetracker_time_text'] == 0) {
         $time_text = "";
         $date = $db->escape_string($mybb->get_input('scenetracker_date')) . " " . $db->escape_string($mybb->get_input('scenetracker_time'));
+        $time_text = $db->escape_string($mybb->get_input('scenetracker_time'));
       } else if ($mybb->settings['scenetracker_time_text'] == 1) {
         //einstellunge Zeit als offenes textfeld
         $date = $db->escape_string($mybb->get_input('scenetracker_date'));
@@ -2285,7 +2290,11 @@ function scenetracker_usercp()
 
     //Speichern der Kalender Settings
     if ($mybb->get_input('calendar_settings')) {
-      $thisuseras_id = $mybb->user['as_uid'];
+      if ($db->field_exists("as_uid", "users")) {
+        $thisuseras_id = $mybb->user['as_uid'];
+      } else {
+        $thisuseras_id = 0;
+      }
       //angehangene bekommen
       $chararray = array_keys(scenetracker_get_accounts($thisuser, $thisuseras_id));
       //string zusammensetzen
@@ -2322,7 +2331,7 @@ function scenetracker_usercp()
   }
   //welcher user ist online
   //set as uid
-  if (isset($mybb->user['as_uid'])) {
+  if ($db->field_exists("as_uid", "users")) {
     $asuid = $mybb->user['as_uid'];
   } else {
     $asuid = 0;
@@ -2790,7 +2799,7 @@ function scenetracker_list()
 {
   global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara, $expthead, $expcolimage, $expaltext, $expaltext, $expdisplay, $theme;
   //set as uid
-  if (isset($mybb->user['as_uid'])) {
+  if ($db->field_exists("as_uid", "users")) {
     $asuid = $mybb->user['as_uid'];
   } else {
     $asuid = 0;
@@ -2851,7 +2860,7 @@ function scenetracker_reminder()
   $uid = $mybb->user['uid'];
 
   //set as uid
-  if (isset($mybb->user['as_uid'])) {
+  if ($db->field_exists("as_uid", "users")) {
     $asuid = $mybb->user['as_uid'];
   } else {
     $asuid = 0;
@@ -2954,7 +2963,7 @@ function scenetracker_calendar()
   global $db, $mybb, $day, $month, $year, $scene_ouput, $birthday_ouput, $teilnehmer_scene, $plotoutput;
   $thisuser = $mybb->user['uid'];
 
-  if (isset($mybb->user['as_uid'])) {
+  if ($db->field_exists("as_uid", "users")) {
     $thisuseras_id = $mybb->user['as_uid'];
   } else {
     $thisuseras_id = 0;
@@ -3113,7 +3122,7 @@ function scenetracker_minicalendar()
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
   $thisuser = $mybb->user['uid'];
-  if (isset($mybb->user['as_uid'])) {
+  if ($db->field_exists("as_uid", "users")) {
     $thisuseras_id = $mybb->user['as_uid'];
   } else {
     $thisuseras_id = 0;
@@ -3222,10 +3231,8 @@ function scenetracker_minicalendar()
       } else {
         $birth_num = 0;
       }
-      $get_events = $db->write_query(
-        "
-            SELECT * FROM " . TABLE_PREFIX . "events WHERE '{$timestamp}' BETWEEN starttime and endtime"
-      );
+
+      $get_events = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "events WHERE (('{$timestamp}' BETWEEN starttime and endtime) OR (endtime = 0 AND starttime='{$timestamp}' ))");
 
       //Jules Plottracker ist installiert
       if ($db->table_exists("plots")) {
@@ -3470,6 +3477,7 @@ function scenetracker_savescene()
     if ($mybb->settings['scenetracker_time_text'] == 0) {
       //einstellungen Zeit als feste Uhrzeit
       $date = $db->escape_string($date) . " " . $db->escape_string($mybb->get_input('time'));
+      $time_text = $db->escape_string($mybb->get_input('time'));
     } else if ($mybb->settings['scenetracker_time_text'] == 1) {
       //einstellunge Zeit als offenes textfeld
       $date = $db->escape_string($mybb->get_input('date'));
@@ -3567,11 +3575,14 @@ function scenetracker_get_accounts($this_user, $as_uid)
 {
   global $mybb, $db;
   $charas = array();
-  if ($as_uid == 0) {
-    $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE (as_uid = $this_user) OR (uid = $this_user) ORDER BY username");
+
+  if (!$db->field_exists("as_uid", "users")) {
+    $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE uid = '$this_user' ORDER BY username");
+  } elseif ($as_uid == 0) {
+    $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE (as_uid = '$this_user') OR (uid = '$this_user') ORDER BY username");
   } else if ($as_uid != 0) {
     //id des users holen wo alle angehangen sind 
-    $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE (as_uid = $as_uid) OR (uid = $this_user) OR (uid = $as_uid) ORDER BY username");
+    $get_all_users = $db->query("SELECT uid,username FROM " . TABLE_PREFIX . "users WHERE (as_uid = '$as_uid') OR (uid = '$this_user') OR (uid = '$as_uid') ORDER BY username");
   }
   while ($users = $db->fetch_array($get_all_users)) {
 
@@ -3638,10 +3649,10 @@ function scenetracker_count_scenes($charas)
  * */
 function scenetracker_check_switcher($uid)
 {
-  global $mybb;
+  global $mybb, $db;
 
   if ($mybb->user['uid'] != 0) {
-    if (isset($mybb->user['as_uid'])) {
+    if ($db->field_exists("as_uid", "users")) {
       $uid_as = $mybb->user['as_uid'];
     } else {
       $uid_as = 0;
@@ -3958,7 +3969,7 @@ function scenetracker_change_allowed($str_teilnehmer)
 {
   global $mybb, $db;
   //set as uid
-  if (isset($mybb->user['as_uid'])) {
+  if ($db->field_exists("as_uid", "users")) {
     $asuid = $mybb->user['as_uid'];
   } else {
     $asuid = 0;
