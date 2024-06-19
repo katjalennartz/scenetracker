@@ -36,7 +36,7 @@ function scenetracker_info()
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
-    "version" => "1.0.4",
+    "version" => "1.0.5",
     "compatibility" => "18*"
   );
 }
@@ -3232,8 +3232,22 @@ function scenetracker_minicalendar()
         $birth_num = 0;
       }
 
-      $get_events = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "events WHERE (('{$timestamp}' BETWEEN starttime and endtime) OR (endtime = 0 AND starttime='{$timestamp}' ))");
-
+      $get_events = $db->write_query("
+        SELECT * FROM `mybb_events` 
+        WHERE 
+        UNIX_TIMESTAMP(STR_TO_DATE('$datetoconvert', '%Y-%m-%d')) 
+        BETWEEN 
+        UNIX_TIMESTAMP(STR_TO_DATE(from_unixtime(starttime, '%Y-%m-%d'), '%Y-%m-%d')) 
+        AND
+        UNIX_TIMESTAMP(STR_TO_DATE(from_unixtime(endtime, '%Y-%m-%d'), '%Y-%m-%d'))
+        OR (
+        endtime = 0 
+        AND 
+        UNIX_TIMESTAMP(STR_TO_DATE(from_unixtime(starttime, '%Y-%m-%d'), '%Y-%m-%d')) = (UNIX_TIMESTAMP(STR_TO_DATE('$datetoconvert', '%Y-%m-%d'))) 
+        )
+        "
+      );
+	    
       //Jules Plottracker ist installiert
       if ($db->table_exists("plots")) {
         $plottracker = 1;
