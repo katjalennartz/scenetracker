@@ -1,7 +1,7 @@
 # Szenentracker
 ## Updates: 		
 Last: 18. Juni 2024
-Version: 1.0.4		
+Version: 1.0.5	
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
@@ -9,6 +9,11 @@ Version: 1.0.4
 - savescenes.php und getusernames.php können gelöscht werden
 
 ### Changelog: 
+#### 1.0.4 -> 1.0.5    
+
+##### Bugfix:
+- Korrektur Anzeige von Events - Verschiebung des Tags, sowie anzeige einmaliges Ergebnis.
+
 #### 1.0.3 -> 1.0.4    
 
 ##### Bugfix:
