@@ -823,7 +823,7 @@ function scenetracker_add_templates($type = 'install')
     "title" => 'scenetracker_calendar_bit',
     "template" => '
     
-    <div class="calendar">
+    <div class="scenetracker calendar">
     <div class="month-indicator">
       <div> {$kal_title}</div>
     </div>
