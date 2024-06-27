@@ -5,7 +5,9 @@ require("global.php");
 // ini_set('display_errors', 1);
 
 global $db, $mybb, $lang;
-
+echo '<html lang="en">
+<head>
+<meta charset="utf-8"></head><body>';
 echo (
   '<style type="text/css">
 body {
@@ -158,7 +160,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
     include MYBB_ROOT . "/inc/adminfunctions_templates.php";
     find_replace_templatesets("scenetracker_calendar_bit", "#" . preg_quote('    </div>
 	 {$kal_day}') . "#i", '{$kal_day}</div>');
-    echo "scenetracker_calendar_bit - wurde aktualisiert ('	&lt;/div>&lbrace;&dollar;kal_day&rbrace; ersetzen mit &lbrace;&dollar;kal_day&rbrace;	&lt;/div> )";
+    echo "scenetracker_calendar_bit - wurde aktualisiert ('	&lt;/div>&lbrace;&dollar;kal_day&rbrace; ersetzen mit &lbrace;&dollar;kal_day&rbrace;	&lt;/div><br><b>Bitte überprüfen, funktioniert oft nicht, dann händisch ändern!</b> )";
   }
 
   echo "<h2>Folgende Änderungen müssen manuell durchgeführt werden (vor 1.0.2) (Änderungen in vorhandenen Templates):</h2>";
@@ -670,6 +672,8 @@ if ($mybb->usergroup['canmodcp'] == 1) {
 <div> <b>Kontakt:</b> risuena (Discord)</div>
 <div> <b>Support:</b>  <a href="https://storming-gates.de/showthread.php?tid=1023729">SG Thread</a> oder via Discord</div>
 </div>';
+
+  echo '</body></html>';
 } else {
   echo "<h1>Kein Zugriff</h1>";
 }
