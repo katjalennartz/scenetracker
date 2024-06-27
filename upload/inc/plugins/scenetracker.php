@@ -36,7 +36,7 @@ function scenetracker_info()
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
-    "version" => "1.0.5",
+    "version" => "1.0.6",
     "compatibility" => "18*"
   );
 }
@@ -230,7 +230,7 @@ function scenetracker_deactivate()
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>') . "#i", '');
   find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}') . "#i", '');
   find_replace_templatesets("footer", "#" . preg_quote('{$scenetracker_calendar}') . "#i", '');
-  
+
   // Alerts deaktivieren
   if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
     $alertTypeManager = MybbStuff_MyAlerts_AlertTypeManager::getInstance();
@@ -323,7 +323,7 @@ function scenetracker_add_settings($type = 'install')
     ),
     'scenetracker_ingametime' => array(
       'title' => 'Ingame Zeitraum',
-      'description' => 'Bitte Ingamezeitraum eingeben - Monat und Jahr. Bei mehreren mit , getrennt. Z.b für April, Juni und Juli "1997-04, 1997-06, 1997-07. <b>Achtung genauso wie im Beispiel!</b> (Wichtig für Minicalender)."',
+      'description' => 'Bitte Ingamezeitraum eingeben - Monat und Jahr. Bei mehreren mit , getrennt. Z.b für April, Juni und Juli "1997-04, 1997-06, 1997-07. <b>Achtung genauso wie im Beispiel!</b> (Wichtig für Minikalender)."',
       'optionscode' => 'text',
       'value' => '2024-04, 2024-06, 2024-07', // Default
       'disporder' => 10
@@ -818,23 +818,12 @@ function scenetracker_add_templates($type = 'install')
     "version" => "1.0",
     "dateline" => TIME_NOW
   );
+
   $template[20] = array(
-    "title" => 'scenetracker_calendar',
-    "template" => '
-    
-    <div class="calendar-container">
-    {$scenetracker_calendar_bit}
-    </div>
-   ',
-    "sid" => "-2",
-    "version" => "1.0",
-    "dateline" => TIME_NOW
-  );
-  $template[21] = array(
     "title" => 'scenetracker_calendar_bit',
     "template" => '
     
-    <div class="calendar">
+    <div class="scenetracker calendar">
     <div class="month-indicator">
       <div> {$kal_title}</div>
     </div>
@@ -846,15 +835,15 @@ function scenetracker_add_templates($type = 'install')
       <div>F</div>
       <div>S</div>
       <div>S</div>
+      {$kal_day}
     </div>
-	 {$kal_day}
   </div>
    ',
     "sid" => "-2",
     "version" => "1.0",
     "dateline" => TIME_NOW
   );
-  $template[22] = array(
+  $template[21] = array(
     "title" => 'scenetracker_misc_allscenes',
     "template" => '
     <html>
@@ -892,9 +881,97 @@ function scenetracker_add_templates($type = 'install')
     "version" => "1.0",
     "dateline" => TIME_NOW
   );
+  $template[22] = array(
+    "title" => 'scenetracker_calender_event_bit',
+    "template" => '
+    <a href="{$event[\\\'eventlink\\\']}" title="{$event[\\\'name\\\']}" class="{$popelement_class}">{$event[\\\'name\\\']}</a>
+    ',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
+  $template[23] = array(
+    "title" => 'scenetracker_calender_popbit',
+    "template" => '
+    <div class="st_minical_pop{$popitemclass}">{$caption}
+    {$scenetracker_calender_popbit_bit}
+    </div>
+   ',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
 
-  //TODO <input type="date" value="{$scenetracker_date}" name="scenetracker_date" /> <input type="time" name="scenetracker_time" value="{$scenetracker_time}" /><br />
+  $template[24] = array(
+    "title" => 'scenetracker_calender_scene_bit',
+    "template" => '
+    <div class="st_mini_scenelink">
+    <span>
+		<span class="raquo">&raquo;</span> 
+		<a href="showthread.php?tid={$scene[\\\'tid\\\']}">{$scene[\\\'subject\\\']}</a>
+    </span>
+    <span>({$scene[\\\'scenetime\\\']} - {$teilnehmer})</span>
+    </div>
+    ',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
 
+  $template[25] = array(
+    "title" => 'scenetracker_calender_birthday_bit',
+    "template" => '
+<div class="st_calendar birthday">{$birthdaylink}</div>
+   ',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
+
+  $template[26] = array(
+    "title" => 'scenetracker_calender_plot_bit',
+    "template" => '
+<div class="st_mini_scenelink plot"><a href="plottracker.php?action=view&plid={$plot[\\\'plid\\\']}">{$plot[\\\'name\\\']}</a></div>
+   ',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
+
+
+  $template[27] = array(
+    "title" => 'scenetracker_calendar_day_pop',
+    "template" => '
+<div class="st_mini_scene_show"> 
+	{$sceneshow}
+	{$birthdayshow}
+	{$eventshow}
+	{$plotshow}
+</div>
+   ',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
+
+  $template[28] = array(
+    "title" => 'scenetracker_calendar_weekrow',
+    "template" => '{$day_bits}',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
+
+  $template[29] = array(
+    "title" => 'scenetracker_calendar_day',
+    "template" => '<div class="day st_mini_scene{$month_status}{$eventcss}{$fullmoon}{$birthdaycss}{$ownscene}{$ingamecss}{$plotcss}">
+	{$day}
+	{$scenetracker_calendar_day_pop}
+</div>',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
 
   foreach ($template as $row) {
     //prüfen ob das template schon existiert
@@ -1349,6 +1426,10 @@ background-color:var(--background-dark);
   justify-self: center;
 }
 
+.day.st_mini_scene.lastmonth {
+    opacity: 0.1;
+}
+
     ',
       'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
       'lastmodified' => time()
@@ -1431,7 +1512,7 @@ function scenetracker_do_newthread()
       $date = $db->escape_string($mybb->get_input('scenetracker_date')) . " " . $db->escape_string($mybb->get_input('scenetracker_time'));
       //sollte später von feste zeit auf freies umgestellt werden, speichern wir die uhrzeit einfach auch zusätzlich als string 
       $time_text = $db->escape_string($mybb->get_input('scenetracker_time'));
-      } else if ($mybb->settings['scenetracker_time_text'] == 1) {
+    } else if ($mybb->settings['scenetracker_time_text'] == 1) {
       //einstellunge Zeit als offenes textfeld
       $date = $db->escape_string($mybb->get_input('scenetracker_date'));
       $time_text = $db->escape_string($mybb->get_input('scenetracker_time_str'));
@@ -2095,9 +2176,17 @@ function scenetracker_showthread_showtrackerstuff()
     $uiddelete = intval($mybb->get_input('delete'));
     $userdelete = $db->fetch_field($db->simple_select("users", "username", "uid = $uiddelete"), "username");
     if ($mybb->usergroup['canmodcp'] == 1 || scenetracker_check_switcher($uid)) {
-      $teilnehmer = str_replace($userdelete . ",", "", $thread['scenetracker_user']);
-      $teilnehmer = str_replace("," . $userdelete, "", $teilnehmer);
+      //Charakter löschen
+      $teilnehmer = str_replace($userdelete, "", $thread['scenetracker_user']);
+      //ab hier schauen dass die Kommas passen. wir wollen am anfang kein ', '
+      $teilnehmer = preg_replace('/^' . preg_quote(', ', '/') . '/', '', $teilnehmer);
+      // mitten drin wollen wir kein ', ,'
+      $teilnehmer = preg_replace('/' . preg_quote(', ,', '/') . '/', ',', $teilnehmer);
+      //und am ende auch kein ', '
+      $teilnehmer = rtrim($teilnehmer, ', ');
       $teilnehmer = $db->escape_string($teilnehmer);
+
+
       $db->query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = '" . $teilnehmer . "' WHERE tid = " . $tid . " ");
       $db->delete_query("scenetracker", "tid = " . $tid . " AND uid = " . $uiddelete . "");
 
@@ -2936,7 +3025,6 @@ function scenetracker_reminder()
   }
 
   if ($mybb->get_input('action') == 'reminder') {
-    // echo "bla";
     foreach ($charas as $uid => $chara) {
       $db->query("UPDATE " . TABLE_PREFIX . "users SET tracker_reminder = 0 WHERE uid = " . $uid . " ");
     }
@@ -2986,7 +3074,6 @@ function scenetracker_calendar()
   //wir müssen das Datum in das gleiche format wie den geburtstag bekommen
   $datetoconvert = "{$daynew}.{$monthzero}.{$year}";
   $timestamp = strtotime($datetoconvert);
-  // echo $converteddate;
   $setting_birhtday = $mybb->settings['scenetracker_birhday'];
   if ($setting_birhtday == "0") {
     $converteddate = date("d.m", $timestamp);
@@ -3108,18 +3195,50 @@ function scenetracker_calendar()
 /***
  * shows minicalender 
  * global functions, use {$scenetracker_calendar} for showing calender in Header or Footer
- *  * credit to:
- * https://zellwk.com/blog/calendar-with-css-grid/
- * https://www.schattenbaum.net/php/kalender.php
+ * Funktion von calender.php übertragen
  * 
  */
 $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
 function scenetracker_minicalendar()
 {
-  global $db, $mybb, $templates, $scenetracker_calendar;
-  $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene = $birthdaycss = $eventcss = "";
+  global $db, $mybb, $templates, $scenetracker_calendar, $lang;
+  $scenetracker_calendar = $fullmoon = $ownscene = $birthdaycss = $eventcss = "";
+
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
+
+  // Jules Plottracker ist installiert
+  if ($db->table_exists("plots")) {
+    $plottracker = 1;
+  } else {
+    $plottracker = 0;
+  }
+
+  //calender Sprachvariablen laden
+  $lang->load("calendar");
+  $lang->load("scenetracker");
+
+  //für gmt funktionen
+  require_once MYBB_ROOT . "inc/functions_time.php";
+  //calenderfunktionen
+  require_once MYBB_ROOT . "inc/functions_calendar.php";
+
+  //namen aus der language calender holen
+  $monthnames = array(
+    "offset",
+    $lang->alt_month_1,
+    $lang->alt_month_2,
+    $lang->alt_month_3,
+    $lang->alt_month_4,
+    $lang->alt_month_5,
+    $lang->alt_month_6,
+    $lang->alt_month_7,
+    $lang->alt_month_8,
+    $lang->alt_month_9,
+    $lang->alt_month_10,
+    $lang->alt_month_11,
+    $lang->alt_month_12
+  );
 
   $thisuser = $mybb->user['uid'];
   if ($db->field_exists("as_uid", "users")) {
@@ -3127,215 +3246,320 @@ function scenetracker_minicalendar()
   } else {
     $thisuseras_id = 0;
   }
-  $username = $db->escape_string($mybb->user['username']);
+
+  //Ingame Monate aus den Settings holen und in Array packen
   $ingame =  explode(",", str_replace(" ", "", $mybb->settings['scenetracker_ingametime']));
+  //wir gehen alle durch bis zum letzten, so dass wir aus dem letzten Eintrag den Tag holen können
   foreach ($ingame as $monthyear) {
     $ingamelastday = $monthyear . "-" .  sprintf("%02d", $enddate_ingame);
   }
+  //der erste Tag steht am Anfang, deswegen erstes Array fach.
   $ingamefirstday = $ingame[0] . "-" . sprintf("%02d", $startdate_ingame);
+
+  //TODO wähle default calendar n -> 1 default (montag) TODO evt. später anpassen für dynamisch
+  $calid = 1; //welcher kalender? 
+  //Wir holen uns alle nötigen infos für den Kalender
+  $calendar = $db->fetch_array($db->simple_select("calendars", "*", "cid = {$calid}"));
+
+  //Monate des Ingames durchgehen
   foreach ($ingame as $monthyear) {
-    $kal_datum = strtotime($monthyear . "-01");
+    //Titel aus dem Monatsnamen Array holen
+    $monthindex = date('n', strtotime($monthyear . "-01"));
+    $kal_title =  $monthnames[$monthindex];
 
-    //wieviele tage hat der monat
-    $kal_tage_gesamt = date("t", $kal_datum);
-    //die nullen sind die zeit also 00:00:00, dann Monat ohne führende null, 1 für den 1. des Monats, letztes Jahr
-    $kal_start_timestamp = mktime(0, 0, 0, date("n", $kal_datum), 1, date("Y", $kal_datum));
-    //Welcher Wochentag?
-    $kal_start_tag = date("N", $kal_start_timestamp);
-    //hier der tag des letzten im Monat
-    $kal_ende_tag = date("N", mktime(0, 0, 0, date("n", $kal_datum), $kal_tage_gesamt, date("Y", $kal_datum)));
+    // Jahr setzen
+    $year = date('Y', strtotime($monthyear . "-01"));
 
-    //Monat Jahr
-    // $scenedatetitle = date('%F %Y', strtotime($scenes['scenetracker_date']));
-    $kal_title = date('F Y', $kal_datum);
-    // $kal_title = strftime("%B %Y", $kal_datum);
-    // echo "tes titelt: $kal_title";
-    $kal_day = "";
-    $kal_day .= "<div class=\"date-grid\"  style=\"grid-template-columns: repeat(7, 1fr);\">";
-    //Tage bis zum wochenstart, also wieviele tage der woche sind noch im vormonat
-    //(7 - $kal_ende_tag) wieviele tage am ende des monats in der woche 
-    for ($i = 1; $i <= $kal_tage_gesamt + ($kal_start_tag - 1) + (7 - $kal_ende_tag); $i++) {
-      $kal_anzeige_akt_tag = $i - $kal_start_tag;
-      $kal_anzeige_heute_timestamp = strtotime($kal_anzeige_akt_tag . " day", $kal_start_timestamp);
-      $kal_anzeige_heute_tag = date("j", $kal_anzeige_heute_timestamp);
-      $daynew = sprintf("%02d", $kal_anzeige_heute_tag);
+    // Monat ohne führende Null
+    $month = date('n', strtotime($monthyear . "-01"));
 
-      //Einstellungen des Users für Kalender bekommen
-      if ($db->field_exists("scenetracker_calendarsettings_mini", "users")) {
-        $viewsetting = $db->fetch_field($db->simple_select("users", "scenetracker_calendarsettings_mini", "uid='$thisuser'"), "scenetracker_calendarsettings_mini");
+    //Daten für vorherigen und nächsten Monat
+    $prev_month = get_prev_month($month, $year);
+    $next_month = get_next_month($month, $year);
+
+    // Start constructing the calendar
+    $weekdays = fetch_weekday_structure($calendar['startofweek']);
+    $month_start_weekday = gmdate("w", adodb_gmmktime(0, 0, 0, $month, $calendar['startofweek'] + 1, $year));
+    $prev_month_days = gmdate("t", adodb_gmmktime(0, 0, 0, $prev_month['month'], 1, $prev_month['year']));
+
+    // Monate aus dem vorherigen bilden und anzeigen (also Wochentage auffüllen und entsprechend daten setzen für event querie)
+    if ($month_start_weekday != $weekdays[0] || $calendar['startofweek'] != 0) {
+      $prev_days = $day = gmdate("t", adodb_gmmktime(0, 0, 0, $prev_month['month'], 1, $prev_month['year']));
+      $day -= array_search(($month_start_weekday), $weekdays);
+      $day += $calendar['startofweek'] + 1;
+      if ($day > $prev_month_days + 1) {
+        // Go one week back
+        $day -= 7;
       }
-      if ($viewsetting == 1) {
-        // 1 Szenen aller Charas des Users
-        $chararray = array_keys(scenetracker_get_accounts($thisuser, $thisuseras_id));
-        $charstring = implode(",", $chararray);
-        $scene_querie = " AND s.uid in ($charstring) GROUP BY tid";
-      } else if ($viewsetting == 2) {
-        // alle Szenen des Forums
-        $scene_querie = " GROUP BY tid";
-      } else { // viewsetting == 0 -> default nur vom chara von dem man online ist
-        // 0 Szenen des Charas der online ist
-        $scene_querie = " AND s.uid = '{$thisuser} GROUP BY tid'";
+      $calendar_month = $prev_month['month'];
+      $calendar_year = $prev_month['year'];
+    } else {
+      //Tage des aktuellen Monats
+      $day = $calendar['startofweek'] + 1;
+      $calendar_month = $month;
+      $calendar_year = $year;
+    }
+    // So now we fetch events for this month (nb, cache events for past month, current month and next month for mini calendars too)
+    $start_timestamp = adodb_gmmktime(0, 0, 0, $calendar_month, $day, $calendar_year);
+    $num_days = gmdate("t", adodb_gmmktime(0, 0, 0, $month, 1, $year));
+    $month_end_weekday = gmdate("w", adodb_gmmktime(0, 0, 0, $month, $num_days, $year));
+    $next_days = 6 - $month_end_weekday + $calendar['startofweek'];
+
+    // More than a week? Go one week back
+    if ($next_days >= 7) {
+      $next_days -= 7;
+    }
+    if ($next_days > 0) {
+      $end_timestamp = adodb_gmmktime(23, 59, 59, $next_month['month'], $next_days, $next_month['year']);
+    } else {
+      // We don't need days from the next month
+      $end_timestamp = adodb_gmmktime(23, 59, 59, $month, $num_days, $year);
+    }
+
+    //Hier holen wir uns die Events und speichern sie in ein Array
+    $events_cache = get_events($calendar, $start_timestamp, $end_timestamp, 1);
+
+    //Einstellungen des Users für Kalender bekommen
+    $viewsetting = $db->fetch_field($db->simple_select("users", "scenetracker_calendarsettings_mini", "uid='$thisuser'"), "scenetracker_calendarsettings_mini");
+
+    //welche Szenen sollen angezeigt werden?
+    if ($viewsetting == 1) {
+      // 1 Szenen aller Charas des Users
+      $chararray = array_keys(scenetracker_get_accounts($thisuser, $thisuseras_id));
+      $charstring = implode(",", $chararray);
+      $scene_querie = " AND s.uid in ($charstring) GROUP BY tid";
+    } else if ($viewsetting == 2) {
+      // alle Szenen aller Charaktere des Forums
+      $scene_querie = " GROUP BY tid";
+    } else { // viewsetting == 0 -> default nur vom chara von dem man online ist
+      // 0 Szenen des Charas der online ist
+      $scene_querie = " AND s.uid = '{$thisuser} GROUP BY tid'";
+    }
+
+    //Szenen holen
+    $get_scenes = $db->write_query("
+    SELECT subject, scenetracker_date, scenetracker_time_text, TIME_FORMAT(scenetracker_date, '%H:%i') scenetime, 
+    scenetracker_place, scenetracker_user, scenetracker_trigger, s.* 
+    FROM " . TABLE_PREFIX . "threads t 
+    left join " . TABLE_PREFIX . "scenetracker s ON s.tid = t.tid 
+    WHERE scenetracker_date LIKE '{$monthyear}%' 
+    {$scene_querie} 
+  ");
+
+    $scene_cache = array();
+    while ($scene = $db->fetch_array($get_scenes)) {
+      $scene_date = new DateTime($scene['scenetracker_date']);
+      $scene_date = $scene_date->format("j-n-Y");
+      $scene_cache[$scene_date][] = $scene;
+    }
+
+    //Geburtstage holen - welche einstellungen
+    $setting_birhtday = $mybb->settings['scenetracker_birhday'];
+    $birthday_cache = array();
+    if ($setting_birhtday == "0") {
+      // MYBB Profilfeld
+      $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
+
+      //den monat des geburtstags mit führender 0 aber . als umklammerung
+      $converteddate = date('.m.', strtotime($monthyear . "-01"));
+      $get_birthdays = $db->write_query("
+              SELECT username, uid, fid" . $setting_fid . " FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid" . $setting_fid . " LIKE '%{$converteddate}%'");
+
+      while ($birthday = $db->fetch_array($get_birthdays)) {
+        $fid = "fid" . $setting_fid;
+        $birthday_date = new DateTime($birthday[$fid]);
+        $birthday_date = $birthday_date->format("j-n-Y");
+        $birthday_cache[$birthday_date][] = $birthday;
       }
-      // $scenes = $db->write_query("
-      // SELECT *, TIME_FORMAT(scenetracker_date, '%H:%i') scenetime FROM " . TABLE_PREFIX . "threads 
-      // WHERE scenetracker_date LIKE '{$monthyear}-{$daynew}%' 
-      // {$scene_querie} 
-      // ");
+    } elseif ($setting_birhtday == "1") {
+      // MyBB Geburtstagsfeld Monat ohne führende 0
+      $converteddate = date('-n-', strtotime($monthyear . "-01"));
+      $get_birthdays = $db->write_query("
+              SELECT username, uid, birthday FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '%{$converteddate}%'");
 
-      $scenes = $db->write_query("
-        SELECT subject, scenetracker_date, TIME_FORMAT(scenetracker_date, '%H:%i') scenetime, 
-        scenetracker_place, scenetracker_user, scenetracker_trigger, s.* 
-        FROM " . TABLE_PREFIX . "threads t 
-        left join " . TABLE_PREFIX . "scenetracker s ON s.tid = t.tid 
-        WHERE scenetracker_date LIKE '{$monthyear}-{$daynew}%' 
-        {$scene_querie} 
-        ");
-
-      // ist der tag im ingamezeitraum
-      if ($monthyear . "-" . $daynew >= $ingamefirstday && $monthyear . "-" . $daynew <= $ingamelastday) {
-        $ingame = "activeingame";
-      } else {
-        $ingame = "";
+      while ($birthday = $db->fetch_array($get_birthdays)) {
+        $birthday_date = new DateTime($birthday['birthday']);
+        $birthday_date = $birthday_date->format("j-n-Y");
+        $birthday_cache[$birthday_date][] = $birthday;
       }
-      $datetoconvert = "{$monthyear}-{$daynew}";
-      //original date is in format YYYY-mm-dd
-      $timestamp = strtotime($datetoconvert);
-      $converteddate = date("d.m", $timestamp);
+    } elseif ($setting_birhtday == "3") {
+      // application ucp
+      //den monat des geburtstags mit führender 0
+      $converteddate = date('-m-', strtotime($monthyear . "-01"));
+      $identifier = $mybb->settings['scenetracker_birhdayfid'];
+      $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
+      $get_birthdays = $db->write_query("SELECT uf.uid, username, uf.value FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
+              LEFT JOIN " . TABLE_PREFIX . "users u ON uf.uid = u.uid 
+              WHERE fieldid = {$feldid} and value LIKE '%{$converteddate}%'");
 
-      $setting_birhtday = $mybb->settings['scenetracker_birhday'];
-
-      //Geburtstage anzeige - welches Feld? 
-      if ($setting_birhtday == "0") {
-        //MYBB Profileld
-        $converteddate = date("d.m", $timestamp);
-        $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
-        $get_birthdays = $db->write_query("
-        SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid" . $setting_fid . " LIKE '{$converteddate}%'");
-        $birth_num = $db->num_rows($get_birthdays);
-      } elseif ($setting_birhtday == "1") {
-        // MyBB Geburtstagsfeld
-        $converteddate = date("j-n", $timestamp);
-        $get_birthdays = $db->write_query("
-        SELECT username, uid FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '{$converteddate}%'");
-        $birth_num = $db->num_rows($get_birthdays);
-      } elseif ($setting_birhtday == "3") {
-        //application ucp
-        $converteddate = date("m-d", $timestamp);
-        $identifier = $mybb->settings['scenetracker_birhdayfid'];
-        $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
-        $get_birthdays = $db->write_query("SELECT uf.uid, username FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
-        LEFT JOIN " . TABLE_PREFIX . "users u ON uf.uid = u.uid 
-        WHERE fieldid = {$feldid} and value LIKE '%{$converteddate}'");
-
-        $birth_num = $db->num_rows($get_birthdays);
-      } else {
-        $birth_num = 0;
-      }
-
-      $get_events = $db->write_query("
-        SELECT * FROM `mybb_events` 
-        WHERE 
-        UNIX_TIMESTAMP(STR_TO_DATE('$datetoconvert', '%Y-%m-%d')) 
-        BETWEEN 
-        UNIX_TIMESTAMP(STR_TO_DATE(from_unixtime(starttime, '%Y-%m-%d'), '%Y-%m-%d')) 
-        AND
-        UNIX_TIMESTAMP(STR_TO_DATE(from_unixtime(endtime, '%Y-%m-%d'), '%Y-%m-%d'))
-        OR (
-        endtime = 0 
-        AND 
-        UNIX_TIMESTAMP(STR_TO_DATE(from_unixtime(starttime, '%Y-%m-%d'), '%Y-%m-%d')) = (UNIX_TIMESTAMP(STR_TO_DATE('$datetoconvert', '%Y-%m-%d'))) 
-        )
-        "
-      );
-	    
-      //Jules Plottracker ist installiert
-      if ($db->table_exists("plots")) {
-        $plottracker = 1;
-      } else {
-        $plottracker = 0;
-      }
-
-      $plotoutput = "";
-      if ($plottracker == 1) {
-        $plotquery =  $db->simple_select("plots", "*", "{$timestamp} BETWEEN startdate AND enddate;");
-        $plotquery_num = $db->num_rows($plotquery);
-      } else {
-        $plotquery_num = 0;
-      }
-
-
-      if ($kal_anzeige_akt_tag >= 0 and $kal_anzeige_akt_tag < $kal_tage_gesamt) {
-        $sceneshow = "";
-        $birthdayshow = "";
-        $eventshow = "";
-        $plotshow = "";
-
-        if ($db->num_rows($scenes) > 0 || $birth_num > 0 || $db->num_rows($get_events) > 0 || $plotquery_num > 0) {
-          if ($db->num_rows($scenes) > 0) {
-            $sceneshow = "<span class=\"st_mini_scene_title\">Szenen</span>";
-            while ($scene = $db->fetch_array($scenes)) {
-              $teilnehmer = str_replace(",", ", ", $scene['scenetracker_user']);
-              $sceneshow .= "<div class=\"st_mini_scenelink\"><span><span class=\"raquo\">&raquo;</span> <a href=\"showthread.php?tid={$scene['tid']}\">{$scene['subject']}</a></span><span>({$scene['scenetime']} - {$teilnehmer})</span></div>";
-              $ownscene = "ownscene";
-            }
-          }
-          if ($birth_num > 0) {
-            $birthdayshow = "<span class=\"st_mini_scene_title\">Geburtstage</span>";
-            while ($birthday = $db->fetch_array($get_birthdays)) {
-              $birthdayshow .= "<div class=\"st_mini_scenelink\">" . build_profile_link($birthday['username'], $birthday['uid']) . "</div>";
-              $birthdaycss = "birthdaycal";
-            }
-          }
-
-          if ($db->num_rows($get_events) > 0) {
-            $eventcss = "event";
-            $eventshow = "<span class=\"st_mini_scene_title\">Events</span>";
-
-            while ($event = $db->fetch_array($get_events)) {
-              if ($event['name'] == "Fullmoon") {
-                $fullmoon = "fullmoon";
-              } else {
-                $fullmoon = "";
-              }
-              $eventshow .= "<div class=\"st_mini_scenelink \"><a href=\"calendar.php?action=event&eid={$event['eid']}\">{$event['name']}</a></div>";
-            }
-          }
-          if ($plotquery_num > 0) {
-            $plotshow = "<span class=\"st_mini_scene_title\">Plots</span>";
-            while ($plot = $db->fetch_array($plotquery)) {
-              $plotshow .= "<div class=\"st_mini_scenelink plot\"><a href=\"plottracker.php?action=view&plid={$plot['plid']}\">" . $plot['name'] . "</a></div>";
-            }
-          }
-          if ($mybb->user['uid'] != 0) {
-            $showpop = "<div class=\"st_mini_scene_show\">
-                       {$sceneshow}
-                        {$birthdayshow}
-                        {$eventshow}
-                        {$plotshow}
-                      </div>";
-          } else {
-            $showpop = "";
-          }
-          $kal_day .= "
-            <div class=\"day st_mini_scene {$fullmoon} {$birthdaycss} {$ownscene} {$eventcss} {$ingame}\">
-              {$kal_anzeige_heute_tag}
-              {$showpop}
-          </div>";
-          $fullmoon = "";
-          $eventcss = "";
-          $birthdaycss = "";
-          $ownscene = "";
-        } else {
-          $kal_day .= "<div class=\"day {$ingame}\">" . $kal_anzeige_heute_tag . "</div>";
-        }
-      } else {
-        $kal_day .= "<div class=\"day old\"></div>";
+      while ($birthday = $db->fetch_array($get_birthdays)) {
+        $birthday_date = new DateTime($birthday['value']);
+        $birthday_date = $birthday_date->format("j-n");
+        $birthday_cache[$birthday_date][] = $birthday;
       }
     }
-    $kal_day .= "</div>";
-    eval("\$scenetracker_calendar_bit .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
+
+    $today = my_date("dnY");
+    $in_month = 0;
+    $day_bits = $kal_day = "";
+
+    for ($row = 0; $row < 6; ++$row) // Iterate weeks (each week gets a row)
+    {
+      foreach ($weekdays as $weekday_id => $weekday) {
+
+        $day_lz = sprintf("%02d", $day);
+        // Ist der Tag im Ingamezeitraum
+        if ($monthyear . "-" . $day_lz >= $ingamefirstday && $monthyear . "-" . $day_lz <= $ingamelastday) {
+          $ingamecss = " activeingame";
+        } else {
+          $ingamecss = "";
+        }
+        $popupflag = 0;
+
+        // Current month always starts on 1st row
+        if ($row == 0 && $day == $calendar['startofweek'] + 1) {
+          $in_month = 1;
+          $calendar_month = $month;
+          $calendar_year = $year;
+        } else if ($calendar_month == $prev_month['month'] && $day > $prev_month_days) {
+          $day = 1;
+          $in_month = 1;
+          $calendar_month = $month;
+          $calendar_year = $year;
+        } else if ($day > $num_days && $calendar_month != $prev_month['month']) {
+          $in_month = 0;
+          $calendar_month = $next_month['month'];
+          $calendar_year = $next_month['year'];
+          $day = 1;
+          if ($calendar_month == $month) {
+            $in_month = 1;
+          }
+        }
+
+        if ($weekday_id == 0) {
+          $week_stamp = adodb_gmmktime(0, 0, 0, $calendar_month, $day, $calendar_year);
+          $week_link = get_calendar_week_link($calendar['cid'], $week_stamp);
+        }
+
+        if ($weekday_id == 0 && $calendar_month == $next_month['month']) {
+          break;
+        }
+
+        // Events block
+        $scenetracker_calender_popbit_bit = $eventshow = $event_lang = $eventcss = '';
+        if (is_array($events_cache) && array_key_exists("{$day}-{$calendar_month}-{$calendar_year}", $events_cache)) {
+          $popupflag = 1;
+          $caption = $lang->scenetracker_minical_caption_event;
+          $total_events = count($events_cache["$day-$calendar_month-$calendar_year"]);
+          if ($total_events > $calendar['eventlimit'] && $calendar['eventlimit'] != 0) {
+            $calendar['link'] = get_calendar_link($calendar['cid'], $calendar_year, $calendar_month, $day);
+            $eventcss = " event";
+            if ($event['name'] == "Fullmoon") {
+              $fullmoon = "fullmoon";
+            } else {
+              $fullmoon = "";
+            }
+            eval("\$scenetracker_calender_popbit_bit = \"" . $templates->get("scenetracker_calender_event_bit") . "\";");
+          } else {
+            $eventcss = " event";
+            if ($event['name'] == "Fullmoon") {
+              $fullmoon = " fullmoon";
+            } else {
+              $fullmoon = "";
+            }
+            foreach ($events_cache["$day-$calendar_month-$calendar_year"] as $event) {
+              $event['eventlink'] = get_event_link($event['eid']);
+              $event['name'] = htmlspecialchars_uni($event['name']);
+              if ($event['private'] == 1) {
+                $popitemclass = " event private_event";
+              } else {
+                $popitemclass = " event public_event";
+              }
+              eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_event_bit") . "\";");
+            }
+            eval("\$eventshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
+          }
+        }
+
+        // Szenen block
+        $scenetracker_calender_popbit_bit = $sceneshow = $ownscene = "";
+        if (is_array($scene_cache) && array_key_exists("{$day}-{$calendar_month}-{$calendar_year}", $scene_cache)) {
+          $ownscene = " ownscene";
+          $popupflag = 1;
+          $caption = $lang->scenetracker_minical_caption_scene;
+          $popitemclass = " scene";
+          foreach ($scene_cache["$day-$calendar_month-$calendar_year"] as $scene) {
+            $teilnehmer = str_replace(",", ", ", $scene['scenetracker_user']);
+            if ($mybb->settings['scenetracker_time_text'] == 1) {
+              $scene['scenetime'] = $scene['scenetracker_time_text'];
+            } else {
+              $scene['scenetime'] = $scene['scenetime'];
+            }
+            eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_scene_bit") . "\";");
+          }
+          eval("\$sceneshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
+        }
+
+        // Birthday Block
+        $birthdaycss = $scenetracker_calender_popbit_bit = $popitemclass = $caption = '';
+        if (is_array($birthday_cache) && array_key_exists("$day-$calendar_month", $birthday_cache)) {
+          $caption = $lang->scenetracker_minical_caption_birthday;
+          $birthdaycss = " birthdaycal";
+          $popitemclass = " birthday";
+          $popupflag = 1;
+          foreach ($birthday_cache["$day-$calendar_month"] as $birthday) {
+            $birthdaylink = build_profile_link($birthday['username'], $birthday['uid']);
+            eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_birthday_bit") . "\";");
+          }
+          eval("\$birthdayshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
+        }
+
+        //Jules Plottracker? Plot Block
+        $popitemclass = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
+        if ($plottracker == 1) {
+          // DATE_FORMAT(FROM_UNIXTIME(`user.registration`), '%e %b %Y') AS 'date_formatted'
+          $plotquery =  $db->simple_select("plots", "*", "'{$day}-{$monthyear}' BETWEEN DATE_FORMAT(FROM_UNIXTIME(`startdate`), '%e-%c-%Y') AND DATE_FORMAT(FROM_UNIXTIME(`enddate`), '%e-%c-%Y')");
+          while ($plot = $db->fetch_array($plotquery)) {
+            $popupflag = "1";
+            $popitemclass = " plot";
+            $plotcss = " plot";
+            $caption = $lang->scenetracker_minical_caption_plot;
+            eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_plot_bit") . "\";");
+          }
+          eval("\$plotshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
+        }
+        $day_link = get_calendar_link($calendar['cid'], $calendar_year, $calendar_month, $day);
+
+        if ($in_month == 0) {
+          $month_status = " lastmonth";
+        } else if ($in_month == 0) {
+          // Not in this month
+          $month_status = " lastmonth";
+        } else {
+          // Just a normal day in this month
+          $month_status = " thismonth";
+        }
+
+        //infopop up nur wenn es etwas zum anzeigen gibt
+        if ($popupflag == 1) {
+          eval("\$scenetracker_calendar_day_pop = \"" . $templates->get("scenetracker_calendar_day_pop") . "\";");
+        } else {
+          $scenetracker_calendar_day_pop = "";
+        }
+        eval("\$day_bits .= \"" . $templates->get("scenetracker_calendar_day") . "\";");
+        $day_birthdays = $day_events = "";
+        ++$day;
+      }
+
+      if ($day_bits) {
+        eval("\$kal_day .= \"" . $templates->get("scenetracker_calendar_weekrow") . "\";");
+      }
+      $day_bits = "";
+      $scenetracker_calendar_day_pop = "";
+    }
+
+    eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
   }
-  eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar") . "\";");
 }
 
 /**
@@ -4203,4 +4427,12 @@ function scenetracker_online_location($plugin_array)
   }
 
   return $plugin_array;
+}
+
+/*einträge löschen, wenn ein thread gelöscht wird*/
+$plugins->add_hook("class_moderation_delete_thread", "scenetracker_class_moderation_delete_thread");
+function scenetracker_class_moderation_delete_thread($tid)
+{
+  global $db;
+  $db->delete_query("scenetracker", "tid = '{$tid}'");
 }

@@ -1,16 +1,27 @@
 # Szenentracker
 ## Updates: 		
-Last: 18. Juni 2024
-Version: 1.0.5	
+Last: 28. Juni 2024
+Version: 1.0.6	
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
 - update_scenetracker.php ins hauptverzeichnis laden und aufrufen. Anschließend aufrufen und dann wieder löschen.
-- savescenes.php und getusernames.php können gelöscht werden
+- folgende templates können gelöscht werden: scenetracker_calendar, 
+- **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Updatescript hinzugefügt werden, sonst manuell nachholen! (siehe changelog)
 
 ### Changelog: 
-#### 1.0.4 -> 1.0.5    
+#### 1.0.5 -> 1.0.6    
+Korrektur Anzeige Events (jetzt aber hoffentlich wirklich :D )     
+- scenetracker_calendar_bit ```</div>{$kal_day}```ersetzen mit ```{$kal_day}</div>```
+- scenetracker_calendar kann gelöscht werden
+- Neue Templates: scenetracker_calendar_day_pop, scenetracker_calender_popbit, scenetracker_calender_plot_bit, scenetracker_calender_birthday_bit, scenetracker_calender_scene_bit, scenetracker_calender_event_bit, scenetracker_calendar_day, scenetracker_calendar_weekrow
+- Änderung Language Datei
+- änderungen css: ```.day.st_mini_scene.lastmonth {
+    opacity: 0.1;
+}``` hinzufügen
 
+#### 1.0.4 -> 1.0.5    
+- savescenes.php und getusernames.php können gelöscht werden
 ##### Bugfix:
 - Korrektur Anzeige von Events - Verschiebung des Tags, sowie anzeige einmaliges Ergebnis.
 
@@ -40,7 +51,6 @@ Version: 1.0.5
 **Die Updates müssen natürlich nur durchgeführt werden, wenn der Tracker vorher schon installiert war. Wenn nicht, reicht es das Plugin ganz normal zu installieren** 		
 
 ```diff
-- Ganz unten im Text: HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin - sollte schon automatisch drin sein. 
 - Sowie: HOW TO: Minicalender überm Inplay anzeigen.
 ```
 
@@ -148,66 +158,6 @@ forumdisplay_thread öffnen
 <img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/tracker_ucp.png?raw=true" style="width:450px">
 
 <img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/treacker_threadedit.png?raw=true" style="width:450px">
-
-
-
-## **HOW TO: Verbinden vom Szenentracker mit aheartforspinach's Archivierungsplugin**  
-**Nur in älteren Versionen des Plugins nötig** 
-öffne: inc/plugins/scenetracker.php  
-suche nach:
-```
-  } elseif ($close == 0) {
-    if (scenetracker_change_allowed($teilnehmer)) {
-```
-füge **darüber** ein:
-```    
-	if ($db->field_exists('archiving_inplay', 'forums')) {
-   $fid = $db->fetch_field($db->simple_select("threads", "fid", "tid = {$tid}"), "fid");
-   redirect("misc.php?action=archiving&fid={$fid}&tid={$tid}");
- }
-```
-  
-öffne inc/plugins/archiving.php
-suche nach:
-```
-$ipdate = $db->fetch_field($db->simple_select('ipt_scenes', 'date', 'tid = ' . $tid), 'date');
-```
- **ersetze mit** :
-```    
-		// $ipdate = $db->fetch_field($db->simple_select('ipt_scenes', 'date', 'tid = ' . $tid), 'date');
-		$ipdate = $db->fetch_field($db->simple_select('threads', 'scenetracker_date', 'tid = ' . $tid), 'scenetracker_date');
-		$ipdate = strtotime($ipdate);
-```
-  
-
-suche nach:
-```
-$query = $db->simple_select('ipt_scenes_partners', 'uid', 'tid = '. $thread['tid']);
-```
- **ersetze mit** :
-```    
-// $query = $db->simple_select('ipt_scenes_partners', 'uid', 'tid = '. $thread['tid']);
-	$query = $db->fetch_field($db->simple_select('threads', 'scenetracker_user', 'tid = ' . $thread['tid']), "scenetracker_user");
-	
-```
-
-  
-
-suche nach:
-```
-	$partners = [];
-	while($row = $db->fetch_array($query)) {
-		$partners[] = $row['uid'];
-	}
-```
- **ersetze mit** :
-```    
-		$partners_name = explode(",", $query);
-		foreach($partners_name as $name) {
-			$partneris = get_user_by_username($name);
-			$partners[] = $partneris['uid'];
-		}
-```
 
 
 ## **HOW TO: Minicalender über dem Ingame**

@@ -5,7 +5,9 @@ require("global.php");
 // ini_set('display_errors', 1);
 
 global $db, $mybb, $lang;
-
+echo '<html lang="de">
+<head>
+<meta charset="utf-8"></head><body>';
 echo (
   '<style type="text/css">
 body {
@@ -31,9 +33,11 @@ if ($mybb->usergroup['canmodcp'] == 1) {
   // require_once "inc/plugins/scenetracker.php";
 
   echo "<h1>Update Script für Szenentracker Plugin November</h1>";
-  echo "<p>Updatescript wurde zuletzt im Januar 2024 aktualisiert</p>";
+  echo "<p>Updatescript wurde zuletzt im Juni 2024 aktualisiert</p>";
+
   echo "<p>Das Skript muss nur ausgeführt werden, wenn von einer alten auf eine neue Version geupdatet wird.<br> 
   Bei Neuinstallation, muss hier nichts getan werden!</p>";
+  echo "<h2>Neue Templates hinzufügen Nötig wenn unter <b>Version 1.0.4</b>:</h2>";
 
   echo '<form action="" method="post">';
   echo '<input type="submit" name="update" value="Update durchführen">';
@@ -105,7 +109,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
       echo "Feld tracker_reminder wurde zu users hinzugefügt.<br>";
       $dbcheck = 1;
     }
-    
+
 
     // Neue Tabelle um Szenen zu speichern und informationen, wie die benachrichtigungen sein sollen.
     if (!$db->table_exists("scenetracker")) {
@@ -129,26 +133,41 @@ if ($mybb->usergroup['canmodcp'] == 1) {
     }
   }
 
-  echo "<h1>Neue Templates hinzufügen:</h1>";
+  echo "<h2>Neue Templates hinzufügen <b>Version 1.0.6</b>:</h2>";
 
   echo '<form action="" method="post">';
-  echo '<input type="submit" name="templates" value="Templates hinzufügen">';
+  echo '<input type="submit" name="templates" value="Neue Templates hinzufügen">';
   echo '</form>';
 
   if (isset($_POST['templates'])) {
     scenetracker_add_templates("update");
-  
+  }
+  echo "<h2>Templates Änderungen vornehmen:</h1>";
+  echo "<h3>Änderungen für offenes Textfeld Zeit (version: 1.0.2) </h3>";
+  echo '<form action="" method="post">';
+  echo '<input type="submit" name="change_timetext" value="offenes textfeld Templates updaten">';
+  echo '</form>';
+  if (isset($_POST['change_timetext'])) {
     include MYBB_ROOT . "/inc/adminfunctions_templates.php";
     find_replace_templatesets("scenetracker_newthread", "#" . preg_quote('<input type="time" name="scenetracker_time" value="{$scenetracker_time}" />') . "#i", '<input type="{$time_input_type}" value="{$scenetracker_time}" name="{$time_input_name}" {$placeholder}/>');
-    echo "scenetracker_newthread - wurde aktualisiert";
-    // <input type="time" name="scenetracker_time" value="{$scenetracker_time}" />
+    echo "scenetracker_newthread - wurde aktualisiert ";
+  }
+  echo "<h3>Änderungen für Überarbeitung Minikalender (version: 1.0.6) </h3>";
+  echo '<form action="" method="post">';
+  echo '<input type="submit" name="change_minicalender" value="minicalender Templates updaten">';
+  echo '</form>';
+  if (isset($_POST['change_minicalender'])) {
+    include MYBB_ROOT . "/inc/adminfunctions_templates.php";
+    find_replace_templatesets("scenetracker_calendar_bit", "#" . preg_quote('    </div>
+	 {$kal_day}') . "#i", '{$kal_day}</div>');
+    echo "scenetracker_calendar_bit - wurde aktualisiert ('	&lt;/div>&lbrace;&dollar;kal_day&rbrace; ersetzen mit &lbrace;&dollar;kal_day&rbrace;	&lt;/div><br><b>Bitte überprüfen, funktioniert oft nicht, dann händisch ändern!</b> )";
   }
 
-  echo "<h2>Folgende Änderungen müssen manuell durchgeführt werden (Änderungen in vorhandenen Templates):</h2>";
+  echo "<h2>Folgende Änderungen müssen manuell durchgeführt werden (vor 1.0.2) (Änderungen in vorhandenen Templates):</h2>";
   echo '<b>scenetracker_ucp_main</b>: Suche nach {$ucp_main_reminderopt} füge darunter ein: {$calendar_setting_form} <br>';
 
   echo 'zum Stylesheet hinzufügen:<br>
-  <textarea> .scenetracker_cal_setting {
+  <textarea style="width: 70%; height: 300px;"> .scenetracker_cal_setting {
     width: 92%;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -175,7 +194,13 @@ if ($mybb->usergroup['canmodcp'] == 1) {
     justify-self: center;
 }</textarea><br><br>';
 
+  echo "<h1>CSS hinzufügen version 1.0.6</h1>";
 
+  echo ' <textarea style="width: 70%; height: 300px;">
+ .day.st_mini_scene.lastmonth {
+    opacity: 0.2;
+}
+ </textarea> ';
 
   echo "<h1>CSS Nachträglich hinzufügen?</h1>";
   echo "<p>Nach einem MyBB Upgrade fehlen die Stylesheets? <br> Hier kannst du den Standard Stylesheet neu hinzufügen.</p>";
@@ -187,9 +212,8 @@ if ($mybb->usergroup['canmodcp'] == 1) {
     $themesids = $db->write_query("SELECT tid FROM `" . TABLE_PREFIX . "themes`");
     echo "CSS zu Masterstyle hinzufügen";
     $check_tid = $db->simple_select("themestylesheets", "*", "tid = '1' AND name = 'scenetracker.css'");
-    echo "bla " . $db->num_rows($check_tid);
+
     if ($db->num_rows($check_tid) == 0) {
-      echo "blub";
       $css = array(
         'name' => 'scenetracker.css',
         'tid' => 1,
@@ -636,19 +660,20 @@ if ($mybb->usergroup['canmodcp'] == 1) {
       );
 
 
-
       $sid = $db->insert_query("themestylesheets", $css);
       $db->update_query("themestylesheets", array("cachefile" => "css.php?stylesheet=" . $sid), "sid = '" . $sid . "'", 1);
     }
     require_once "admin/inc/functions_themes.php";
     update_theme_stylesheet_list($theme['tid']);
   }
-
-  echo '<div style="width:100%; background-color: rgb(121 123 123 / 50%); display: flex; position:absolute; bottom:0;right:0; height:50px; justify-content: center; align-items:center; gap:20px;">
+  echo '<br><br><br>';
+  echo '<div style="width:100%; background-color: rgb(121 123 123 / 50%); display: flex; position:fixed; bottom:0;right:0; height:50px; justify-content: center; align-items:center; gap:20px;">
 <div> <a href="https://github.com/katjalennartz/scenetracker" target="_blank">Github Rep</a></div>
 <div> <b>Kontakt:</b> risuena (Discord)</div>
 <div> <b>Support:</b>  <a href="https://storming-gates.de/showthread.php?tid=1023729">SG Thread</a> oder via Discord</div>
 </div>';
+
+  echo '</body></html>';
 } else {
   echo "<h1>Kein Zugriff</h1>";
 }
