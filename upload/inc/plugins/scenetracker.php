@@ -893,7 +893,7 @@ function scenetracker_add_templates($type = 'install')
   $template[23] = array(
     "title" => 'scenetracker_calender_popbit',
     "template" => '
-    <div class="st_minical_pop{$popitemclass}"><h3>{$caption}</h3>
+    <div class="st_minical_pop{$popitemclass}">{$caption}
     {$scenetracker_calender_popbit_bit}
     </div>
    ',
@@ -957,6 +957,17 @@ function scenetracker_add_templates($type = 'install')
   $template[28] = array(
     "title" => 'scenetracker_calendar_weekrow',
     "template" => '{$day_bits}',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
+
+  $template[29] = array(
+    "title" => 'scenetracker_calendar_day',
+    "template" => '<div class="day st_mini_scene{$month_status}{$eventcss}{$fullmoon}{$birthdaycss}{$ownscene}{$ingamecss}{$plotcss}">
+	{$day}
+	{$scenetracker_calendar_day_pop}
+</div>',
     "sid" => "-2",
     "version" => "1.0",
     "dateline" => TIME_NOW
