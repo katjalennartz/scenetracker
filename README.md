@@ -11,9 +11,14 @@ Version: 1.0.6
 
 ### Changelog: 
 #### 1.0.5 -> 1.0.6    
+Korrektur Anzeige Events (jetzt aber hoffentlich wirklich :D )     
 - scenetracker_calendar_bit ```</div>{$kal_day}```ersetzen mit ```{$kal_day}</div>```
 - scenetracker_calendar kann gelöscht werden
 - Neue Templates: scenetracker_calendar_day_pop, scenetracker_calender_popbit, scenetracker_calender_plot_bit, scenetracker_calender_birthday_bit, scenetracker_calender_scene_bit, scenetracker_calender_event_bit, scenetracker_calendar_day, scenetracker_calendar_weekrow
+- Änderung Language Datei
+- änderungen css: ```.day.st_mini_scene.lastmonth {
+    opacity: 0.1;
+}``` hinzufügen
 
 #### 1.0.4 -> 1.0.5    
 - savescenes.php und getusernames.php können gelöscht werden
