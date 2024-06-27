@@ -5,7 +5,7 @@ require("global.php");
 // ini_set('display_errors', 1);
 
 global $db, $mybb, $lang;
-echo '<html lang="en">
+echo '<html lang="de">
 <head>
 <meta charset="utf-8"></head><body>';
 echo (
