@@ -1,11 +1,4 @@
 <?php
-/**
- * MyBB Copyright 2014 MyBB Group, All Rights Reserved
- *
- * Website: https://mybb.com
- * License: https://mybb.com/about/license
- *
- */
 
 $l['scenetracker_btnsubmit'] = 'speichern';
 $l['scenetracker_openscene'] = '[open]';
@@ -33,11 +26,15 @@ $l['scenetracker_displaystatus_shown'] = 'is displayed (profile)';
 $l['scenetracker_displaystatus_hidden'] = 'is hidden';
 $l['scenetracker_sceneisclosed'] = 'is closed';
 $l['scenetracker_sceneisopen'] = 'is open';
-$l['scenetracker_newscene_subject'] = 'Neue Szene';
-$l['scenetracker_newpost_subject'] = 'Neue Antwort';
-$l['scenetracker_newScene_pm'] = '{1} hat eine Szene eröffnet oder du wurdest nachträglich hinzugefügt.<br> {2}';
-$l['scenetracker_newPost_pm'] = '{1} hat auf eine Szene geantwortet.<br> {2}';
+
+/*My Alerts*/
 $l['myalerts_setting_scenetracker_newScene'] = 'Szenentracker: Benachrichtigung bei einer neuen Szene?';
 $l['scenetracker_newScene'] = '{1} hat eine Szene eröffnet oder du wurdest nachträglich hinzugefügt.';
 $l['myalerts_setting_scenetracker_newAnswer'] = 'Szenentracker: Benachrichtigung bei einer neuen Antwort?';
 $l['scenetracker_newAnswer'] = '{1} hat auf eine Szene geantwortet.';
+
+/*Minikalender*/ 
+$l['scenetracker_minical_caption_event'] = '<h3>Events:</h3>';
+$l['scenetracker_minical_caption_scene'] = '<h3>Szenen:</h3>';
+$l['scenetracker_minical_caption_birthday'] = '<h3>Geburtstage:</h3>';
+$l['scenetracker_minical_caption_plot'] = '<h3>Plots:</h3>';
