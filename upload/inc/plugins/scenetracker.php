@@ -185,7 +185,7 @@ function scenetracker_activate()
   <tbody style="{$collapsed[\'usercpmisc_e\']}" id="usercpmisc_e"><tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>
   ');
   find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$day_events}') . "#i", '{$day_events}{$scene_ouput}{$birthday_ouput}');
-  find_replace_templatesets("footer", "#" . preg_quote('<div id="footer">') . "#i", '<div id="footer">{$scenetracker_calendar}');
+  find_replace_templatesets("footer", "#" . preg_quote('<div id="footer">') . "#i", '<div id="footer"><div class="scenetracker containerwrapper">{$scenetracker_calendar}</div>');
 
   //  find_replace_templatesets("newthread", "#" . preg_quote('{$thread[\'profilelink\']}') . "#i", '{$scenetrackerforumdisplay}{$thread[\'profilelink\']}');
 
@@ -229,7 +229,7 @@ function scenetracker_deactivate()
   find_replace_templatesets("member_profile", "#" . preg_quote('</tr><tr><td colspan="2">{$scenetracker_profil}</td>') . "#i", '');
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>') . "#i", '');
   find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}') . "#i", '');
-  find_replace_templatesets("footer", "#" . preg_quote('{$scenetracker_calendar}') . "#i", '');
+  find_replace_templatesets("footer", "#" . preg_quote('<div class="scenetracker containerwrapper">{$scenetracker_calendar}</div>') . "#i", '');
 
   // Alerts deaktivieren
   if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
@@ -972,7 +972,7 @@ function scenetracker_add_templates($type = 'install')
     "version" => "1.0",
     "dateline" => TIME_NOW
   );
-
+  
   foreach ($template as $row) {
     //prüfen ob das template schon existiert
     $check = $db->num_rows($db->simple_select("templates", "title", "title LIKE '{$row['title']}'"));
@@ -4436,3 +4436,5 @@ function scenetracker_class_moderation_delete_thread($tid)
   global $db;
   $db->delete_query("scenetracker", "tid = '{$tid}'");
 }
+
+
