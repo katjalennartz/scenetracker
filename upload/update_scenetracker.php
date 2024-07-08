@@ -37,7 +37,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
 
   echo "<p>Das Skript muss nur ausgeführt werden, wenn von einer alten auf eine neue Version geupdatet wird.<br> 
   Bei Neuinstallation, muss hier nichts getan werden!</p>";
-  echo "<h2>Neue Templates hinzufügen Nötig wenn unter <b>Version 1.0.4</b>:</h2>";
+  echo "<h2>Neue Templates hinzufügen Nötig wenn unter <b>Version 1.0.5</b>:</h2>";
 
   echo '<form action="" method="post">';
   echo '<input type="submit" name="update" value="Update durchführen">';
