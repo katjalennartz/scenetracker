@@ -166,8 +166,52 @@ forumdisplay_thread öffnen
 
 
 ## **HOW TO: Minicalender über dem Ingame**
+suchen nach:
+```
+$plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
+```
+
+**ersetzen mit**:
+```
+$plugins->add_hook("build_forumbits_forum", "scenetracker_minicalendar");
+```
 
 
+dann unter 
+```global $db, $mybb, $templates, $scenetracker_calendar, $lang, $monthnames;```
+
+ (X ersetzen mit fid) 
+
+```
+if ($forum['fid'] == "X") {  
+```
+
+und dann ans ende der funktion
+```
+eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
+```
+
+**ersetzen mit**
+```
+eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
+}
+```
+
+
+und
+```
+function scenetracker_minicalendar()
+```
+ersetzen mit
+```
+function scenetracker_minicalendar(&$forum)
+```
+ 
+
+Die Ausgabe erfolgt dann über $forum['minicalender']
+
+
+***Vor Version 1.0.6***  
 suchen nach:
 ```
 $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
