@@ -1,7 +1,7 @@
 # Szenentracker
 ## Updates: 		
 Last: 28. Juni 2024
-Version: 1.0.6	
+Version: 1.0.7
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
@@ -10,6 +10,11 @@ Version: 1.0.6
 - **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Updatescript hinzugefügt werden, sonst manuell nachholen! (siehe changelog)
 
 ### Changelog: 
+#### 1.0.6 -> 1.0.7  
+- bugfix: Minikalender - Korrektur bei Geburtstagen mit Standardfeld
+- bugfixes: php8
+- Extra: hinzufügen von Funktion um Szenentracker auf dem Index einklappbar zu machen. Template änderungen dafür weiter unten
+  
 #### 1.0.5 -> 1.0.6    
 Korrektur Anzeige Events (jetzt aber hoffentlich wirklich :D )     
 - scenetracker_calendar_bit ```</div>{$kal_day}```ersetzen mit ```{$kal_day}</div>```
@@ -209,4 +214,29 @@ Die Ausgabe erfolgt dann über $forum['minicalender']
 
 
 
+## **HOW TO: Szenentracker auf dem Index einklappbar machen
 
+
+scenetracker_index_main template inhalt ersetzen mit
+```
+<table border="0" class="tborder scenetrackerindex">
+<thead>
+<tr>
+<td class="thead{$expthead}">
+<div class="expcolimage"><img src="{$theme['imgdir']}/collapse{$collapsedimg['szenenindex']}.png" id="szenenindex_img" class="expander" alt="{$expaltext}" title="{$expaltext}" /></div>
+
+<div><strong>Szenen {$counter}</strong></div>
+</td>
+</tr>
+</thead>
+
+<tbody style="{$collapsed['szenenindex_e']}" id="szenenindex_e">
+<tr>
+<td align="center" style="white-space: nowrap"> 
+	<div class="scenetracker_index wrapper_container">
+    {$scenetracker_index_bit_chara}
+  </div></td></tr>
+</tbody>
+</table>
+<br />
+```
