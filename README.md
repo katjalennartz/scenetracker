@@ -239,7 +239,7 @@ und dann ans ende der funktion
 
 **ersetzen mit**
 ```
-    $forum['minicalender'] = eval($templates->render('scenetracker_calendar'));
+    $forum['minicalender'] .= eval($templates->render('scenetracker_calendar'));
   }
 ```
 
