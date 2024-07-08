@@ -36,7 +36,7 @@ function scenetracker_info()
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
-    "version" => "1.0.6",
+    "version" => "1.0.7",
     "compatibility" => "18*"
   );
 }
@@ -972,7 +972,7 @@ function scenetracker_add_templates($type = 'install')
     "version" => "1.0",
     "dateline" => TIME_NOW
   );
-  
+
   foreach ($template as $row) {
     //prüfen ob das template schon existiert
     $check = $db->num_rows($db->simple_select("templates", "title", "title LIKE '{$row['title']}'"));
@@ -2886,7 +2886,7 @@ function scenetracker_showinprofile()
 $plugins->add_hook('index_start', 'scenetracker_list');
 function scenetracker_list()
 {
-  global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara, $expthead, $expcolimage, $expaltext, $expaltext, $expdisplay, $theme;
+  global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara, $expthead, $lang, $expcolimage, $expaltext, $expaltext, $expdisplay, $theme, $collapse, $collapsed, $collapsedimg, $collapsedthead;
   //set as uid
   if ($db->field_exists("as_uid", "users")) {
     $asuid = $mybb->user['as_uid'];
@@ -2917,6 +2917,27 @@ function scenetracker_list()
       scenetracker_scene_inform_status($id, $certained);
       redirect('index.php#closepop');
     }
+
+    if (!empty($mybb->cookies['collapsed'])) {
+      $colcookie = $mybb->cookies['collapsed'];
+
+      // Preserve and don't unset $collapse, will be needed globally throughout many pages
+      $collapse = explode("|", $colcookie);
+      foreach ($collapse as $val) {
+        $collapsed[$val . "_e"] = "display: none;";
+        $collapsedimg[$val] = "_collapsed";
+        $collapsedthead[$val] = " thead_collapsed";
+      }
+    }
+
+    if (!isset($collapsedthead['szenenindex'])) {
+      $collapsedthead['szenenindex'] = '';
+    }
+    if (!isset($collapsedimg['szenenindex'])) {
+      $collapsedimg['szenenindex'] = '';
+    }
+
+    $expaltext = (in_array("szenenindex", $collapse)) ? $lang->expcol_expand : $lang->expcol_collapse;
 
     //change status of scenes
     if ($mybb->get_input('closed') == "1") {
@@ -3201,7 +3222,7 @@ function scenetracker_calendar()
 $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
 function scenetracker_minicalendar()
 {
-  global $db, $mybb, $templates, $scenetracker_calendar, $lang;
+  global $db, $mybb, $templates, $scenetracker_calendar, $lang, $monthnames;
   $scenetracker_calendar = $fullmoon = $ownscene = $birthdaycss = $eventcss = "";
 
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
@@ -3268,12 +3289,15 @@ function scenetracker_minicalendar()
     $kal_title =  $monthnames[$monthindex];
 
     // Jahr setzen
+    $year = "";
     $year = date('Y', strtotime($monthyear . "-01"));
 
     // Monat ohne führende Null
+    $month = "";
     $month = date('n', strtotime($monthyear . "-01"));
 
     //Daten für vorherigen und nächsten Monat
+
     $prev_month = get_prev_month($month, $year);
     $next_month = get_next_month($month, $year);
 
@@ -3378,8 +3402,11 @@ function scenetracker_minicalendar()
               SELECT username, uid, birthday FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '%{$converteddate}%'");
 
       while ($birthday = $db->fetch_array($get_birthdays)) {
+        if (substr($birthday['birthday'], -1, 1) == '-') {
+          $birthday['birthday'] = $birthday['birthday'] . "0000";
+        }
         $birthday_date = new DateTime($birthday['birthday']);
-        $birthday_date = $birthday_date->format("j-n-Y");
+        $birthday_date = $birthday_date->format("j-n");
         $birthday_cache[$birthday_date][] = $birthday;
       }
     } elseif ($setting_birhtday == "3") {
@@ -3450,35 +3477,24 @@ function scenetracker_minicalendar()
         if (is_array($events_cache) && array_key_exists("{$day}-{$calendar_month}-{$calendar_year}", $events_cache)) {
           $popupflag = 1;
           $caption = $lang->scenetracker_minical_caption_event;
-          $total_events = count($events_cache["$day-$calendar_month-$calendar_year"]);
-          if ($total_events > $calendar['eventlimit'] && $calendar['eventlimit'] != 0) {
-            $calendar['link'] = get_calendar_link($calendar['cid'], $calendar_year, $calendar_month, $day);
-            $eventcss = " event";
-            if ($event['name'] == "Fullmoon") {
-              $fullmoon = "fullmoon";
-            } else {
-              $fullmoon = "";
-            }
-            eval("\$scenetracker_calender_popbit_bit = \"" . $templates->get("scenetracker_calender_event_bit") . "\";");
-          } else {
-            $eventcss = " event";
+
+          $eventcss = " event";
+          foreach ($events_cache["$day-$calendar_month-$calendar_year"] as $event) {
             if ($event['name'] == "Fullmoon") {
               $fullmoon = " fullmoon";
             } else {
               $fullmoon = "";
             }
-            foreach ($events_cache["$day-$calendar_month-$calendar_year"] as $event) {
-              $event['eventlink'] = get_event_link($event['eid']);
-              $event['name'] = htmlspecialchars_uni($event['name']);
-              if ($event['private'] == 1) {
-                $popitemclass = " event private_event";
-              } else {
-                $popitemclass = " event public_event";
-              }
-              eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_event_bit") . "\";");
+            $event['eventlink'] = get_event_link($event['eid']);
+            $event['name'] = htmlspecialchars_uni($event['name']);
+            if ($event['private'] == 1) {
+              $popelement_class = $popitemclass = " event private_event";
+            } else {
+              $popelement_class = $popitemclass = " event public_event";
             }
-            eval("\$eventshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
+            eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_event_bit") . "\";");
           }
+          eval("\$eventshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
         }
 
         // Szenen block
@@ -3501,7 +3517,7 @@ function scenetracker_minicalendar()
         }
 
         // Birthday Block
-        $birthdaycss = $scenetracker_calender_popbit_bit = $popitemclass = $caption = '';
+        $birthdaycss = $birthdayshow = $scenetracker_calender_popbit_bit = $popitemclass = $caption = '';
         if (is_array($birthday_cache) && array_key_exists("$day-$calendar_month", $birthday_cache)) {
           $caption = $lang->scenetracker_minical_caption_birthday;
           $birthdaycss = " birthdaycal";
@@ -3515,7 +3531,7 @@ function scenetracker_minicalendar()
         }
 
         //Jules Plottracker? Plot Block
-        $popitemclass = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
+        $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
         if ($plottracker == 1) {
           // DATE_FORMAT(FROM_UNIXTIME(`user.registration`), '%e %b %Y') AS 'date_formatted'
           $plotquery =  $db->simple_select("plots", "*", "'{$day}-{$monthyear}' BETWEEN DATE_FORMAT(FROM_UNIXTIME(`startdate`), '%e-%c-%Y') AND DATE_FORMAT(FROM_UNIXTIME(`enddate`), '%e-%c-%Y')");
@@ -4436,5 +4452,3 @@ function scenetracker_class_moderation_delete_thread($tid)
   global $db;
   $db->delete_query("scenetracker", "tid = '{$tid}'");
 }
-
-
