@@ -183,6 +183,7 @@ dann unter
  (X ersetzen mit fid) 
 
 ```
+$forum['minicalender'] = "";
 if ($forum['fid'] == "X") {  
 ```
 
