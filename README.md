@@ -6,10 +6,14 @@ Version: 1.0.7
 ### Todo nach Update: 
 - Dateien neu hochladen
 - update_scenetracker.php ins hauptverzeichnis laden und aufrufen. Anschließend aufrufen und dann wieder löschen.
-- folgende templates können gelöscht werden: scenetracker_calendar, 
 - **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Updatescript hinzugefügt werden, sonst manuell nachholen! (siehe changelog)
 
 ### Changelog: 
+#### 1.0.7 -> 1.0.8  
+- Optimierungen für Minikalender. Hinzufügen der Klasse 'fullmoon' entfernt, weil fehlerhaft. Alternativ hier ganz unten ein Javascript schnippsel der eingefügt werden kann bei Bedarf.
+- scenetracker_calendar wieder hinzugefügt, um besser einen wrapper für den Kalender zu haben. Kann benutzt werden muss nicht
+- -> wenn ja dann $scenetracker_calendar mit $scenetracker_calendar_wrapper im footer,tpl ersetzen.
+
 #### 1.0.6 -> 1.0.7  
 - bugfix: Minikalender - Korrektur bei Geburtstagen mit Standardfeld
 - bugfixes: php8
@@ -18,7 +22,6 @@ Version: 1.0.7
 #### 1.0.5 -> 1.0.6    
 Korrektur Anzeige Events (jetzt aber hoffentlich wirklich :D )     
 - scenetracker_calendar_bit ```</div>{$kal_day}```ersetzen mit ```{$kal_day}</div>```
-- scenetracker_calendar kann gelöscht werden
 - Neue Templates: scenetracker_calendar_day_pop, scenetracker_calender_popbit, scenetracker_calender_plot_bit, scenetracker_calender_birthday_bit, scenetracker_calender_scene_bit, scenetracker_calender_event_bit, scenetracker_calendar_day, scenetracker_calendar_weekrow
 - Änderung Language Datei
 - änderungen css: ```.day.st_mini_scene.lastmonth {
@@ -176,9 +179,17 @@ $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
 $plugins->add_hook("build_forumbits_forum", "scenetracker_minicalendar");
 ```
 
+und
+```
+function scenetracker_minicalendar()
+```
+***ersetzen mit***
+```
+function scenetracker_minicalendar(&$forum)
+```
 
 dann unter 
-```global $db, $mybb, $templates, $scenetracker_calendar, $lang, $monthnames;```
+```$enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];```
 
  (X ersetzen mit fid) 
 
@@ -186,8 +197,10 @@ dann unter
 $forum['minicalender'] = "";
 if ($forum['fid'] == "X") {  
 ```
+einfügen
 
-und dann ans ende der funktion
+
+und dann am ende der funktion
 ```
 eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
 ```
@@ -199,17 +212,7 @@ $forum['minicalender'] = eval($templates->render('scenetracker_calendar_bit'));
 ```
 
 
-und
-```
-function scenetracker_minicalendar()
-```
-ersetzen mit
-```
-function scenetracker_minicalendar(&$forum)
-```
- 
-
-Die Ausgabe erfolgt dann über $forum['minicalender']
+Die Ausgabe erfolgt dann über $forum['minicalender'] im forumbit_depth1_cat
 
 
 ***Vor Version 1.0.6***  
@@ -225,8 +228,7 @@ $plugins->add_hook("build_forumbits_forum", "scenetracker_minicalendar");
 
 
 dann unter 
-```   global $db, $mybb, $templates, $scenetracker_calendar;```
-
+```$enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];```
  (X ersetzen mit fid) 
 
 ```
@@ -261,7 +263,6 @@ Die Ausgabe erfolgt dann über $forum['minicalender']
 
 ## **HOW TO: Szenentracker auf dem Index einklappbar machen
 
-
 scenetracker_index_main template inhalt ersetzen mit
 ```
 <table border="0" class="tborder scenetrackerindex">
@@ -285,3 +286,25 @@ scenetracker_index_main template inhalt ersetzen mit
 </table>
 <br />
 ```
+
+## **HOW TO: Javascript für extra Klasse im Minikalender je nach Eventname
+
+Einmal ganz ans ende des footer.tpl:  
+
+```    <script>
+        $(document).ready(function(){
+            var searchText = "Fullmoon";
+            $(".day.event").each(function(){
+                if ($(this).text().includes(searchText)) {
+                    $(this).addClass("fullmoon");
+                }
+            });
+        });
+    </script>```
+
+Nennt ihr euer Event jetzt 'Fullmoon' wird die klasse 'fullmoon' hinzugefügt. Ihr könnt das script auch kopieren, anpassen und mehrfach verwenden.  
+```var searchText = "Fullmoon";```
+hier den Eventnamen eintragen
+```$(this).addClass("fullmoon");```
+hier die Klasse die hinzugefügt werden soll
+
