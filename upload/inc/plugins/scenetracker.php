@@ -185,7 +185,7 @@ function scenetracker_activate()
   <tbody style="{$collapsed[\'usercpmisc_e\']}" id="usercpmisc_e"><tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>
   ');
   find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$day_events}') . "#i", '{$day_events}{$scene_ouput}{$birthday_ouput}');
-  find_replace_templatesets("footer", "#" . preg_quote('<div id="footer">') . "#i", '<div id="footer"><div class="scenetracker containerwrapper">{$scenetracker_calendar}</div>');
+  find_replace_templatesets("footer", "#" . preg_quote('<div id="footer">') . "#i", '<div id="footer">{$scenetracker_calendar_wrapper}');
 
   //  find_replace_templatesets("newthread", "#" . preg_quote('{$thread[\'profilelink\']}') . "#i", '{$scenetrackerforumdisplay}{$thread[\'profilelink\']}');
 
@@ -229,7 +229,7 @@ function scenetracker_deactivate()
   find_replace_templatesets("member_profile", "#" . preg_quote('</tr><tr><td colspan="2">{$scenetracker_profil}</td>') . "#i", '');
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>') . "#i", '');
   find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}') . "#i", '');
-  find_replace_templatesets("footer", "#" . preg_quote('<div class="scenetracker containerwrapper">{$scenetracker_calendar}</div>') . "#i", '');
+  find_replace_templatesets("footer", "#" . preg_quote('{$scenetracker_calendar_wrapper}') . "#i", '');
 
   // Alerts deaktivieren
   if (class_exists('MybbStuff_MyAlerts_AlertTypeManager')) {
@@ -968,6 +968,14 @@ function scenetracker_add_templates($type = 'install')
 	{$day}
 	{$scenetracker_calendar_day_pop}
 </div>',
+    "sid" => "-2",
+    "version" => "1.0",
+    "dateline" => TIME_NOW
+  );
+
+  $template[30] = array(
+    "title" => 'scenetracker_calendar',
+    "template" => '{$scenetracker_calendar}',
     "sid" => "-2",
     "version" => "1.0",
     "dateline" => TIME_NOW
@@ -2888,8 +2896,9 @@ function scenetracker_showinprofile()
 $plugins->add_hook('index_start', 'scenetracker_list');
 function scenetracker_list()
 {
-  global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara, $expthead, $lang, $expcolimage, $expaltext, $expaltext, $expdisplay, $theme, $collapse, $collapsed, $collapsedimg, $collapsedthead;
+  global $templates, $db, $mybb, $scenetracker_index_main, $scenetracker_index_bit_chara, $expthead, $lang, $expcolimage, $expaltext, $expaltext, $expdisplay, $theme, $collapse, $collapsed, $collapsedimg, $collapsedthead, $counter;
   //set as uid
+  $counter = "";
   if ($db->field_exists("as_uid", "users")) {
     if ($mybb->user['uid'] == 0) $mybb->user['as_uid'] = 0;
     $asuid = $mybb->user['as_uid'];
@@ -2940,7 +2949,7 @@ function scenetracker_list()
       $collapsedimg['szenenindex'] = '';
     }
 
-    $expaltext = (in_array("szenenindex", $collapse)) ? $lang->expcol_expand : $lang->expcol_collapse;
+    $expaltext = (in_array("szenenindex", $collapse ?? [])) ? $lang->expcol_expand : $lang->expcol_collapse;
 
     //change status of scenes
     if ($mybb->get_input('closed') == "1") {
@@ -3227,8 +3236,8 @@ function scenetracker_calendar()
 $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
 function scenetracker_minicalendar()
 {
-  global $db, $mybb, $templates, $scenetracker_calendar, $lang, $monthnames;
-  $scenetracker_calendar = $fullmoon = $ownscene = $birthdaycss = $eventcss = "";
+  global $db, $mybb, $templates, $lang, $monthnames, $scenetracker_calendar_wrapper, $scenetracker_calendar;
+  $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene = $birthdaycss = $eventcss = $scenetracker_calendar_wrapper = "";
 
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
@@ -3374,7 +3383,7 @@ function scenetracker_minicalendar()
     left join " . TABLE_PREFIX . "scenetracker s ON s.tid = t.tid 
     WHERE scenetracker_date LIKE '{$monthyear}%' 
     {$scene_querie} 
-  ");
+   ");
 
     $scene_cache = array();
     while ($scene = $db->fetch_array($get_scenes)) {
@@ -3485,13 +3494,9 @@ function scenetracker_minicalendar()
           $caption = $lang->scenetracker_minical_caption_event;
 
           $eventcss = " event";
-          $fullmoon = "";
+
           foreach ($events_cache["$day-$calendar_month-$calendar_year"] as $event) {
-            if ($event['name'] == "Fullmoon") {
-              $fullmoon = " fullmoon";
-            } else {
-              $fullmoon = "";
-            }
+
             $event['eventlink'] = get_event_link($event['eid']);
             $event['name'] = htmlspecialchars_uni($event['name']);
             if ($event['private'] == 1) {
@@ -3580,9 +3585,10 @@ function scenetracker_minicalendar()
       $day_bits = "";
       $scenetracker_calendar_day_pop = "";
     }
-
     eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
   }
+
+  eval("\$scenetracker_calendar_wrapper = \"" . $templates->get("scenetracker_calendar") . "\";");
 }
 
 /**
