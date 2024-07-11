@@ -71,13 +71,13 @@ empfohlen wird hier die Bearbeitung über Patches :) Ihr findet eine xml datei f
 
 calendar.php 
 suchen nach  
-```` 
+```
 eval("\$day_bits .= \"".$templates->get("calendar_weekrow_thismonth")."\";");
-````
+```
 darüber einfügen 
-````
+```
  $plugins->run_hooks("calendar_weekview_day");
-````
+```
 
 
 ## **Allgemeine Beschreibung**   
@@ -145,7 +145,7 @@ Auch hier können direkt die wichtigsten Einstellungen vorgenommen werden
 Sortiert nach Szenendatum. 
 Szenen können auf Wunsch ausgeblendet werden.
 
-### **Anzeige der Szenen im Forumdisplay :**.  
+### **Anzeige der Szenen im Forumdisplay :**  
 Szeneninfos im Forumdisplay anzeigen:
 forumdisplay_thread öffnen   
 {$scenetrackerforumdisplay} einfügen   
@@ -232,6 +232,7 @@ dann unter
  (X ersetzen mit fid) 
 
 ```
+$forum['minicalender'] = "";
 if ($forum['fid'] == "X") {  
 ```
 
@@ -257,11 +258,35 @@ function scenetracker_minicalendar(&$forum)
 ```
  
 
-Die Ausgabe erfolgt dann über $forum['minicalender']
+Die Ausgabe erfolgt dann über ```{$forum['minicalender']} ```
 
 
 
-## **HOW TO: Szenentracker auf dem Index einklappbar machen
+## **HOW TO: Javascript für extra Klasse im Minikalender je nach Eventname**
+
+Einmal ganz ans ende des footer.tpl:  
+
+
+```
+  <script>
+        $(document).ready(function(){
+            var searchText = "Fullmoon";
+            $(".day.event").each(function(){
+                if ($(this).text().includes(searchText)) {
+                    $(this).addClass("fullmoon");
+                }
+            });
+        });
+    </script>
+```
+
+Nennt ihr euer Event jetzt 'Fullmoon' wird die klasse 'fullmoon' hinzugefügt. Ihr könnt das script auch kopieren, anpassen und mehrfach verwenden.  
+``` var searchText = "Fullmoon"; ```
+hier den Eventnamen eintragen
+``` $(this).addClass("fullmoon"); ```
+hier die Klasse die hinzugefügt werden soll
+
+## **HOW TO: Szenentracker auf dem Index einklappbar machen**
 
 scenetracker_index_main template inhalt ersetzen mit
 ```
@@ -284,27 +309,4 @@ scenetracker_index_main template inhalt ersetzen mit
   </div></td></tr>
 </tbody>
 </table>
-<br />
-```
-
-## **HOW TO: Javascript für extra Klasse im Minikalender je nach Eventname
-
-Einmal ganz ans ende des footer.tpl:  
-
-```    <script>
-        $(document).ready(function(){
-            var searchText = "Fullmoon";
-            $(".day.event").each(function(){
-                if ($(this).text().includes(searchText)) {
-                    $(this).addClass("fullmoon");
-                }
-            });
-        });
-    </script>```
-
-Nennt ihr euer Event jetzt 'Fullmoon' wird die klasse 'fullmoon' hinzugefügt. Ihr könnt das script auch kopieren, anpassen und mehrfach verwenden.  
-```var searchText = "Fullmoon";```
-hier den Eventnamen eintragen
-```$(this).addClass("fullmoon");```
-hier die Klasse die hinzugefügt werden soll
-
+<br /> ```
