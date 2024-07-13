@@ -207,7 +207,7 @@ eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar_bi
 
 **ersetzen mit**
 ```
-$forum['minicalender'] = eval($templates->render('scenetracker_calendar_bit'));
+$forum['minicalender'] .= eval($templates->render('scenetracker_calendar_bit'));
 }
 ```
 
