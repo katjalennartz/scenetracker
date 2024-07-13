@@ -3407,7 +3407,7 @@ function scenetracker_minicalendar()
       while ($birthday = $db->fetch_array($get_birthdays)) {
         $fid = "fid" . $setting_fid;
         $birthday_date = new DateTime($birthday[$fid]);
-        $birthday_date = $birthday_date->format("j-n-Y");
+        $birthday_date = $birthday_date->format("j-n");
         $birthday_cache[$birthday_date][] = $birthday;
       }
     } elseif ($setting_birhtday == "1") {
