@@ -378,6 +378,13 @@ function scenetracker_add_settings($type = 'install')
       'value' => '0', // Default
       'disporder' => 17
     ),
+    'scenetracker_forumbit' => array(
+      'title' => 'Anzeige Mini-Kalender?',
+      'description' => "Soll der Mini-Kalender über dem Ingame angezeigt werden? Dann die FID des Ingames eingeben, sonst 0. In forumbit_depth1_cat &lbrace;&dollar;forum[&apos;minicalender&apos;]&rbrace; hinzufügen.",
+      'optionscode' => "numeric",
+      'value' => '0', // Default
+      'disporder' => 18
+    ),
   );
   $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settinggroups` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
 
@@ -399,12 +406,16 @@ function scenetracker_add_settings($type = 'install')
         echo "Setting: {$name} wurde hinzugefügt.";
       }
 
-      if ($name == 'scenetracker_ingame' || $name == 'scenetracker_archiv' || $name == 'scenetracker_exludedfids') {
+      if (
+        ($name == 'scenetracker_ingame' && $setting['name'] != 'forumselect') ||
+        ($name == 'scenetracker_archiv' && $setting['name'] != 'forumselect') ||
+        ($name == 'scenetracker_exludedfids' && $setting['name'] != 'forumselect')
+      ) {
         $change = array(
           'optionscode' => 'forumselect'
         );
         $db->update_query("settings", $change, "name='{$name}'");
-        echo "Setting: {$name} zu forumselect auswahl geändert.";
+        echo "Setting: {$name} zu forumselect auswahl geändert.<br>";
       }
     }
     echo "<p>Einstellungen wurden aktualisiert</p>";
@@ -3013,7 +3024,9 @@ function scenetracker_reminder()
     $days = intval($mybb->settings['scenetracker_reminder']);
     // $days = 200;
     $cnt = 0;
-
+    if ($mybb->settings['scenetracker_exludedfids'] != "") {
+      $excluded = " AND fid not in ({$mybb->settings['scenetracker_exludedfids']}) ";
+    }
     foreach ($charas as $uid => $username) {
       $scenetracker_get_scenes = $db->write_query(
         "SELECT * FROM " . TABLE_PREFIX . "scenetracker st, " . TABLE_PREFIX . "threads t WHERE st.tid = t.tid 
@@ -3022,8 +3035,11 @@ function scenetracker_reminder()
             AND lastposteruid != 1
             AND lastposteruid != {$uid}
            {$solved_tozero}
-            AND closed= 0 ORDER by st.uid"
+            AND closed= 0 
+ {$excluded}
+            ORDER by st.uid"
       );
+      
       while ($scenes = $db->fetch_array($scenetracker_get_scenes)) {
 
         $today = new DateTime();
@@ -3231,12 +3247,21 @@ function scenetracker_calendar()
  * shows minicalender 
  * global functions, use {$scenetracker_calendar} for showing calender in Header or Footer
  * Funktion von calender.php übertragen
- * 
+ * set hook depending on settings
  */
+if ($mybb->settings['scenetracker_forumbit'] != 0) {
+  $plugins->add_hook('build_forumbits_forum', 'scenetracker_minicalendar');
+} else {
 $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
-function scenetracker_minicalendar()
+}
+
+function scenetracker_minicalendar(&$forum)
 {
   global $db, $mybb, $templates, $lang, $monthnames, $scenetracker_calendar_wrapper, $scenetracker_calendar;
+
+  if (!empty($forum)) {
+    $forum['minicalendar'] = "";
+  }
   $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene = $birthdaycss = $eventcss = $scenetracker_calendar_wrapper = "";
 
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
@@ -3408,6 +3433,7 @@ function scenetracker_minicalendar()
         $fid = "fid" . $setting_fid;
         $birthday_date = new DateTime($birthday[$fid]);
         $birthday_date = $birthday_date->format("j-n");
+        // $birthday_date = $birthday_date->format("j-n-Y");
         $birthday_cache[$birthday_date][] = $birthday;
       }
     } elseif ($setting_birhtday == "1") {
@@ -3585,7 +3611,12 @@ function scenetracker_minicalendar()
       $day_bits = "";
       $scenetracker_calendar_day_pop = "";
     }
+
+    if ($mybb->settings['scenetracker_forumbit'] != 0 && $forum['fid'] == $mybb->settings['scenetracker_forumbit']) {
+      $forum['minicalender'] .= eval($templates->render('scenetracker_calendar_bit'));
+    } else {
     eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
+  }
   }
 
   eval("\$scenetracker_calendar_wrapper = \"" . $templates->get("scenetracker_calendar") . "\";");
@@ -4003,7 +4034,6 @@ function scenetracker_getUids($string_usernames)
   }
   return $array_user;
 }
-
 
 /**
  * Helper to get Scenes
