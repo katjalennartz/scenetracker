@@ -1,7 +1,7 @@
 # Szenentracker
 ## Updates: 		
-Last: 11. Juli 2024
-Version: 1.0.8
+Last: 16. September 2024
+Version: 1.0.9
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
@@ -9,6 +9,11 @@ Version: 1.0.8
 - **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Updatescript hinzugefügt werden, sonst manuell nachholen! (siehe changelog)
 
 ### Changelog: 
+#### 1.0.7 -> 1.0.8  
+- Optimierungen für Minikalender. Einstellung ob der Kalender über dem Ingame angezeigt werden soll
+- scenetracker_calendar wieder hinzugefügt, um besser einen wrapper für den Kalender zu haben. Kann benutzt werden muss nicht
+- -> wenn ja dann {$forum['minicalender']} in forumbit_depth1_cat hinzufügen
+ 
 #### 1.0.7 -> 1.0.8  
 - Optimierungen für Minikalender. Hinzufügen der Klasse 'fullmoon' entfernt, weil fehlerhaft. Alternativ hier ganz unten ein Javascript schnippsel der eingefügt werden kann bei Bedarf.
 - scenetracker_calendar wieder hinzugefügt, um besser einen wrapper für den Kalender zu haben. Kann benutzt werden muss nicht
