@@ -11,7 +11,6 @@ Version: 1.0.9
 ### Changelog: 
 #### 1.0.7 -> 1.0.8  
 - Optimierungen für Minikalender. Einstellung ob der Kalender über dem Ingame angezeigt werden soll
-- scenetracker_calendar wieder hinzugefügt, um besser einen wrapper für den Kalender zu haben. Kann benutzt werden muss nicht
 - -> wenn ja dann {$forum['minicalender']} in forumbit_depth1_cat hinzufügen
  
 #### 1.0.7 -> 1.0.8  
