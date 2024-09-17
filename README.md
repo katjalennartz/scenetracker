@@ -172,7 +172,7 @@ forumdisplay_thread öffnen
 <img src="https://github.com/katjalennartz/scenetracker/blob/main/screens/treacker_threadedit.png?raw=true" style="width:450px">
 
 
-## **HOW TO: Minicalender über dem Ingame**
+## **HOW TO: Minicalender über dem Ingame nur vor Version 1.0.9 nötig**
 suchen nach:
 ```
 $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
