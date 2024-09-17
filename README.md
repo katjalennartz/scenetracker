@@ -9,7 +9,7 @@ Version: 1.0.9
 - **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Updatescript hinzugefügt werden, sonst manuell nachholen! (siehe changelog)
 
 ### Changelog: 
-#### 1.0.7 -> 1.0.8  
+#### 1.0.8 -> 1.0.9  
 - Optimierungen für Minikalender. Einstellung ob der Kalender über dem Ingame angezeigt werden soll
 - -> wenn ja dann {$forum['minicalender']} in forumbit_depth1_cat hinzufügen
  
