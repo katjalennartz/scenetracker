@@ -40,7 +40,7 @@ if ($mybb->usergroup['canmodcp'] == 1) {
       $names = "";
       while ($user = $db->fetch_array($get_user)) {
         $userinfo = get_user($user['uid']);
-        $names = $userinfo['username'] . ",";
+        $names .= $userinfo['username'] . ",";
         $scenesave = array(
           "uid"  => $userinfo['uid'],
           "tid"  => $scene['tid']
