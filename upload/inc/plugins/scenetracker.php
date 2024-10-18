@@ -3249,10 +3249,12 @@ function scenetracker_calendar()
  * Funktion von calender.php übertragen
  * set hook depending on settings
  */
-if ($mybb->settings['scenetracker_forumbit'] != 0) {
-  $plugins->add_hook('build_forumbits_forum', 'scenetracker_minicalendar');
-} else {
-$plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
+if (isset($mybb->settings['scenetracker_forumbit'])) {
+  if ($mybb->settings['scenetracker_forumbit'] != 0) {
+    $plugins->add_hook('build_forumbits_forum', 'scenetracker_minicalendar');
+  } else {
+    $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
+  }
 }
 
 function scenetracker_minicalendar(&$forum)
