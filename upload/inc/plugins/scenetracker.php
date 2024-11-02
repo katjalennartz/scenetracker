@@ -3670,7 +3670,8 @@ function scenetracker_admin_update_plugin(&$table)
               "stylesheet" => $db->escape_string($oldstylesheet . "\n\n" . $update_stylesheet),
               "lastmodified" => TIME_NOW
             );
-            $db->update_query("themestylesheets", $updated_stylesheet, "sid='" . $sid . "'");
+            $db->update_query("themestylesheets", $updated_stylesheet, "name='scenetracker.css' AND tid = '{$theme['tid']}'");
+            echo "In Theme mit der ID {$theme['tid']} wurde CSS hinzugefügt -  $update_string <br>";
           }
         }
         update_theme_stylesheet_list($theme['tid']);
@@ -4272,13 +4273,6 @@ function scenetracker_stylesheet_update()
     'update_string' => 'calendar-update'
   );
 
-  $update_array_all[] = array(
-    'stylesheet' => "
-    /* test-update - kommentar nicht entfernen */
-    .test{} ",
-    'update_string' => 'test-update'
-  );
-
   return $update_array_all;
 }
 
@@ -4303,6 +4297,7 @@ function scenetracker_add_settings($type = 'install')
   } else {
     $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settinggroups` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
   }
+
   $setting_array = array(
     'scenetracker_index' => array(
       'title' => 'Indexanzeige',
@@ -4461,7 +4456,6 @@ function scenetracker_add_settings($type = 'install')
     ),
 
   );
-  $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settinggroups` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
 
   if ($type == 'install') {
     foreach ($setting_array as $name => $setting) {
@@ -4470,711 +4464,48 @@ function scenetracker_add_settings($type = 'install')
       $db->insert_query('settings', $setting);
     }
   }
+
   if ($type == 'update') {
     foreach ($setting_array as $name => $setting) {
       $setting['name'] = $name;
-      $check = $db->write_query("SELECT name FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
-      $check = $db->num_rows($check);
       $setting['gid'] = $gid;
+
+      //alte einstellung aus der db holen
+      $check = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
+      $check2 = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
+
+      $check = $db->num_rows($check);
+
       if ($check == 0) {
         $db->insert_query('settings', $setting);
         echo "Setting: {$name} wurde hinzugefügt.";
-      }
-
-      if (
-        ($name == 'scenetracker_ingame' && $setting['name'] != 'forumselect') ||
-        ($name == 'scenetracker_archiv' && $setting['name'] != 'forumselect') ||
-        ($name == 'scenetracker_exludedfids' && $setting['name'] != 'forumselect')
-      ) {
-        $change = array(
-          'optionscode' => 'forumselect'
-        );
-        $db->update_query("settings", $change, "name='{$name}'");
-        echo "Setting: {$name} zu forumselect auswahl geändert.<br>";
+      } else {
+        
+        //die einstellung gibt es schon, wir testen ob etwas verändert wurde
+        while ($setting_old = $db->fetch_array($check2)) {
+          if (
+            $setting_old['title'] != $setting['title'] ||
+            $setting_old['description'] != $setting['description'] ||
+            $setting_old['optionscode'] != $setting['optionscode'] ||
+            $setting_old['disporder'] != $setting['disporder']
+          ) {
+            //wir wollen den value nicht überspeichern, also nur die anderen werte aktualisieren
+            $update_array = array(
+              'title' => $setting['title'],
+              'description' => $setting['description'],
+              'optionscode' => $setting['optionscode'],
+              'disporder' => $setting['disporder']
+            );
+            $db->update_query('settings', $update_array, "name='{$name}'");
+            echo "Setting: {$name} wurde aktualisiert.<br>";
+          }
+        }
       }
     }
-    echo "<p>Einstellungen wurden aktualisiert</p>";
   }
-
   rebuild_settings();
 }
 
-/**
- * Adds the templates
- */
-function scenetracker_add_templates($type = 'install')
-{
-  global $db;
-  $templates = array();
-  //add templates and stylesheets
-  // Add templategroup
-  //templategruppe nur beim installieren hinzufügen
-  if ($type == 'install') {
-    $templategrouparray = array(
-      'prefix' => 'scenetracker',
-      'title'  => $db->escape_string('Szenentracker'),
-      'isdefault' => 1
-    );
-    $db->insert_query("templategroups", $templategrouparray);
-  }
-
-  $templates[] = array(
-    "title" => 'scenetracker_forumdisplay_infos',
-    "template" => '<div class="author smalltext">
-      <div class="scenetracker_forumdisplay scene_infos">
-      <div class="scenetracker_forumdisplay scene_date icon"><i class="fas fa-calendar"></i> Szenendatum: {$scene_date}</div>
-      <div class="scenetracker_forumdisplay scene_place icon"><i class="fas fa-map-marker-alt"></i> Szenenort: {$scene_place}</div>
-      {$scenetrigger}
-      <div class="scenetracker_forumdisplay scene_users icon"><i class="fas fa-users"></i> Szenenteilnehmer: {$scenetracker_forumdisplay_user}</div>	
-      </div>
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_forumdisplay_user',
-    "template" => '<span class="scenetracker_forumdisplay scenetracker_user">{$user} {$delete}</span>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_index_bit_chara',
-    "template" => '<div class="scenetracker_index character_box">
-      <div class="scenetracker_index character_item name "><h1>{$charaname} {$cnt_chara}</h1> </div>
-      <div class="scenetracker_index character container item">
-        {$scenetracker_index_bit_scene}
-      </div>
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_index_bit_scene',
-    "template" => '<div class ="scenetracker_index container sceneindex__scenebox scene_index chara_item__scene">
-        <div class="sceneindex__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> {$scene} 
-            <span class="scene_status"> - {$close} {$certain} </span> 
-        </div>
-          <div class="sceneindex__sceneitem scene_last ">
-            <span class="scene_last icon"><i class="fas fa-arrow-right"></i> Letzter Post: {$lastposterlink} am {$lastpostdate}</span>
-          </div>
-      
-        <div class="sceneindex__sceneitem scene_date scene_place">
-          <span class="scene_date icon"><i class="fas fa-calendar"></i> {$scenedate} </span>
-          <span class="scene_place icon"><i class="fas fa-map-marker-alt"></i> {$sceneplace} </span>
-          <span class="scene_users icon "><i class="fas fa-users"></i> {$users}</span>
-        </div>
-        
-        </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_index_main',
-    "template" => '<div class="scenetracker_index wrapper_container"><strong>Szenenverwaltung {$counter}</strong>
-      {$scenetracker_index_bit_chara}
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_index_reminder',
-    "template" => '<div class="scenetracker_reminder box"><div class="scenetracker_reminder_wrapper"><span class="senetracker_reminder text">Du lässt deinen Postpartner in folgenden Szenen warten:</span>
-      <div class="scenetracker_reminder container">
-      {$scenetracker_index_reminder_bit}
-      </div>
-	    <span class="senetracker_reminder text"><a href="index.php?action=reminder">[ignore all]</a></span>
-	    </div></div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_index_reminder_bit',
-    "template" => '<div class="scenetracker_reminder item">
-      {$userarr[\\\'username\\\']} - <a href="showthread.php?tid={$scenes[\\\'tid\\\']}&action=lastpost">{$scenes[\\\'subject\\\']}</a> 
-      ({$lastpostdays} Tage)
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-  $templates[] = array(
-    "title" => 'scenetracker_newreply',
-    "template" => '<tr>
-        <td class="trow2" width="20%" colspan="2" align="center">
-          <input type="checkbox" name="scenetracker_add" id="scenetracker_add" value="add" checked /> <label for="scenetracker_add">Charakter zu Teilnehmern hinzufügen</label>
-        </td>
-      </tr>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_newthread',
-    "template" => '<tr>
-        <td class="trow2" width="20%"><strong>Szenendatum:</strong></td>
-        <td class="trow2">
-        <input type="date" value="{$scenetracker_date}" name="scenetracker_date" /> 
-        <input type="{$time_input_type}" value="{$scenetracker_time}" name="{$time_input_name}" {$input_time_placeholder}/>
-        </td>
-        </tr>
-        <tr>
-        <td class="trow2" width="20%"><strong>Ort:</strong></td>
-        <td class="trow2">
-          <div class="con">
-            <div class="con-item">
-              <input type="text" id="place" name="place" size="40" value="{$scenetracker_place}" />
-            </div>
-            <div class="con-item">
-              Hier den Ort eintragen. Wo findet die Szene statt? 
-            </div>
-          </div>
-        </td>
-        </tr>
-          <tr>
-        <td class="trow2" width="20%"><strong>Triggerwarnung:</strong></td>
-        <td class="trow2">
-          <div class="con">
-            <div class="con-item">
-              <input type="text" id="scenetracker_trigger" name="scenetracker_trigger" size="40" value="{$scenetracker_trigger}" />
-            </div>
-            <div class="con-item">
-              Gibt es eine Triggerwarnung für die Szene? Wenn ja dann mit aussagekräftigem Begriff(en) füllen.
-            </div>
-          </div>
-        </td>
-        </tr>
-        <tr>
-        <td class="trow2" width="20%"><strong>Teilnehmer:</strong></td>
-        <td class="trow2">
-          
-          <div class="con">
-            <div class="con-item">
-              <input id="teilnehmer" type="text" value="{$scenetracker_user}" size="40"  name="teilnehmer" autocomplete="off" style="display: block;" />
-              <div id="suggest" style="display:none; z-index:10;"></div>
-            </div>
-            <div class="con-item">
-              Mit , getrennt lassen sich mehrere Teilnehmer eintragen, bitte ohne Leertaste nach dem Komma.
-            </div>
-          </div>
-      
-        </td>
-        </tr>
-        <script type="text/javascript" src="./jscripts/suggest.js"></script>
-        <script type="text/javascript" src="./jscripts/scenetracker.js"></script>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_popup',
-    "template" => '<a onclick="$(\\\'#certain{$id}\\\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \\\'undefined\\\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;"><i class="fas fa-cogs"></i></a>
-        <div class="modal addrela" id="certain{$id}" style="display: none; padding: 10px; margin: auto; text-align: center;">
-        <form method="post" action="usercp.php?action=scenetracker">
-            {$hidden}
-            <input type="hidden" value="{$data[\\\'id\\\']}" name="getid">
-              <select name="charakter">
-              {$users_options_bit}
-            </select><br />
-            <input type="submit" name="certainuser" />
-          </form>
-        </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-  $templates[] = array(
-    "title" => 'scenetracker_profil',
-    "template" => '<div class="scenetracker container scenetracker_profil">
-      {$scenetracker_profil_bit}
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_profil_active',
-    "template" => '	<div class="scenetracker container active">
-      {$scenetracker_profil_bit_active}
-      </div>	',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_profil_bit',
-    "template" => '{$scenetracker_profil_bit_mY}
-        <div class="scenetracker scenebit scenetracker_profil">
-          <div class="scenetracker__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> <a href="showthread.php?tid={$tid}">{$subject}</a> {$scenestatus}{$scenehide}</div>
-        <div class="scenetracker__sceneitem scene_date icon "><i class="fas fa-calendar"></i> {$scenedate}</div>
-          <div class="scenetracker__sceneitem scene_place icon "><i class="fas fa-map-marker-alt"></i> {$sceneplace}</div>
-        {$scenetrigger}
-        <div class="scenetracker__sceneitem scene_break"></div>
-          <div class="scenetracker__sceneitem scene_users icon "><i class="fas fa-users"></i> {$sceneusers}</div>
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_profil_bit_mY',
-    "template" => '<span class="scentracker month">{$scenedatetitle}</span>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_profil_closed',
-    "template" => '<div class="scenetracker container closed">
-      {$scenetracker_profil_bit_closed}
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_showthread',
-    "template" => '<div class="scenetracker scenebit scenetracker_showthread">
-          <div class="scenetracker__sceneitem scene_date icon"><i class="fas fa-calendar"></i> {$scene_date}</div>
-          <div class="scenetracker__sceneitem scene_place icon "><i class="fas fa-map-marker-alt"></i> {$sceneplace}</div>
-          <div class="scenetracker__sceneitem scene_status icon"><i class="fas fa-play"></i> {$scenestatus}</div>
-          {$scenetrigger}
-          <div class="scenetracker__sceneitem scene_users icon"><i class="fas fa-users"></i>{$scenetracker_showthread_user}</div> 
-          {$edit}
-        </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_showthread_user',
-    "template" => '<span class="scenetracker_user">{$user} {$delete}</span>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_ucp_bit_chara',
-    "template" => '<div class="scene_ucp chara_item">
-        <h3>{$charaname}</h3>
-        <div class="scene_ucp chara_item__scenes-con">
-          {$scenetracker_ucp_bit_scene}
-        </div>
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_ucp_bit_scene',
-    "template" => '<div class ="sceneucp__scenebox scene_ucp chara_item__scene">
-          <div class="sceneucp__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> {$scene} {$statusclass}</div>
-          <div class="sceneucp__sceneitem scene_status icon"><i class="fas fa-play"></i> scene {$close}
-          </div>
-          <div class="sceneucp__sceneitem scene_profil icon"><i class="fas fa-circle-user"></i> scene {$hide}</div>
-          <div class="sceneucp__sceneitem scene_alert icon {$alertclass}"><i class="fas fa-bullhorn"></i>
-            <span class="sceneucp__scenealerts">{$alerttype} {$certain}  {$always}</span>
-          </div>
-        
-          <div class="sceneucp__sceneitem scene_date icon"><i class="fas fa-calendar"></i> {$scenedate}</div>
-          <div class="sceneucp__sceneitem scene_users icon "><i class="fas fa-users"></i>{$users}</div>
-          <div class="sceneucp__sceneitem scene_place icon"><i class="fas fa-map-marker-alt"></i> {$sceneplace}</div>
-          <div class="sceneucp__sceneitem scene_last icon ">last: {$lastposterlink} ({$lastpostdate})</div>
-        </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_ucp_main',
-    "template" => '<html>
-        <head>
-        <title>{$mybb->settings[\\\'bbname\\\']} - Szenentracker</title>
-        {$headerinclude}
-        </head>
-        <body>
-        {$header}
-      
-        <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
-        <table width="100%" border="0" align="center">
-        <tr>
-          {$usercpnav}
-          <td valign="top">
-            
-            <div class="scene_ucp container">
-            <div class="scene_ucp manage alert_item">
-              <h1><i class="fas fa-book-open" aria-hidden="true"></i> Szenentracker</h1>
-              <p>Hier kannst du alles rund um den Szenentracker anschauen und verwalten. Die Einstellungen für die Alerts
-            kannst du <a href="alerts.php?action=settings">hier</a> vornehmen. Stelle hier erst einmal allgemein ein,
-            ob du die Szenen auf dem Index angezeigt werden möchtest und ob du eine Meldung haben möchtest, wenn du in
-            einer Szene länger als {$days_reminder} Tage(n) dran bist.
-              </p>
-              
-            <div class="scene_ucp scenefilteroptions">
-            <h2>Benachrichtigungseinstellungen</h2>
-              <div class="scenefilteroptions__items">
-                <form action="usercp.php?action=scenetracker" method="post">
-                <fieldset><label for="index">Szenenübersicht auf der Indexseite?</label><br/>
-                <input type="radio" name="index" id="index_yes" value="1" {$yes_ind}> <label for="index_yes">Ja</label>
-                <input type="radio" name="index" id="index_no" value="0" {$no_ind}> <label for="index_no">Nein</label><br />
-                <input type="submit" name="opt_index" value="speichern" id="index_button" />
-                </fieldset>
-                </form>
-              </div>
-            <div class="scenefilteroptions__items">
-                <form action="usercp.php?action=scenetracker" method="post">
-                <fieldset><label for="index_yesall">Szenen aller Charaktere auf dem Index anzeigen?</label><br/>
-                <input type="radio" name="indexall" id="index_yesall" value="1" {$yes_indall}> <label for="index_yesall">Ja</label>
-                <input type="radio" name="indexall" id="index_noall" value="0" {$no_indall}> <label for="index_noall">Nein</label><br />
-              <span style="font-size: 0.8em">(Einstellung für den jeweils eingeloggten Charakter)</span><br />
-                <input type="submit" name="opt_indexall" value="speichern" id="indexall_button" />
-                </fieldset>
-                </form>
-              </div>
-              {$ucp_main_reminderopt}
-              {$calendar_setting_form}
-            </div>
-            </div><!--scene_ucp manage alert_item-->
-          {$scenetracker_ucp_filterscenes}
-            <div class="scene_ucp manage overview_item overview_con">
-              <div class="scene_ucp overview_item">
-              <h2>{$scenes_title}</h2>
-                <div class="scene_ucp overview_chara_con">
-                {$scenetracker_ucp_bit_chara} 
-                </div>
-              </div>
-              </div>
-            </div><!--scene_ucp container-->
-          </td>
-        </tr>
-        </table>
-      
-        {$footer}
-        </body>
-        </html>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_calendar_bit',
-    "template" => '<div class="scenetracker calendar">
-        <div class="month-indicator">
-          <div> {$kal_title}</div>
-        </div>
-        <div class="day-of-week" style="grid-template-columns: repeat(7, 1fr);">
-          <div>M</div>
-          <div>T</div>
-          <div>W</div>
-          <div>T</div>
-          <div>F</div>
-          <div>S</div>
-          <div>S</div>
-          {$kal_day}
-        </div>
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-  $templates[] = array(
-    "title" => 'scenetracker_misc_allscenes',
-    "template" => '
-        <html>
-        <head>
-          <title>Szenenliste</title>
-          {$headerinclude}
-        </head>
-        <body>
-          {$header}
-          <table width="100%" border="0" align="center">
-            <tr>
-              <td valign="top">
-                <table border="0" cellspacing="{$theme[\\\'borderwidth\\\']}" cellpadding="{$theme[\\\'tablespace\\\']}" class="tborder">
-                  <tr>
-                    <td class="trow2">
-                      <div class="ucp_charstat bl-globalcard">
-                        <div class="bl-tabcon__title">
-                          <div class="forum_line forum_line--profile"></div>
-                          <span class="bl-boldtitle bl-boldtitle--profile">Szenenliste</span>
-                        </div>
-      
-                        {$scenes}
-                      </div>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-          {$footer}
-        </body>
-        </html>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-  $templates[] = array(
-    "title" => 'scenetracker_calender_event_bit',
-    "template" => '
-        <a href="{$event[\\\'eventlink\\\']}" title="{$event[\\\'name\\\']}" class="{$popelement_class}">{$event[\\\'name\\\']}</a>
-    ',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-  $templates[] = array(
-    "title" => 'scenetracker_calender_popbit',
-    "template" => '<div class="st_minical_pop{$popitemclass}">{$caption}
-      {$scenetracker_calender_popbit_bit}
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_calender_scene_bit',
-    "template" => '<div class="st_mini_scenelink">
-        <span>
-        <span class="raquo">&raquo;</span> 
-        <a href="showthread.php?tid={$scene[\\\'tid\\\']}">{$scene[\\\'subject\\\']}</a>
-        </span>
-        <span>({$scene[\\\'scenetime\\\']} - {$teilnehmer})</span>
-        </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_calender_birthday_bit',
-    "template" => '<div class="st_calendar birthday">{$birthdaylink}</div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_calender_plot_bit',
-    "template" => '<div class="st_mini_scenelink plot"><a href="plottracker.php?action=view&plid={$plot[\\\'plid\\\']}">{$plot[\\\'name\\\']}</a></div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_calendar_day_pop',
-    "template" => '<div class="st_mini_scene_show"> 
-        {$sceneshow}
-        {$birthdayshow}
-        {$eventshow}
-        {$plotshow}
-      </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_calendar_weekrow',
-    "template" => '{$day_bits}',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_calendar_day',
-    "template" => '<div class="day st_mini_scene{$month_status}{$eventcss}{$fullmoon}{$birthdaycss}{$ownscene}{$ingamecss}{$plotcss}">
-          {$day}
-          {$scenetracker_calendar_day_pop}
-        </div>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_calendar',
-    "template" => '{$scenetracker_calendar}',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_testtemplate',
-    "template" => 'wir testen nur ob es überall eingefügt wird',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-
-  $templates[] = array(
-    "title" => 'scenetracker_testtemplate2',
-    "template" => 'wir testen nur ob es überall eingefügt wird - obwohl es in einem schon existiert',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_ucp_filterscenes',
-    "template" => '<div class="bl-tabcon__title">
-              <div class="forum_line forum_line--profile"></div>
-              <span class="bl-boldtitle bl-boldtitle--profile">filteroptions</span>
-              </div>
-              <form action="usercp.php?action=scenetracker" method="post">
-              <div class="scene_ucp scenefilteroptions filter bl-cardtransparent">
-
-            <div class="scenefilteroptions__items scenefilteroptions__items--filter">
-              <label for="charakter">Szenen anzeigen von: </label>{$selectchara}
-              <input type="hidden" value="{$thisuser}" name="uid" id="uid"/>
-            </div>	
-            <div class="scenefilteroptions__items scenefilteroptions__items--filter">
-              <label for="status">Status der Szene:  </label>
-              <select name="status" id="status">
-                <option value="both" {$sel_s[\\\'both\\\']}>beides</option>
-                <option value="open" {$sel_s[\\\'open\\\']} >offen</option>
-                <option value="closed" {$sel_s[\\\'closed\\\']}>geschlossen</option>
-              </select>
-            </div>
-            <div class="scenefilteroptions__items scenefilteroptions__items--filter">
-              <label for="move">Du bist dran: </label>
-              <select name="move" id="move">
-                <option value="beides" {$sel_m[\\\'beides\\\']}>beides</option>
-                <option value="ja" {$sel_m[\\\'ja\\\']}>ja</option>
-                <option value="nein" {$sel_m[\\\'nein\\\']}>nein</option>
-
-              </select>
-            </div>
-          {$scenetracker_ucp_filterscenes_username}
-            <div class="scenefilteroptions__items button">
-              <input type="submit" name="scenefilter" value="Szenen filtern" id="scenefilter" />
-            </div>
-          </div>
-        </form>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  $templates[] = array(
-    "title" => 'scenetracker_ucp_filterscenes_username',
-    "template" => '<div class="scenefilteroptions__items scenefilteroptions__items--filter">
-              <label for="move">Szenen mit: </label>
-              <div class="filterinput">
-                <input type="text" name="player" id="player" />
-              </div>
-            </div>
-          
-        <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/select2/select2.css?ver=1807">
-        <script type="text/javascript" src="{$mybb->asset_url}/jscripts/select2/select2.min.js?ver=1806"></script>
-        <script type="text/javascript">
-          <!--
-            if(use_xmlhttprequest == "1")
-          {
-            MyBB.select2();
-            $("#player").select2({
-              placeholder: "Filter: Spielername",
-              minimumInputLength: 2,
-              multiple: false,
-              allowClear: true,
-              ajax: { // instead of writing the function to execute the request we use Select2\\\'s convenient helper
-                url: "xmlhttp.php?action=application_get_player",
-                dataType: \\\'json\\\',
-                data: function (term, page) {
-                  return {
-                    query: term, // search term
-                    fieldid: "player",
-                  };
-                },
-                results: function (data, page) { // parse the results into the format expected by Select2.
-                  // since we are using custom formatting functions we do not need to alter remote JSON data
-                  return {results: data};
-                }
-              },
-              initSelection: function(element, callback) {
-                var value = $(element).val();
-                if (value !== "") {
-                  callback({
-                    id: value,
-                    text: value
-                  });
-                }
-              },
-              // Allow the user entered text to be selected as well
-              createSearchChoice:function(term, data) {
-                if ( $(data).filter( function() {
-                  return this.text.localeCompare(term)===0;
-                }).length===0) {
-                  return {id:term, text:term};
-                }
-              },
-            });
-
-            $(\\\'[for=player]\\\').on(\\\'click\\\', function(){
-              $("#player").select2(\\\'open\\\');
-              return false;
-            });
-          }
-          // -->
-        </script>',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-  if ($type == 'update') {
-    foreach ($templates as $template) {
-      $query = $db->simple_select("templates", "tid, template", "title = '" . $template['title'] . "' AND sid = '-2'");
-      $existing_template = $db->fetch_array($query);
-
-      if ($existing_template) {
-        if ($existing_template['template'] !== $template['template']) {
-          $db->update_query("templates", array(
-            'template' => $template['template'],
-            'dateline' => TIME_NOW
-          ), "tid = '" . $existing_template['tid'] . "'");
-        }
-      } else {
-        $db->insert_query("templates", $template);
-      }
-    }
-  } else {
-    foreach ($templates as $template) {
-      $check = $db->num_rows($db->simple_select("templates", "title", "title = '" . $template['title'] . "'"));
-      if ($check == 0) {
-        $db->insert_query("templates", $template);
-      }
-    }
-  }
-}
 
 /**
  * Add / Update Database
@@ -5219,16 +4550,693 @@ function scenetracker_database($type = 'install')
   if (!$db->table_exists("scenetracker")) {
 
     $db->write_query("CREATE TABLE `" . TABLE_PREFIX . "scenetracker` (
-        `id` int(10) NOT NULL AUTO_INCREMENT,
-        `uid` int(10) NOT NULL,
-        `tid` int(10) NOT NULL,
-        `alert` int(1) NOT NULL DEFAULT 0,
-        `type` varchar(50) NOT NULL DEFAULT 'always',
-        `inform_by` int(10) NOT NULL DEFAULT 1,
-        `index_view` int(1) NOT NULL DEFAULT 1,
-        `profil_view` int(1) NOT NULL DEFAULT 1,
-        PRIMARY KEY (`id`)
-    ) ENGINE=MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
+      `id` int(10) NOT NULL AUTO_INCREMENT,
+      `uid` int(10) NOT NULL,
+      `tid` int(10) NOT NULL,
+      `alert` int(1) NOT NULL DEFAULT 0,
+      `type` varchar(50) NOT NULL DEFAULT 'always',
+      `inform_by` int(10) NOT NULL DEFAULT 1,
+      `index_view` int(1) NOT NULL DEFAULT 1,
+      `profil_view` int(1) NOT NULL DEFAULT 1,
+      PRIMARY KEY (`id`)
+      ) ENGINE=MyISAM CHARACTER SET utf8 COLLATE utf8_general_ci;");
+  }
+}
+
+/**
+ * Templates hinzufügen
+ */
+function scenetracker_add_templates($type = 'install')
+{
+  global $db;
+  $templates = array();
+  //add templates and stylesheets
+  // Add templategroup
+  //templategruppe nur beim installieren hinzufügen
+  if ($type == 'install') {
+    $templategrouparray = array(
+      'prefix' => 'scenetracker',
+      'title'  => $db->escape_string('Szenentracker'),
+      'isdefault' => 1
+    );
+    $db->insert_query("templategroups", $templategrouparray);
+  }
+
+  $templates[] = array(
+    "title" => 'scenetracker_forumdisplay_infos',
+    "template" => '<div class="author smalltext">
+        <div class="scenetracker_forumdisplay scene_infos">
+        <div class="scenetracker_forumdisplay scene_date icon"><i class="fas fa-calendar"></i> Szenendatum: {$scene_date}</div>
+        <div class="scenetracker_forumdisplay scene_place icon"><i class="fas fa-map-marker-alt"></i> Szenenort: {$scene_place}</div>
+        {$scenetrigger}
+        <div class="scenetracker_forumdisplay scene_users icon"><i class="fas fa-users"></i> Szenenteilnehmer: {$scenetracker_forumdisplay_user}</div>	
+        </div>
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_forumdisplay_user',
+    "template" => '<span class="scenetracker_forumdisplay scenetracker_user">{$user} {$delete}</span>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_index_bit_chara',
+    "template" => '<div class="scenetracker_index character_box">
+        <div class="scenetracker_index character_item name "><h1>{$charaname} {$cnt_chara}</h1> </div>
+        <div class="scenetracker_index character container item">
+          {$scenetracker_index_bit_scene}
+        </div>
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_index_bit_scene',
+    "template" => '<div class ="scenetracker_index container sceneindex__scenebox scene_index chara_item__scene">
+          <div class="sceneindex__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> {$scene} 
+              <span class="scene_status"> - {$close} {$certain} </span> 
+          </div>
+            <div class="sceneindex__sceneitem scene_last ">
+              <span class="scene_last icon"><i class="fas fa-arrow-right"></i> Letzter Post: {$lastposterlink} am {$lastpostdate}</span>
+            </div>
+        
+          <div class="sceneindex__sceneitem scene_date scene_place">
+            <span class="scene_date icon"><i class="fas fa-calendar"></i> {$scenedate} </span>
+            <span class="scene_place icon"><i class="fas fa-map-marker-alt"></i> {$sceneplace} </span>
+            <span class="scene_users icon "><i class="fas fa-users"></i> {$users}</span>
+          </div>
+          
+          </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_index_main',
+    "template" => '<div class="scenetracker_index wrapper_container"><strong>Szenenverwaltung {$counter}</strong>
+        {$scenetracker_index_bit_chara}
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_index_reminder',
+    "template" => '<div class="scenetracker_reminder box"><div class="scenetracker_reminder_wrapper"><span class="senetracker_reminder text">Du lässt deinen Postpartner in folgenden Szenen warten:</span>
+        <div class="scenetracker_reminder container">
+        {$scenetracker_index_reminder_bit}
+        </div>
+        <span class="senetracker_reminder text"><a href="index.php?action=reminder">[ignore all]</a></span>
+        </div></div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_index_reminder_bit',
+    "template" => '<div class="scenetracker_reminder item">
+        {$userarr[\\\'username\\\']} - <a href="showthread.php?tid={$scenes[\\\'tid\\\']}&action=lastpost">{$scenes[\\\'subject\\\']}</a> 
+        ({$lastpostdays} Tage)
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_newreply',
+    "template" => '<tr>
+          <td class="trow2" width="20%" colspan="2" align="center">
+            <input type="checkbox" name="scenetracker_add" id="scenetracker_add" value="add" checked /> <label for="scenetracker_add">Charakter zu Teilnehmern hinzufügen</label>
+          </td>
+        </tr>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_newthread',
+    "template" => '<tr>
+          <td class="trow2" width="20%"><strong>Szenendatum:</strong></td>
+          <td class="trow2">
+          <input type="date" value="{$scenetracker_date}" name="scenetracker_date" /> 
+          <input type="{$time_input_type}" value="{$scenetracker_time}" name="{$time_input_name}" {$input_time_placeholder}/>
+          </td>
+          </tr>
+          <tr>
+          <td class="trow2" width="20%"><strong>Ort:</strong></td>
+          <td class="trow2">
+            <div class="con">
+              <div class="con-item">
+                <input type="text" id="place" name="place" size="40" value="{$scenetracker_place}" />
+              </div>
+              <div class="con-item">
+                Hier den Ort eintragen. Wo findet die Szene statt? 
+              </div>
+            </div>
+          </td>
+          </tr>
+            <tr>
+          <td class="trow2" width="20%"><strong>Triggerwarnung:</strong></td>
+          <td class="trow2">
+            <div class="con">
+              <div class="con-item">
+                <input type="text" id="scenetracker_trigger" name="scenetracker_trigger" size="40" value="{$scenetracker_trigger}" />
+              </div>
+              <div class="con-item">
+                Gibt es eine Triggerwarnung für die Szene? Wenn ja dann mit aussagekräftigem Begriff(en) füllen.
+              </div>
+            </div>
+          </td>
+          </tr>
+          <tr>
+          <td class="trow2" width="20%"><strong>Teilnehmer:</strong></td>
+          <td class="trow2">
+            
+            <div class="con">
+              <div class="con-item">
+                <input id="teilnehmer" type="text" value="{$scenetracker_user}" size="40"  name="teilnehmer" autocomplete="off" style="display: block;" />
+                <div id="suggest" style="display:none; z-index:10;"></div>
+              </div>
+              <div class="con-item">
+                Mit , getrennt lassen sich mehrere Teilnehmer eintragen, bitte ohne Leertaste nach dem Komma.
+              </div>
+            </div>
+        
+          </td>
+          </tr>
+          <script type="text/javascript" src="./jscripts/suggest.js"></script>
+          <script type="text/javascript" src="./jscripts/scenetracker.js"></script>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_popup',
+    "template" => '<a onclick="$(\\\'#certain{$id}\\\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \\\'undefined\\\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;"><i class="fas fa-cogs"></i></a>
+          <div class="modal addrela" id="certain{$id}" style="display: none; padding: 10px; margin: auto; text-align: center;">
+          <form method="post" action="usercp.php?action=scenetracker">
+              {$hidden}
+              <input type="hidden" value="{$data[\\\'id\\\']}" name="getid">
+                <select name="charakter">
+                {$users_options_bit}
+              </select><br />
+              <input type="submit" name="certainuser" />
+            </form>
+          </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_profil',
+    "template" => '<div class="scenetracker container scenetracker_profil">
+        {$scenetracker_profil_bit}
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_profil_active',
+    "template" => '	<div class="scenetracker container active">
+        {$scenetracker_profil_bit_active}
+        </div>	',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_profil_bit',
+    "template" => '{$scenetracker_profil_bit_mY}
+          <div class="scenetracker scenebit scenetracker_profil">
+            <div class="scenetracker__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> <a href="showthread.php?tid={$tid}">{$subject}</a> {$scenestatus}{$scenehide}</div>
+          <div class="scenetracker__sceneitem scene_date icon "><i class="fas fa-calendar"></i> {$scenedate}</div>
+            <div class="scenetracker__sceneitem scene_place icon "><i class="fas fa-map-marker-alt"></i> {$sceneplace}</div>
+          {$scenetrigger}
+          <div class="scenetracker__sceneitem scene_break"></div>
+            <div class="scenetracker__sceneitem scene_users icon "><i class="fas fa-users"></i> {$sceneusers}</div>
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_profil_bit_mY',
+    "template" => '<span class="scentracker month">{$scenedatetitle}</span>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_profil_closed',
+    "template" => '<div class="scenetracker container closed">
+        {$scenetracker_profil_bit_closed}
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_showthread',
+    "template" => '<div class="scenetracker scenebit scenetracker_showthread">
+            <div class="scenetracker__sceneitem scene_date icon"><i class="fas fa-calendar"></i> {$scene_date}</div>
+            <div class="scenetracker__sceneitem scene_place icon "><i class="fas fa-map-marker-alt"></i> {$sceneplace}</div>
+            <div class="scenetracker__sceneitem scene_status icon"><i class="fas fa-play"></i> {$scenestatus}</div>
+            {$scenetrigger}
+            <div class="scenetracker__sceneitem scene_users icon"><i class="fas fa-users"></i>{$scenetracker_showthread_user}</div> 
+            {$edit}
+          </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_showthread_user',
+    "template" => '<span class="scenetracker_user">{$user} {$delete}</span>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_ucp_bit_chara',
+    "template" => '<div class="scene_ucp chara_item">
+          <h3>{$charaname}</h3>
+          <div class="scene_ucp chara_item__scenes-con">
+            {$scenetracker_ucp_bit_scene}
+          </div>
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_ucp_bit_scene',
+    "template" => '<div class ="sceneucp__scenebox scene_ucp chara_item__scene">
+            <div class="sceneucp__sceneitem scene_title icon"><i class="fas fa-folder-open"></i> {$scene} {$statusclass}</div>
+            <div class="sceneucp__sceneitem scene_status icon"><i class="fas fa-play"></i> scene {$close}
+            </div>
+            <div class="sceneucp__sceneitem scene_profil icon"><i class="fas fa-circle-user"></i> scene {$hide}</div>
+            <div class="sceneucp__sceneitem scene_alert icon {$alertclass}"><i class="fas fa-bullhorn"></i>
+              <span class="sceneucp__scenealerts">{$alerttype} {$certain}  {$always}</span>
+            </div>
+          
+            <div class="sceneucp__sceneitem scene_date icon"><i class="fas fa-calendar"></i> {$scenedate}</div>
+            <div class="sceneucp__sceneitem scene_users icon "><i class="fas fa-users"></i>{$users}</div>
+            <div class="sceneucp__sceneitem scene_place icon"><i class="fas fa-map-marker-alt"></i> {$sceneplace}</div>
+            <div class="sceneucp__sceneitem scene_last icon ">last: {$lastposterlink} ({$lastpostdate})</div>
+          </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_ucp_main',
+    "template" => '<html>
+          <head>
+          <title>{$mybb->settings[\\\'bbname\\\']} - Szenentracker</title>
+          {$headerinclude}
+          </head>
+          <body>
+          {$header}
+        
+          <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+          <table width="100%" border="0" align="center">
+          <tr>
+            {$usercpnav}
+            <td valign="top">
+              
+              <div class="scene_ucp container">
+              <div class="scene_ucp manage alert_item">
+                <h1><i class="fas fa-book-open" aria-hidden="true"></i> Szenentracker</h1>
+                <p>Hier kannst du alles rund um den Szenentracker anschauen und verwalten. Die Einstellungen für die Alerts
+              kannst du <a href="alerts.php?action=settings">hier</a> vornehmen. Stelle hier erst einmal allgemein ein,
+              ob du die Szenen auf dem Index angezeigt werden möchtest und ob du eine Meldung haben möchtest, wenn du in
+              einer Szene länger als {$days_reminder} Tage(n) dran bist.
+                </p>
+                
+              <div class="scene_ucp scenefilteroptions">
+              <h2>Benachrichtigungseinstellungen</h2>
+                <div class="scenefilteroptions__items">
+                  <form action="usercp.php?action=scenetracker" method="post">
+                  <fieldset><label for="index">Szenenübersicht auf der Indexseite?</label><br/>
+                  <input type="radio" name="index" id="index_yes" value="1" {$yes_ind}> <label for="index_yes">Ja</label>
+                  <input type="radio" name="index" id="index_no" value="0" {$no_ind}> <label for="index_no">Nein</label><br />
+                  <input type="submit" name="opt_index" value="speichern" id="index_button" />
+                  </fieldset>
+                  </form>
+                </div>
+              <div class="scenefilteroptions__items">
+                  <form action="usercp.php?action=scenetracker" method="post">
+                  <fieldset><label for="index_yesall">Szenen aller Charaktere auf dem Index anzeigen?</label><br/>
+                  <input type="radio" name="indexall" id="index_yesall" value="1" {$yes_indall}> <label for="index_yesall">Ja</label>
+                  <input type="radio" name="indexall" id="index_noall" value="0" {$no_indall}> <label for="index_noall">Nein</label><br />
+                <span style="font-size: 0.8em">(Einstellung für den jeweils eingeloggten Charakter)</span><br />
+                  <input type="submit" name="opt_indexall" value="speichern" id="indexall_button" />
+                  </fieldset>
+                  </form>
+                </div>
+                {$ucp_main_reminderopt}
+                {$calendar_setting_form}
+              </div>
+              </div><!--scene_ucp manage alert_item-->
+            {$scenetracker_ucp_filterscenes}
+              <div class="scene_ucp manage overview_item overview_con">
+                <div class="scene_ucp overview_item">
+                <h2>{$scenes_title}</h2>
+                  <div class="scene_ucp overview_chara_con">
+                  {$scenetracker_ucp_bit_chara} 
+                  </div>
+                </div>
+                </div>
+              </div><!--scene_ucp container-->
+            </td>
+          </tr>
+          </table>
+        
+          {$footer}
+          </body>
+          </html>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_calendar_bit',
+    "template" => '<div class="scenetracker calendar">
+          <div class="month-indicator">
+            <div> {$kal_title}</div>
+          </div>
+          <div class="day-of-week" style="grid-template-columns: repeat(7, 1fr);">
+            <div>M</div>
+            <div>T</div>
+            <div>W</div>
+            <div>T</div>
+            <div>F</div>
+            <div>S</div>
+            <div>S</div>
+            {$kal_day}
+          </div>
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_misc_allscenes',
+    "template" => '
+          <html>
+          <head>
+            <title>Szenenliste</title>
+            {$headerinclude}
+          </head>
+          <body>
+            {$header}
+            <table width="100%" border="0" align="center">
+              <tr>
+                <td valign="top">
+                  <table border="0" cellspacing="{$theme[\\\'borderwidth\\\']}" cellpadding="{$theme[\\\'tablespace\\\']}" class="tborder">
+                    <tr>
+                      <td class="trow2">
+                        <div class="ucp_charstat bl-globalcard">
+                          <div class="bl-tabcon__title">
+                            <div class="forum_line forum_line--profile"></div>
+                            <span class="bl-boldtitle bl-boldtitle--profile">Szenenliste</span>
+                          </div>
+        
+                          {$scenes}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            {$footer}
+          </body>
+          </html>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_calender_event_bit',
+    "template" => '
+          <a href="{$event[\\\'eventlink\\\']}" title="{$event[\\\'name\\\']}" class="{$popelement_class}">{$event[\\\'name\\\']}</a>
+      ',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_calender_popbit',
+    "template" => '<div class="st_minical_pop{$popitemclass}">{$caption}
+        {$scenetracker_calender_popbit_bit}
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_calender_scene_bit',
+    "template" => '<div class="st_mini_scenelink">
+          <span>
+          <span class="raquo">&raquo;</span> 
+          <a href="showthread.php?tid={$scene[\\\'tid\\\']}">{$scene[\\\'subject\\\']}</a>
+          </span>
+          <span>({$scene[\\\'scenetime\\\']} - {$teilnehmer})</span>
+          </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_calender_birthday_bit',
+    "template" => '<div class="st_calendar birthday">{$birthdaylink}</div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_calender_plot_bit',
+    "template" => '<div class="st_mini_scenelink plot"><a href="plottracker.php?action=view&plid={$plot[\\\'plid\\\']}">{$plot[\\\'name\\\']}</a></div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_calendar_day_pop',
+    "template" => '<div class="st_mini_scene_show"> 
+          {$sceneshow}
+          {$birthdayshow}
+          {$eventshow}
+          {$plotshow}
+        </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_calendar_weekrow',
+    "template" => '{$day_bits}',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_calendar_day',
+    "template" => '<div class="day st_mini_scene{$month_status}{$eventcss}{$fullmoon}{$birthdaycss}{$ownscene}{$ingamecss}{$plotcss}">
+            {$day}
+            {$scenetracker_calendar_day_pop}
+          </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_calendar',
+    "template" => '{$scenetracker_calendar}',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_testtemplate',
+    "template" => 'wir testen nur ob es überall eingefügt wird',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+
+  $templates[] = array(
+    "title" => 'scenetracker_testtemplate2',
+    "template" => 'wir testen nur ob es überall eingefügt wird - obwohl es in einem schon existiert',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_ucp_filterscenes',
+    "template" => '<div class="bl-tabcon__title">
+                <div class="forum_line forum_line--profile"></div>
+                <span class="bl-boldtitle bl-boldtitle--profile">filteroptions</span>
+                </div>
+                <form action="usercp.php?action=scenetracker" method="post">
+                <div class="scene_ucp scenefilteroptions filter bl-cardtransparent">
+  
+              <div class="scenefilteroptions__items scenefilteroptions__items--filter">
+                <label for="charakter">Szenen anzeigen von: </label>{$selectchara}
+                <input type="hidden" value="{$thisuser}" name="uid" id="uid"/>
+              </div>	
+              <div class="scenefilteroptions__items scenefilteroptions__items--filter">
+                <label for="status">Status der Szene:  </label>
+                <select name="status" id="status">
+                  <option value="both" {$sel_s[\\\'both\\\']}>beides</option>
+                  <option value="open" {$sel_s[\\\'open\\\']} >offen</option>
+                  <option value="closed" {$sel_s[\\\'closed\\\']}>geschlossen</option>
+                </select>
+              </div>
+              <div class="scenefilteroptions__items scenefilteroptions__items--filter">
+                <label for="move">Du bist dran: </label>
+                <select name="move" id="move">
+                  <option value="beides" {$sel_m[\\\'beides\\\']}>beides</option>
+                  <option value="ja" {$sel_m[\\\'ja\\\']}>ja</option>
+                  <option value="nein" {$sel_m[\\\'nein\\\']}>nein</option>
+  
+                </select>
+              </div>
+            {$scenetracker_ucp_filterscenes_username}
+              <div class="scenefilteroptions__items button">
+                <input type="submit" name="scenefilter" value="Szenen filtern" id="scenefilter" />
+              </div>
+            </div>
+          </form>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_ucp_filterscenes_username',
+    "template" => '<div class="scenefilteroptions__items scenefilteroptions__items--filter">
+                <label for="move">Szenen mit: </label>
+                <div class="filterinput">
+                  <input type="text" name="player" id="player" />
+                </div>
+              </div>
+            
+          <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/select2/select2.css?ver=1807">
+          <script type="text/javascript" src="{$mybb->asset_url}/jscripts/select2/select2.min.js?ver=1806"></script>
+          <script type="text/javascript">
+            <!--
+              if(use_xmlhttprequest == "1")
+            {
+              MyBB.select2();
+              $("#player").select2({
+                placeholder: "Filter: Spielername",
+                minimumInputLength: 2,
+                multiple: false,
+                allowClear: true,
+                ajax: { // instead of writing the function to execute the request we use Select2\\\'s convenient helper
+                  url: "xmlhttp.php?action=application_get_player",
+                  dataType: \\\'json\\\',
+                  data: function (term, page) {
+                    return {
+                      query: term, // search term
+                      fieldid: "player",
+                    };
+                  },
+                  results: function (data, page) { // parse the results into the format expected by Select2.
+                    // since we are using custom formatting functions we do not need to alter remote JSON data
+                    return {results: data};
+                  }
+                },
+                initSelection: function(element, callback) {
+                  var value = $(element).val();
+                  if (value !== "") {
+                    callback({
+                      id: value,
+                      text: value
+                    });
+                  }
+                },
+                // Allow the user entered text to be selected as well
+                createSearchChoice:function(term, data) {
+                  if ( $(data).filter( function() {
+                    return this.text.localeCompare(term)===0;
+                  }).length===0) {
+                    return {id:term, text:term};
+                  }
+                },
+              });
+  
+              $(\\\'[for=player]\\\').on(\\\'click\\\', function(){
+                $("#player").select2(\\\'open\\\');
+                return false;
+              });
+            }
+            // -->
+          </script>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  if ($type == 'update') {
+    foreach ($templates as $template) {
+      $query = $db->simple_select("templates", "tid, template", "title = '" . $template['title'] . "' AND sid = '-2'");
+      $existing_template = $db->fetch_array($query);
+
+      if ($existing_template) {
+        if ($existing_template['template'] !== $template['template']) {
+          $db->update_query("templates", array(
+            'template' => $template['template'],
+            'dateline' => TIME_NOW
+          ), "tid = '" . $existing_template['tid'] . "'");
+        }
+      } else {
+        $db->insert_query("templates", $template);
+      }
+    }
+  } else {
+    foreach ($templates as $template) {
+      $check = $db->num_rows($db->simple_select("templates", "title", "title = '" . $template['title'] . "'"));
+      if ($check == 0) {
+        $db->insert_query("templates", $template);
+      }
+    }
   }
 }
 
@@ -5246,14 +5254,15 @@ function scenetracker_replace_templates()
     while ($old_template = $db->fetch_array($old_template_query)) {
       $pattern = scenetracker_createRegexPattern($update_template['change_string']);
       if ($update_template['action'] == 'replace') {
-
-        $template = preg_replace($pattern, $update_template['action_string'], $old_template['template']);
-        $update_query = array(
-          "template" => $db->escape_string($template),
-          "dateline" => TIME_NOW
-        );
-        $db->update_query("templates", $update_query, "tid='" . $old_template['tid'] . "'");
-        echo ("{$update_template['templatename']} wurde aktualisiert <br>");
+        if (preg_replace($pattern, $update_template['action_string'], $old_template['template'])) {
+          $template = preg_replace($pattern, $update_template['action_string'], $old_template['template']);
+          $update_query = array(
+            "template" => $db->escape_string($template),
+            "dateline" => TIME_NOW
+          );
+          $db->update_query("templates", $update_query, "tid='" . $old_template['tid'] . "'");
+          echo ("Template {$update_template['templatename']} in  {$old_template['tid']} wurde aktualisiert <br>");
+        }
       }
     }
   }
@@ -5303,6 +5312,7 @@ function scenetracker_updated_templates()
     "action_string" => '{$scenetracker_ucp_filterscenes}'
   );
 
+  
   return $update_template;
 }
 
@@ -5333,19 +5343,24 @@ function scenetracker_is_updated()
   global $db, $mybb;
 
   if (!$db->field_exists("scenetracker_date", "threads")) {
+    echo ("In der Threadtabelle muss das Feld scenetracker_date  hinzugefügt werden <br>");
     return false;
   }
   if (!$db->field_exists("scenetracker_trigger", "threads")) {
+    echo ("In der Threadtabelle muss das Feld scenetracker_trigger  hinzugefügt werden <br>");
     return false;
   }
   if (!$db->field_exists("scenetracker_time_text", "threads")) {
+    echo ("In der Threadtabelle muss das Feld scenetracker_time_text  hinzugefügt werden <br>");
     return false;
   }
   if (!$mybb->settings['scenetracker_filterusername_yesno']) {
+    echo ("setting scenetracker_filterusername_yesno muss hinzugefügt werden <br>");
     return false;
   }
 
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_filterscenes'")) == 0) {
+    echo ("template scenetracker_ucp_filterscenes muss hinzugefügt werden <br>");
     return false;
   }
 
@@ -5358,6 +5373,7 @@ function scenetracker_is_updated()
     $templatequery = $db->write_query("SELECT * FROM `mybb_themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
     //scenetracker.css ist in einem style nicht vorhanden
     if ($db->num_rows($templatequery) == 0) {
+      echo ("Nicht im Masterstyle vorhanden");
       return false;
     } else {
       //css ist vorhanden, testen ob alle updatestrings vorhanden sind
@@ -5368,13 +5384,36 @@ function scenetracker_is_updated()
         $update_string = $update_data['update_string'];
         //updatestring darf nicht leer sein
         if (!empty($update_string)) {
+
           //checken ob updatestring in css vorhanden ist - dann muss nichts getan werden
           $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
           //string war nicht vorhanden
           if ($db->num_rows($test_ifin) == 0) {
+            echo ("Theme {$theme['tid']} muss aktualisiert werden <br>");
             return false;
           }
         }
+      }
+    }
+  }
+
+  //Testen ob eins der Templates aktualisiert werden muss
+  //Wir wollen erst einmal die templates, die eventuellverändert werden müssen
+  $update_template_all = scenetracker_updated_templates();
+  //alle themes durchgehen
+  foreach ($update_template_all as $update_template) {
+    //entsprechendes Tamplate holen
+    $old_template_query = $db->simple_select("templates", "tid, template, sid", "title = '" . $update_template['templatename'] . "'");
+    while ($old_template = $db->fetch_array($old_template_query)) {
+      //pattern bilden
+      $pattern = scenetracker_createRegexPattern($update_template['change_string']);
+      //testen ob der zu ersetzende string vorhanden ist
+      $check = preg_match($pattern, $old_template['template']);
+      //wenn ja muss das template aktualisiert werden.
+      if ($check) {
+        $templateset = $db->fetch_field($db->simple_select("templatesets", "title", "sid = '{$old_template['sid']}'"), "title");
+        echo ("Template {$update_template['templatename']} im Set {$templateset}'(SID: {$old_template['sid']}') muss aktualisiert werden.");
+        return false;
       }
     }
   }
