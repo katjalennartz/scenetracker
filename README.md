@@ -1,12 +1,13 @@
 # Szenentracker
 ## Updates: 		
-Last: 16. September 2024
-Version: 1.0.9
+Last: 07. November 2024
+Version: 1.0.10
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
-- update_scenetracker.php ins hauptverzeichnis laden und aufrufen. Anschließend aufrufen und dann wieder löschen.
-- **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Updatescript hinzugefügt werden, sonst manuell nachholen! (siehe changelog)
+- Reiter RPG-Erweiterungen -> Plugins aktualisieren
+- **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Update
+
 
 ### Changelog: 
 #### 1.0.9 -> 1.0.10
@@ -14,8 +15,8 @@ Version: 1.0.9
 - Optimierung Update Prozess
 - Einfügen Filtern nach Usernamen in UCP
 - Counter für Szenen Global verfügbar über {$counter} (keine manuelle änderungen in der php mehr nötig)
-- 
-
+- Auslagern von Trigger in eigenes Template -> bessere (individuelle) Anpassung
+- Auslagern von Edit in eigenes Template -> bessere (individuelle) Anpassung
    
 #### 1.0.8 -> 1.0.9  
 - Optimierungen für Minikalender. Einstellung ob der Kalender über dem Ingame angezeigt werden soll
