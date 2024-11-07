@@ -1765,7 +1765,7 @@ function scenetracker_list()
       //for which scene
       $id = intval($mybb->get_input('getid'));
       scenetracker_scene_inform_status($id, $certained);
-      redirect('index.php#closepop');
+      redirect('index.php');
     }
 
     if (!empty($mybb->cookies['collapsed'])) {
@@ -3778,10 +3778,34 @@ function scenetracker_stylesheet($themeid = 1)
       display: flex;
       justify-content: space-around;
     }
+
     .scene_ucp.alerts_item {
       display: block;
       width: 48%;
     }
+
+        .scene_ucp.scenefilteroptions {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 10px;
+        }
+
+        .scene_ucp.scenefilteroptions h2 {
+          width: 100%
+        }
+
+        .scenefilteroptions__items {
+          width: 32%;
+        }
+
+        .scene_ucp.container {
+          box-sizing: border-box;
+        }
+
+        fieldset.scenefilteroptions__items {
+          box-sizing: border-box;
+        }
     
     .scene_ucp.overview_chara_con {
       display: grid;
@@ -4062,7 +4086,7 @@ function scenetracker_stylesheet($themeid = 1)
       gap: 20px;
       }
 
-      .calendar {
+        .calendar-container .calendar {
       background-color: var(--background-light);
       width: 205px;
       padding-left: 5px;
@@ -4070,7 +4094,7 @@ function scenetracker_stylesheet($themeid = 1)
       border: 1px solid var(--background-dark);
       }
 
-      .calendar:first-child {
+        .calendar-container .calendar:first-child {
       padding: 0px;
       }
 
@@ -4183,7 +4207,7 @@ function scenetracker_stylesheet($themeid = 1)
       }
       /* calendar-update - kommentar nicht entfernen */
       .scenetracker_cal_setting {
-            width: 92%;
+          width: 100%;
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
@@ -4207,6 +4231,11 @@ function scenetracker_stylesheet($themeid = 1)
         #calsettings_button {
             grid-column: 1 / -1;
             justify-self: center;
+        }
+        /* update-userfilter - kommentar nicht entfernen */
+        .scenefilteroptions__items.button {
+            text-align: center;
+            width: 100%;
         }
     ',
     'cachefile' => $db->escape_string(str_replace('/', '', 'scenetracker.css')),
@@ -4257,6 +4286,19 @@ function scenetracker_stylesheet_update()
       }",
     'update_string' => 'calendar-update'
   );
+
+  $update_array_all[] = array(
+    'stylesheet' => "
+      /* update-userfilter - kommentar nicht entfernen */
+        .scenefilteroptions__items.button {
+            text-align: center;
+            width: 100%;
+        }
+    ",
+    'update_string' => 'update-userfilter'
+  );
+
+
 
   return $update_array_all;
 }
@@ -5048,12 +5090,11 @@ function scenetracker_add_templates($type = 'install')
   );
   $templates[] = array(
     "title" => 'scenetracker_ucp_filterscenes',
-    "template" => '<div class="bl-tabcon__title">
-                <div class="forum_line forum_line--profile"></div>
-                <span class="bl-boldtitle bl-boldtitle--profile">filteroptions</span>
-                </div>
+    "template" => '<div class="scene_ucp scenefilteroptions">
+          <h2>Filteroptions</h2>
+
                 <form action="usercp.php?action=scenetracker" method="post">
-                <div class="scene_ucp scenefilteroptions filter bl-cardtransparent">
+            <div class="scene_ucp scenefilteroptions filter ">
   
               <div class="scenefilteroptions__items scenefilteroptions__items--filter">
                 <label for="charakter">Szenen anzeigen von: </label>{$selectchara}
