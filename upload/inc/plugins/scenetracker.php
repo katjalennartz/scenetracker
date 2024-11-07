@@ -802,8 +802,10 @@ function scenetracker_forumdisplay_showtrackerstuff()
 
     $author = build_profile_link($thread['username'], $thread['uid']);
     $scenetracker_forumdisplay_user = "";
+
     if ($thread['scenetracker_trigger'] != "") {
       $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
+      eval("\$scenetrigger.= \"" . $templates->get("scenetracker_forumdisplay_trigger") . "\";");
     } else {
       $scenetrigger = "";
     }
@@ -913,7 +915,8 @@ function scenetracker_showthread_showtrackerstuff()
       eval("\$scenetracker_showthread_user.= \"" . $templates->get("scenetracker_showthread_user") . "\";");
     }
     if ($thread['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker__sceneitem scenethread scene_trigger\"><span class=\"scene_trigger__title\">{$lang->scenetracker_triggeredit}</span> {$thread['scenetracker_trigger']}</div>";
+      eval("\$scenetrigger = \"" . $templates->get("scenetracker_showthread_trigger") . "\";");
+      // $scenetrigger = "<div class=\"scenetracker__sceneitem scenethread scene_trigger\"><span class=\"scene_trigger__title\">{$lang->scenetracker_triggeredit}</span> {$thread['scenetracker_trigger']}</div>";
     } else {
       $scenetrigger = "";
     }
@@ -938,28 +941,8 @@ function scenetracker_showthread_showtrackerstuff()
         $input_time_placeholder = "placeholder=\"z.B. mittags\"";
         $time_input_name = "scenetracker_time_str";
       }
-
-      $edit = "
-      <div class=\"scenetracker__sceneitem scene_edit icon bl-btn bl-btn--scenetracker\">
-      <a onclick=\"$('#sceneinfos{$tid}').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;\" style=\"cursor: pointer;\">{$lang->scenetracker_editinfos}</a>
-          <div class=\"modal editscname\" id=\"sceneinfos{$tid}\" style=\"display: none; padding: 10px; margin: auto; text-align: center;\">
-             <form action=\"\" id=\"formeditscene\" method=\"post\" >
-              <input type=\"hidden\" value=\"{$tid}\" name=\"id\" id=\"id\"/>
-                <center><input id=\"teilnehmer\" placeholder=\"{$lang->scenetracker_teilnehmer}\" type=\"text\" value=\"\" size=\"40\"  name=\"teilnehmer\" autocomplete=\"off\" style=\"display: block;\" /></center>
-                <div id=\"suggest\" style=\"display:none; z-index:10;\"></div>
-                <input type=\"date\" id=\"scenetracker_date\" name=\"scenetracker_date\" value=\"{$scenetracker_date}\" /> 
-                <input type=\"{$time_input_type}\" id=\"scenetracker_time\" name=\"{$time_input_name}\" value=\"{$scenetracker_time}\" />
-                  <input type=\"text\" name=\"scenetrigger\" id=\"scenetrigger\" placeholder=\"{$lang->scenetracker_trigger}\" value=\"{$scenetriggerinput}\" />
-                  <input type=\"text\" name=\"sceneplace\" id=\"sceneplace\" placeholder=\"{$lang->scenetracker_place}\" value=\"{$sceneplace}\" />
-                  
-            </form><button name=\"edit_sceneinfos\" id=\"edit_sceneinfos\">{$lang->scenetracker_btnsubmit}</button>
-            <script src=\"./jscripts/scenetracker.js\"></script>
-            <script type=\"text/javascript\" src=\"./jscripts/suggest.js\"></script>
-
-        </div>
-
-      </div>
- ";
+      $edit = "";
+      eval("\$edit = \"" . $templates->get("scenetracker_showthread_edit") . "\";");
     }
     $statusscene_new = "<div class=\"bl-sceneinfos__item bl-sceneinfos__item--status bl-smallfont \">" . $scenestatus . $edit . "</div>";
 
@@ -3433,8 +3416,8 @@ function scenetracker_admin_rpgstuff_permissions(&$admin_permissions)
 }
 
 // im Menü einfügen
-$plugins->add_hook("admin_rpgstuff_menu", "inplayscenes_admin_rpgstuff_menu");
-function inplayscenes_admin_rpgstuff_menu(&$sub_menu)
+$plugins->add_hook("admin_rpgstuff_menu", "scenetracker_admin_rpgstuff_menu");
+function scenetracker_admin_rpgstuff_menu(&$sub_menu)
 {
   global $lang;
   $lang->load('scenetracker');
@@ -3613,7 +3596,7 @@ function scenetracker_admin_update_plugin(&$table)
   $lang->load('rpgstuff_plugin_updates');
 
   // UPDATE KRAM
-  // Settings hinzufügen/Update
+  // Update durchführen
   if ($mybb->input['action'] == 'add_update' and $mybb->get_input('plugin') == "scenetracker") {
 
     //Settings updaten
@@ -3638,7 +3621,7 @@ function scenetracker_admin_update_plugin(&$table)
 
     while ($theme = $db->fetch_array($theme_query)) {
       //wenn im style nicht vorhanden, dann gesamtes css hinzufügen
-      $templatequery = $db->write_query("SELECT * FROM `mybb_themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
+      $templatequery = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
 
       if ($db->num_rows($templatequery) == 0) {
         $css = scenetracker_stylesheet($theme['tid']);
@@ -3682,7 +3665,7 @@ function scenetracker_admin_update_plugin(&$table)
   // Zelle mit dem Namen des Themes
   $table->construct_cell("<b>" . htmlspecialchars_uni("Szenentracker") . "</b>", array('width' => '70%'));
 
-  // Überprüfen, ob Update erledigt
+  // Überprüfen, ob Update nötig ist 
   $update_check = scenetracker_is_updated();
 
   if ($update_check) {
@@ -4232,7 +4215,9 @@ function scenetracker_stylesheet($themeid = 1)
   return $css;
 }
 
-// STYLESHEET UPDATE
+/**
+ * Stylesheet der eventuell hinzugefügt werden muss
+ */
 function scenetracker_stylesheet_update()
 {
   // Update-Stylesheet
@@ -4473,7 +4458,6 @@ function scenetracker_add_settings($type = 'install')
       //alte einstellung aus der db holen
       $check = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
       $check2 = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
-
       $check = $db->num_rows($check);
 
       if ($check == 0) {
@@ -4505,7 +4489,6 @@ function scenetracker_add_settings($type = 'install')
   }
   rebuild_settings();
 }
-
 
 /**
  * Add / Update Database
@@ -4548,7 +4531,6 @@ function scenetracker_database($type = 'install')
   }
   //Neue Tabelle um Szenen zu speichern und informationen, wie die benachrichtigungen sein sollen.
   if (!$db->table_exists("scenetracker")) {
-
     $db->write_query("CREATE TABLE `" . TABLE_PREFIX . "scenetracker` (
       `id` int(10) NOT NULL AUTO_INCREMENT,
       `uid` int(10) NOT NULL,
@@ -4596,7 +4578,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_forumdisplay_user',
     "template" => '<span class="scenetracker_forumdisplay scenetracker_user">{$user} {$delete}</span>',
@@ -4604,7 +4585,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_index_bit_chara',
     "template" => '<div class="scenetracker_index character_box">
@@ -4617,7 +4597,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_index_bit_scene',
     "template" => '<div class ="scenetracker_index container sceneindex__scenebox scene_index chara_item__scene">
@@ -4639,7 +4618,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_index_main',
     "template" => '<div class="scenetracker_index wrapper_container"><strong>Szenenverwaltung {$counter}</strong>
@@ -4649,7 +4627,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_index_reminder',
     "template" => '<div class="scenetracker_reminder box"><div class="scenetracker_reminder_wrapper"><span class="senetracker_reminder text">Du lässt deinen Postpartner in folgenden Szenen warten:</span>
@@ -4662,7 +4639,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_index_reminder_bit',
     "template" => '<div class="scenetracker_reminder item">
@@ -4684,7 +4660,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_newthread',
     "template" => '<tr>
@@ -4742,7 +4717,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_popup',
     "template" => '<a onclick="$(\\\'#certain{$id}\\\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \\\'undefined\\\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;"><i class="fas fa-cogs"></i></a>
@@ -4769,7 +4743,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_profil_active',
     "template" => '	<div class="scenetracker container active">
@@ -4779,7 +4752,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_profil_bit',
     "template" => '{$scenetracker_profil_bit_mY}
@@ -4795,7 +4767,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_profil_bit_mY',
     "template" => '<span class="scentracker month">{$scenedatetitle}</span>',
@@ -4803,7 +4774,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_profil_closed',
     "template" => '<div class="scenetracker container closed">
@@ -4813,7 +4783,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_showthread',
     "template" => '<div class="scenetracker scenebit scenetracker_showthread">
@@ -4828,7 +4797,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_showthread_user',
     "template" => '<span class="scenetracker_user">{$user} {$delete}</span>',
@@ -4836,7 +4804,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_ucp_bit_chara',
     "template" => '<div class="scene_ucp chara_item">
@@ -4849,7 +4816,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_ucp_bit_scene',
     "template" => '<div class ="sceneucp__scenebox scene_ucp chara_item__scene">
@@ -4870,7 +4836,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_ucp_main',
     "template" => '<html>
@@ -4942,7 +4907,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_calendar_bit',
     "template" => '<div class="scenetracker calendar">
@@ -5019,7 +4983,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_calender_scene_bit',
     "template" => '<div class="st_mini_scenelink">
@@ -5033,7 +4996,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_calender_birthday_bit',
     "template" => '<div class="st_calendar birthday">{$birthdaylink}</div>',
@@ -5041,7 +5003,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_calender_plot_bit',
     "template" => '<div class="st_mini_scenelink plot"><a href="plottracker.php?action=view&plid={$plot[\\\'plid\\\']}">{$plot[\\\'name\\\']}</a></div>',
@@ -5049,7 +5010,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_calendar_day_pop',
     "template" => '<div class="st_mini_scene_show"> 
@@ -5062,7 +5022,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_calendar_weekrow',
     "template" => '{$day_bits}',
@@ -5070,7 +5029,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_calendar_day',
     "template" => '<div class="day st_mini_scene{$month_status}{$eventcss}{$fullmoon}{$birthdaycss}{$ownscene}{$ingamecss}{$plotcss}">
@@ -5081,32 +5039,13 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_calendar',
-    "template" => '{$scenetracker_calendar}',
+    "template" => '<div class="calendar-container">{$scenetracker_calendar}</div>',
     "sid" => "-2",
     "version" => "",
     "dateline" => TIME_NOW
   );
-
-  $templates[] = array(
-    "title" => 'scenetracker_testtemplate',
-    "template" => 'wir testen nur ob es überall eingefügt wird',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
-
-  $templates[] = array(
-    "title" => 'scenetracker_testtemplate2',
-    "template" => 'wir testen nur ob es überall eingefügt wird - obwohl es in einem schon existiert',
-    "sid" => "-2",
-    "version" => "",
-    "dateline" => TIME_NOW
-  );
-
   $templates[] = array(
     "title" => 'scenetracker_ucp_filterscenes',
     "template" => '<div class="bl-tabcon__title">
@@ -5147,7 +5086,6 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
-
   $templates[] = array(
     "title" => 'scenetracker_ucp_filterscenes_username',
     "template" => '<div class="scenefilteroptions__items scenefilteroptions__items--filter">
@@ -5213,6 +5151,38 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
+  $templates[] = array(
+    "title" => 'scenetracker_showthread_trigger',
+    "template" => '<div class="scenetracker__sceneitem scenethread scene_trigger"><span class="scene_trigger__title">{$lang->scenetracker_triggeredit}</span> {$thread[\\\'scenetracker_trigger\\\']}</div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_showthread_edit',
+    "template" => '<div class="scenetracker__sceneitem scene_edit icon bl-btn bl-btn--scenetracker">
+      <a onclick="$(\\\'#sceneinfos{$tid}\\\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \\\'undefined\\\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;">{$lang->scenetracker_editinfos}</a>
+          <div class="modal editscname" id="sceneinfos{$tid}" style="display: none; padding: 10px; margin: auto; text-align: center;">
+             <form action="" id="formeditscene" method="post" >
+              <input type="hidden" value="{$tid}" name="id" id="id"/>
+                <center><input id="teilnehmer" placeholder="{$lang->scenetracker_teilnehmer}" type="text" value="" size="40"  name="teilnehmer" autocomplete="off" style="display: block;" /></center>
+                <div id="suggest" style="display:none; z-index:10;"></div>
+                <input type="date" id="scenetracker_date" name="scenetracker_date" value="{$scenetracker_date}" /> 
+                <input type="{$time_input_type}" id="scenetracker_time" name="{$time_input_name}" value="{$scenetracker_time}" />
+                  <input type="text" name="scenetrigger" id="scenetrigger" placeholder="{$lang->scenetracker_trigger}" value="{$scenetriggerinput}" />
+                  <input type="text" name="sceneplace" id="sceneplace" placeholder="{$lang->scenetracker_place}" value="{$sceneplace}" />
+                  
+            </form><button name="edit_sceneinfos" id="edit_sceneinfos">{$lang->scenetracker_btnsubmit}</button>
+            <script src="./jscripts/scenetracker.js"></script>
+            <script type="text/javascript" src="./jscripts/suggest.js"></script>
+
+        </div>
+
+      </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
 
   if ($type == 'update') {
     foreach ($templates as $template) {
@@ -5248,13 +5218,19 @@ function scenetracker_replace_templates()
   global $db;
   //Wir wollen erst einmal die templates, die eventuellverändert werden müssen
   $update_template_all = scenetracker_updated_templates();
-
+  if (!empty($update_template_all)) {
+    //diese durchgehen
   foreach ($update_template_all as $update_template) {
+      //anhand des templatenames holen
     $old_template_query = $db->simple_select("templates", "tid, template", "title = '" . $update_template['templatename'] . "'");
+      //in old template speichern
     while ($old_template = $db->fetch_array($old_template_query)) {
+        //was soll gefunden werden? das mit pattern ersetzen (wir schmeißen leertasten, tabs, etc raus)
       $pattern = scenetracker_createRegexPattern($update_template['change_string']);
+        //was soll gemacht werden -> momentan nur replace - später evt ranhängen etc 
       if ($update_template['action'] == 'replace') {
-        if (preg_replace($pattern, $update_template['action_string'], $old_template['template'])) {
+          //wir ersetzen wenn gefunden wird
+          if (preg_match($pattern, $old_template['template'])) {
           $template = preg_replace($pattern, $update_template['action_string'], $old_template['template']);
           $update_query = array(
             "template" => $db->escape_string($template),
@@ -5267,8 +5243,10 @@ function scenetracker_replace_templates()
     }
   }
 }
+}
 /**
  * Hier werden Templates gespeichert, die im Laufe der Entwicklung aktualisiert wurden
+ * @return array - template daten die geupdatet werden müssen
  */
 function scenetracker_updated_templates()
 {
@@ -5311,14 +5289,13 @@ function scenetracker_updated_templates()
     "action" => 'replace',
     "action_string" => '{$scenetracker_ucp_filterscenes}'
   );
-
-  
   return $update_template;
 }
 
 /**
  * Funktion um ein pattern für preg_replace zu erstellen
  * und so templates zu vergleichen.
+ * @return string - pattern für preg_replace zum vergleich
  */
 function scenetracker_createRegexPattern($html)
 {
@@ -5339,7 +5316,6 @@ function scenetracker_createRegexPattern($html)
  */
 function scenetracker_is_updated()
 {
-
   global $db, $mybb;
 
   if (!$db->field_exists("scenetracker_date", "threads")) {
@@ -5363,6 +5339,14 @@ function scenetracker_is_updated()
     echo ("template scenetracker_ucp_filterscenes muss hinzugefügt werden <br>");
     return false;
   }
+  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_showthread_trigger'")) == 0) {
+    echo ("template scenetracker_showthread_trigger muss hinzugefügt werden <br>");
+    return false;
+  }
+  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_showthread_edit'")) == 0) {
+    echo ("template scenetracker_showthread_edit muss hinzugefügt werden <br>");
+    return false;
+  }
 
   //Testen ob im CSS etwas fehlt
   $update_data_all = scenetracker_stylesheet_update();
@@ -5371,11 +5355,12 @@ function scenetracker_is_updated()
   while ($theme = $db->fetch_array($theme_query)) {
     //wenn im style nicht vorhanden, dann gesamtes css hinzufügen
     $templatequery = $db->write_query("SELECT * FROM `mybb_themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
-    //scenetracker.css ist in einem style nicht vorhanden
+    //scenetracker.css ist in keinem style nicht vorhanden
     if ($db->num_rows($templatequery) == 0) {
       echo ("Nicht im Masterstyle vorhanden");
       return false;
     } else {
+      //scenetracker.css ist in einem style nicht vorhanden
       //css ist vorhanden, testen ob alle updatestrings vorhanden sind
       $update_data_all = scenetracker_stylesheet_update();
       //array durchgehen mit eventuell hinzuzufügenden strings
@@ -5384,12 +5369,11 @@ function scenetracker_is_updated()
         $update_string = $update_data['update_string'];
         //updatestring darf nicht leer sein
         if (!empty($update_string)) {
-
           //checken ob updatestring in css vorhanden ist - dann muss nichts getan werden
           $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
           //string war nicht vorhanden
           if ($db->num_rows($test_ifin) == 0) {
-            echo ("Theme {$theme['tid']} muss aktualisiert werden <br>");
+            echo ("Mindestens Theme {$theme['tid']} muss aktualisiert werden <br>");
             return false;
           }
         }
@@ -5431,6 +5415,6 @@ function scenetracker_misc_test()
   global $mybb, $db, $templates, $header, $footer, $theme, $headerinclude, $scenes;
 
   if (!($mybb->get_input('action') == "scenetest")) return;
-  scenetracker_updated_templates();
+  // scenetracker_updated_templates();
   echo "<br> ----------- <br>";
 }
