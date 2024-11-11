@@ -804,7 +804,7 @@ function scenetracker_forumdisplay_showtrackerstuff()
     $scenetracker_forumdisplay_user = "";
 
     if ($thread['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
+      // $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
       eval("\$scenetrigger.= \"" . $templates->get("scenetracker_forumdisplay_trigger") . "\";");
     } else {
       $scenetrigger = "";
