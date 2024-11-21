@@ -4560,11 +4560,11 @@ function scenetracker_database($type = 'install')
     $db->add_column("users", "scenetracker_calendar_settings", "INT(1) NOT NULL DEFAULT '0'");
   }
   //für großen Kalender: 0 = nur szenen von diesem Charakter, 1 = Szenen aller eigenen Charas, 2 = Szenen aller Charas
-  if (!$db->field_exists("scenetracker_calendar_settings", "users")) {
+  if (!$db->field_exists("scenetracker_calendarsettings_big", "users")) {
     $db->add_column("users", "scenetracker_calendarsettings_big", "INT(1) NOT NULL DEFAULT '0'");
   }
   //für mini Kalender: 0 = nur szenen von diesem Charakter, 1 = Szenen aller eigenen Charas, 2 = Szenen aller Charas
-  if (!$db->field_exists("scenetracker_calendar_settings", "users")) {
+  if (!$db->field_exists("scenetracker_calendarsettings_mini", "users")) {
     $db->add_column("users", "scenetracker_calendarsettings_mini", "INT(1) NOT NULL DEFAULT '0'");
   }
   // Einfügen der Trackeroptionen in die user tabelle
