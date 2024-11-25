@@ -251,6 +251,7 @@ function scenetracker_newthread()
 {
   global $db, $mybb, $templates, $fid, $scenetracker_newthread, $thread, $scenetrackeredit, $post_errors, $scenetracker_date, $scenetracker_time, $scenetracker_time_input, $scenetracker_user;
   $scenetrackeredit = $scenetracker_place = $scenetracker_time_input = $scenetracker_trigger = "";
+
   if (scenetracker_testParentFid($fid)) {
 
     if ($mybb->get_input('previewpost') || $post_errors) {
@@ -409,7 +410,7 @@ function scenetracker_do_newthread()
 $plugins->add_hook("newreply_end", "scenetracker_newreply");
 function scenetracker_newreply()
 {
-  global $db, $mybb, $tid, $thread, $templates, $fid, $scenetrackerreply;
+  global $db, $mybb, $tid, $thread, $templates, $fid, $scenetrackerreply, $scenetrackeredit;
   $scenetrackeredit = "";
   if (scenetracker_testParentFid($fid)) {
     //showing add possibility if not allready add to
@@ -802,7 +803,8 @@ function scenetracker_forumdisplay_showtrackerstuff()
 
     $author = build_profile_link($thread['username'], $thread['uid']);
     $scenetracker_forumdisplay_user = "";
-
+    $delete = "";
+    $scenetrigger = "";
     if ($thread['scenetracker_trigger'] != "") {
       // $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
       eval("\$scenetrigger.= \"" . $templates->get("scenetracker_forumdisplay_trigger") . "\";");
@@ -829,6 +831,7 @@ $plugins->add_hook("search_results_thread", "scenetracker_search_showtrackerstuf
 function scenetracker_search_showtrackerstuff()
 {
   global $thread, $templates, $db, $fid, $sceneinfos, $mybb;
+  $sceneinfos = "";
   if (scenetracker_testParentFid($thread['fid'])) {
     // $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
 
@@ -858,12 +861,7 @@ function scenetracker_search_showtrackerstuff()
       }
     }
     $user .= "</div>";
-    $sceneinfos =  "<div class=\"sceneinfo-container\">
-    <div class=\"scenetracker_date\"><i class=\"fas fa-calendar\"></i>{$scene_date}</div>
-    <div class=\"scenetracker_place\"><i class=\"fas fa-map-marker-alt\"></i>{$thread['scenetracker_place']}</div>
-    {$scenetrigger}
-    <div class=\"scenetracker_user\"><i class=\"fas fa-users\"></i>{$user}</div>
-    </div>";
+    eval("\$sceneinfos.= \"" . $templates->get("scenetracker_search_results") . "\";");
   } else {
     $sceneinfos = "";
   }
@@ -900,8 +898,8 @@ function scenetracker_showthread_showtrackerstuff()
 
     //all users of scene
     $userArray = scenetracker_getUids($thread['scenetracker_user']);
-    $finish = "<button >close scene</button>";
     foreach ($userArray as $uid => $username) {
+      $delete = "";
       if ($uid != $username) {
         $user = build_profile_link($username, $uid);
         if ($mybb->usergroup['canmodcp'] == 1 || scenetracker_change_allowed($thread['scenetracker_user'])) {
@@ -4634,6 +4632,22 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
+
+  $templates[] = array(
+    "title" => 'scenetracker_search_results',
+    "template" => '<div class="sceneinfo-container">
+	<div class="scenetracker_date"><i class="fas fa-calendar"></i>{$scene_date}</div>
+	<div class="scenetracker_place"><i class="fas fa-map-marker-alt"></i>{$thread[\\\'scenetracker_place\\\']}</div>
+	{$scenetrigger}
+	<div class="scenetracker_user"><i class="fas fa-users"></i>
+		{$user}
+	</div>
+</div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
   $templates[] = array(
     "title" => 'scenetracker_index_bit_chara',
     "template" => '<div class="scenetracker_index character_box">
@@ -5378,8 +5392,8 @@ function scenetracker_is_updated()
     echo ("In der Threadtabelle muss das Feld scenetracker_time_text  hinzugefügt werden <br>");
     return false;
   }
-  if (!$mybb->settings['scenetracker_filterusername_yesno']) {
-    echo ("setting scenetracker_filterusername_yesno muss hinzugefügt werden <br>");
+  if ($mybb->settings['scenetracker_filterusername_yesno'] == "") {
+    echo ("setting {$mybb->settings['scenetracker_filterusername_yesno']} scenetracker_filterusername_yesno muss hinzugefügt werden <br>");
     return false;
   }
 
@@ -5393,6 +5407,11 @@ function scenetracker_is_updated()
   }
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_showthread_edit'")) == 0) {
     echo ("template scenetracker_showthread_edit muss hinzugefügt werden <br>");
+    return false;
+  }
+
+  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_search_results'")) == 0) {
+    echo ("template scenetracker_search_results muss hinzugefügt werden <br>");
     return false;
   }
 
