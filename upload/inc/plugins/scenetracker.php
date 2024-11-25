@@ -1723,6 +1723,9 @@ $plugins->add_hook('global_intermediate', 'scenetracker_global_intermediate');
 function scenetracker_global_intermediate()
 {
   global $db, $mybb, $lang, $counter;
+  if (!$db->field_exists("as_uid", "users")) {
+    $mybb->user['as_uid'] = "0";
+  }
   $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
   $cnts = scenetracker_count_scenes($charas);
   $counter = "( {$cnts['open']} / {$cnts['all']} )";
@@ -1852,6 +1855,8 @@ function scenetracker_reminder()
     $cnt = 0;
     if ($mybb->settings['scenetracker_exludedfids'] != "") {
       $excluded = " AND fid not in ({$mybb->settings['scenetracker_exludedfids']}) ";
+    } else {
+      $excluded = "";
     }
     foreach ($charas as $uid => $username) {
       $scenetracker_get_scenes = $db->write_query(
@@ -2079,13 +2084,10 @@ function scenetracker_calendar()
 
 //wir stellen mit isset sicher, dass wir im ACP keine Fehlermeldung kriegen
 //Im Forum den Hook auswöhlen der benötigt wird
-if (isset($mybb->settings['scenetracker_forumbit'])) {
-  if ($mybb->settings['scenetracker_forumbit'] != 0) {
-    $plugins->add_hook('build_forumbits_forum', 'scenetracker_minicalendar');
-  } else {
-    $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
-  }
-}
+
+$plugins->add_hook('build_forumbits_forum', 'scenetracker_minicalendar');
+$plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
+
 function scenetracker_minicalendar(&$forum)
 {
   global $db, $mybb, $templates, $lang, $monthnames, $scenetracker_calendar_wrapper, $scenetracker_calendar, $scenetracker_calendar_bit;
@@ -2093,6 +2095,7 @@ function scenetracker_minicalendar(&$forum)
   if (!empty($forum)) {
     $forum['minicalendar'] = "";
   }
+
   $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene = $birthdaycss = $eventcss = $scenetracker_calendar_wrapper = "";
 
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
@@ -2442,11 +2445,12 @@ function scenetracker_minicalendar(&$forum)
       $day_bits = "";
       $scenetracker_calendar_day_pop = "";
     }
-
-    if ($mybb->settings['scenetracker_forumbit'] != 0 && $forum['fid'] == $mybb->settings['scenetracker_forumbit']) {
-      $forum['minicalender'] .= eval($templates->render('scenetracker_calendar_bit'));
+    if (!empty($forum)) {
+      $forum['minicalender'] = "";
+      if ($mybb->settings['scenetracker_forumbit'] != 0 && $forum['fid'] == $mybb->settings['scenetracker_forumbit']) {
+        $forum['minicalender'] .= eval($templates->render('scenetracker_calendar_bit'));
+      }
     } else {
-
       eval("\$scenetracker_calendar_bit .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
       eval("\$scenetracker_calendar .= \"" . $templates->get("scenetracker_calendar_bit") . "\";");
     }
@@ -4506,7 +4510,7 @@ function scenetracker_add_settings($type = 'install')
         $db->insert_query('settings', $setting);
         echo "Setting: {$name} wurde hinzugefügt.";
       } else {
-        
+
         //die einstellung gibt es schon, wir testen ob etwas verändert wurde
         while ($setting_old = $db->fetch_array($check2)) {
           if (
@@ -4546,6 +4550,9 @@ function scenetracker_database($type = 'install')
   if (!$db->field_exists("scenetracker_time_text", "threads")) {
     $db->add_column("threads", "scenetracker_time_text", "varchar(200) NOT NULL DEFAULT ''");
   }
+
+
+
   if (!$db->field_exists("scenetracker_place", "threads")) {
     $db->add_column("threads", "scenetracker_place", "varchar(200) NOT NULL DEFAULT ''");
   }
@@ -5261,29 +5268,29 @@ function scenetracker_replace_templates()
   $update_template_all = scenetracker_updated_templates();
   if (!empty($update_template_all)) {
     //diese durchgehen
-  foreach ($update_template_all as $update_template) {
+    foreach ($update_template_all as $update_template) {
       //anhand des templatenames holen
-    $old_template_query = $db->simple_select("templates", "tid, template", "title = '" . $update_template['templatename'] . "'");
+      $old_template_query = $db->simple_select("templates", "tid, template", "title = '" . $update_template['templatename'] . "'");
       //in old template speichern
-    while ($old_template = $db->fetch_array($old_template_query)) {
+      while ($old_template = $db->fetch_array($old_template_query)) {
         //was soll gefunden werden? das mit pattern ersetzen (wir schmeißen leertasten, tabs, etc raus)
-      $pattern = scenetracker_createRegexPattern($update_template['change_string']);
+        $pattern = scenetracker_createRegexPattern($update_template['change_string']);
         //was soll gemacht werden -> momentan nur replace - später evt ranhängen etc 
-      if ($update_template['action'] == 'replace') {
+        if ($update_template['action'] == 'replace') {
           //wir ersetzen wenn gefunden wird
           if (preg_match($pattern, $old_template['template'])) {
-          $template = preg_replace($pattern, $update_template['action_string'], $old_template['template']);
-          $update_query = array(
-            "template" => $db->escape_string($template),
-            "dateline" => TIME_NOW
-          );
-          $db->update_query("templates", $update_query, "tid='" . $old_template['tid'] . "'");
-          echo ("Template {$update_template['templatename']} in  {$old_template['tid']} wurde aktualisiert <br>");
+            $template = preg_replace($pattern, $update_template['action_string'], $old_template['template']);
+            $update_query = array(
+              "template" => $db->escape_string($template),
+              "dateline" => TIME_NOW
+            );
+            $db->update_query("templates", $update_query, "tid='" . $old_template['tid'] . "'");
+            echo ("Template {$update_template['templatename']} in  {$old_template['tid']} wurde aktualisiert <br>");
+          }
         }
       }
     }
   }
-}
 }
 /**
  * Hier werden Templates gespeichert, die im Laufe der Entwicklung aktualisiert wurden
