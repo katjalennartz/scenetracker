@@ -17,7 +17,7 @@ $l['scenetracker_select_another'] = 'another user posted';
 $l['scenetracker_select_never'] = 'never';
 $l['scenetracker_showstring_all'] = 'Alle Charaktere';
 $l['scenetracker_showstring_characount'] = '(#{1})';
-$l['scenetracker_showstring'] = 'Deine Szenen ({1} - {2} - dran? {3} - #{4})';
+$l['scenetracker_showstring'] = 'Deine Szenen ({1} - {2} - dran? {3} - mit {4} - #{5})';
 $l['scenetracker_yourturn'] = '(Du bist dran)';
 $l['scenetracker_alert'] = '[alert]';
 $l['scenetracker_alerttypealways'] = 'immer';
@@ -34,7 +34,7 @@ $l['myalerts_setting_scenetracker_newAnswer'] = 'Szenentracker: Benachrichtigung
 $l['scenetracker_newAnswer'] = '{1} hat auf eine Szene geantwortet.';
 
 /*Minikalender*/ 
-$l['scenetracker_minical_caption_event'] = '<h3>Events:</h3>';
-$l['scenetracker_minical_caption_scene'] = '<h3>Szenen:</h3>';
-$l['scenetracker_minical_caption_birthday'] = '<h3>Geburtstage:</h3>';
-$l['scenetracker_minical_caption_plot'] = '<h3>Plots:</h3>';
+$l['scenetracker_minical_caption_event'] = 'Events:';
+$l['scenetracker_minical_caption_scene'] = 'Szenen:';
+$l['scenetracker_minical_caption_birthday'] = 'Geburtstage:';
+$l['scenetracker_minical_caption_plot'] = 'Plots:';
