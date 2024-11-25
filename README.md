@@ -17,6 +17,7 @@ Version: 1.0.10
 - Counter für Szenen Global verfügbar über {$counter} (keine manuelle änderungen in der php mehr nötig)
 - Auslagern von Trigger in eigenes Template -> bessere (individuelle) Anpassung
 - Auslagern von Edit in eigenes Template -> bessere (individuelle) Anpassung
+- Auslagern Infos in Suche in eigenes Template
    
 #### 1.0.8 -> 1.0.9  
 - Optimierungen für Minikalender. Einstellung ob der Kalender über dem Ingame angezeigt werden soll
