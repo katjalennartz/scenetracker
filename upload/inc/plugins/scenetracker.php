@@ -1034,11 +1034,11 @@ function scenetracker_usercp()
   if ($days_reminder != 0) {
     $ucp_main_reminderopt = "<div class=\"scenefilteroptions__items scenefilteroptions__items--alerts\">
           <form action=\"usercp.php?action=scenetracker\" method=\"post\">
-          <fieldset><label for=\"reminder\">{$lang->scenetracker_reminderopt}</label><br/>
+          <fieldset><legend >{$lang->scenetracker_reminderopt}</legend>
           <input type=\"radio\" name=\"reminder\" id=\"reminder_yes\" value=\"1\" {$yes_rem}> 
-          <label for=\"index_rem\">Ja</label>
+          <label for=\"reminder_yes\">Ja</label>
           <input type=\"radio\" name=\"reminder\" id=\"reminder_no\" value=\"0\" {$no_rem}> 
-          <label for=\"index_rem\">Nein</label><br />
+          <label for=\"reminder_no\">Nein</label><br />
           <input type=\"submit\" name=\"opt_reminder\" value=\"{$lang->scenetracker_btnsubmit}\" id=\"reminder_button\" />
           </fieldset>
         </form>
@@ -1071,7 +1071,7 @@ function scenetracker_usercp()
       }
       $scenetracker_calendarview_all =
         "<fieldset class='scenefilteroptions__items scenefilteroptions__items--alerts'>
-			      <label>Settings für alle verbundene Charaktere oder nur diesen?</label><br/>
+			      <legend>Settings für alle verbundene Charaktere oder nur diesen?</legend>
             <input type=\"radio\" name=\"calendar_setforalls\" id=\"calendar_setforalls_all\" value=\"1\" {$setforalls_all}> <label for=\"calendar_setforalls_all\">alle</label><br />
             <input type=\"radio\" name=\"calendar_setforalls\" id=\"calendar_setforalls_this\" value=\"0\" {$setforalls_this}> <label for=\"calendar_setforalls_this\">diesen</label><br />
             </fieldset>";
@@ -1102,7 +1102,7 @@ function scenetracker_usercp()
       }
       //einstellungen kleiner Kalender
       $scenetracker_calendarview_ownall =  "<fieldset class='scenefilteroptions__items scenefilteroptions__items--alerts'>
-			    <label>Mini Kalender: Welche Szenen sollen angezeigt werden? </label><br/>
+			    <legend>Mini Kalender: Welche Szenen sollen angezeigt werden? </legend>
             <input type=\"radio\" name=\"mini_view\" id=\"mini_view_all\" value=\"2\" {$mini_view_all}> 
             <label for=\"mini_view_all\">Von allen Charakteren des Forums.</label><br />
             <input type=\"radio\" name=\"mini_view\" id=\"mini_view_all_own\" value=\"1\" {$mini_view_all_own}> 
@@ -1137,7 +1137,7 @@ function scenetracker_usercp()
       }
 
       $scenetracker_calendarview_own = "<fieldset class='scenefilteroptions__items scenefilteroptions__items--alerts'>
-			  <label>Großer Kalender: Welche Szenen sollen angezeigt werden? </label><br/>
+			  <legend>Großer Kalender: Welche Szenen sollen angezeigt werden? </legend>
         <input type=\"radio\" name=\"big_view\" id=\"big_view_all\" value=\"2\" {$big_view_all}> 
         <label for=\"big_view_all\">Von allen Charakteren des Forums.</label><br />
         <input type=\"radio\" name=\"big_view\" id=\"big_view_all_own\" value=\"1\" {$big_view_all_own}> 
@@ -5392,8 +5392,8 @@ function scenetracker_is_updated()
     echo ("In der Threadtabelle muss das Feld scenetracker_time_text  hinzugefügt werden <br>");
     return false;
   }
-  if ($mybb->settings['scenetracker_filterusername_yesno'] == "") {
-    echo ("setting {$mybb->settings['scenetracker_filterusername_yesno']} scenetracker_filterusername_yesno muss hinzugefügt werden <br>");
+  if (!$mybb->settings['scenetracker_filterusername_yesno']) {
+    echo ("setting scenetracker_filterusername_yesno muss hinzugefügt werden <br>");
     return false;
   }
 
@@ -5424,7 +5424,7 @@ function scenetracker_is_updated()
     $templatequery = $db->write_query("SELECT * FROM `mybb_themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
     //scenetracker.css ist in keinem style nicht vorhanden
     if ($db->num_rows($templatequery) == 0) {
-      echo ("Nicht im Masterstyle vorhanden");
+      echo ("Nicht im {$theme['tid']} vorhanden <br>");
       return false;
     } else {
       //scenetracker.css ist in einem style nicht vorhanden
