@@ -10,6 +10,11 @@ Version: 1.0.10
 
 
 ### Changelog: 
+#### 1.0.10 -> 1.0.11
+- Auslagern der Options fürs UCP aus der PHP in Templates (einfacher anzupassen)
+- Aufspaltung Alerts und Index.
+- Einstellung des Szenenreminders pro Szene
+
 #### 1.0.9 -> 1.0.10
 - Integration RPG Modul von Lara
 - Optimierung Update Prozess
