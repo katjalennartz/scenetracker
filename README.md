@@ -6,7 +6,7 @@ Version: 1.0.10
 ### Todo nach Update: 
 - Dateien neu hochladen
 - Reiter RPG-Erweiterungen -> Plugins aktualisieren
-- **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Update
+- **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Update übernommen werden
 
 
 ### Changelog: 
