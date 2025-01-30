@@ -837,10 +837,15 @@ function scenetracker_forumdisplay_showtrackerstuff()
   if (scenetracker_testParentFid($fid)) {
 
     if ($mybb->settings['scenetracker_time_text'] == 0) {
-      $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
+      $datetime = new DateTime($thread['scenetracker_date']);
+      // Formatieren des Datums im gewünschten Format
+      $scene_date = $datetime->format('d.m.Y - H:i');
+      $scene_date = preg_replace('/(\d{2})\.(\d{2})\.(0)(\d{1,4})/', '$1.$2.$4', $scene_date);
     } else if ($mybb->settings['scenetracker_time_text'] == 1) {
       //einstellunge Zeit als offenes textfeld
-      $scene_date = date('d.m.Y ', strtotime($thread['scenetracker_date'])) . " " . $thread['scenetracker_time_text'];
+      $datetime = new DateTime($thread['scenetracker_date']);
+      $scene_date = $datetime->format('d.m.Y') . " " . $thread['scenetracker_time_text'];
+      $scene_date = preg_replace('/(\d{2})\.(\d{2})\.(0)(\d{1,4})/', '$1.$2.$4', $scene_date);
     }
 
     $userArray = scenetracker_getUids($thread['scenetracker_user']);
@@ -878,13 +883,18 @@ function scenetracker_search_showtrackerstuff()
   global $thread, $templates, $db, $fid, $sceneinfos, $mybb;
   $sceneinfos = "";
   if (scenetracker_testParentFid($thread['fid'])) {
-    // $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
 
     if ($mybb->settings['scenetracker_time_text'] == 0) {
-      $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
+      // Erstelle ein DateTime-Objekt mit dem angegebenen Datum
+      $datetime = new DateTime($thread['scenetracker_date']);
+      // Formatieren des Datums im gewünschten Format
+      $scene_date = $datetime->format('d.m.Y - H:i');
+      $scene_date = preg_replace('/(\d{2})\.(\d{2})\.(0)(\d{1,4})/', '$1.$2.$4', $scene_date);
     } else if ($mybb->settings['scenetracker_time_text'] == 1) {
       //einstellunge Zeit als offenes textfeld
-      $scene_date = date('d.m.Y ', strtotime($thread['scenetracker_date'])) . " " . $thread['scenetracker_time_text'];
+      $datetime = new DateTime($thread['scenetracker_date']);
+      $scene_date = $datetime->format('d.m.Y') . " " . $thread['scenetracker_time_text'];
+      $scene_date = preg_replace('/(\d{2})\.(\d{2})\.(0)(\d{1,4})/', '$1.$2.$4', $scene_date);
     }
 
     $scene_place = $thread['scenetracker_place'];
@@ -925,17 +935,22 @@ function scenetracker_showthread_showtrackerstuff()
   if (scenetracker_testParentFid($fid)) {
     $allowclosing = false;
     $thisuser = intval($mybb->user['uid']);
-    // $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
 
     if ($mybb->settings['scenetracker_time_text'] == 0) {
-      $scene_date = date('d.m.Y - H:i', strtotime($thread['scenetracker_date']));
+      // Erstelle ein DateTime-Objekt mit dem angegebenen Datum
+      $datetime = new DateTime($thread['scenetracker_date']);
+      // Formatieren des Datums im gewünschten Format
+      $scene_date = $datetime->format('d.m.Y - H:i');
+      $scene_date = preg_replace('/(\d{2})\.(\d{2})\.(0)(\d{1,4})/', '$1.$2.$4', $scene_date);
     } else if ($mybb->settings['scenetracker_time_text'] == 1) {
       //einstellunge Zeit als offenes textfeld
-      $scene_date = date('d.m.Y ', strtotime($thread['scenetracker_date'])) . " " . $thread['scenetracker_time_text'];
+      $datetime = new DateTime($thread['scenetracker_date']);
+      $scene_date = $datetime->format('d.m.Y') . " " . $thread['scenetracker_time_text'];
+      $scene_date = preg_replace('/(\d{2})\.(\d{2})\.(0)(\d{1,4})/', '$1.$2.$4', $scene_date);
     }
 
-    $scenetracker_date = date('Y-m-d', strtotime($thread['scenetracker_date']));
-    $scenetracker_date_thread = date('d.m.Y', strtotime($thread['scenetracker_date']));
+    $scenetracker_date = $datetime->format('Y-m-d');
+    $scenetracker_date_thread = $datetime->format('d.m.Y');
 
     $sceneplace = $thread['scenetracker_place'];
     $scenetriggerinput = $thread['scenetracker_trigger'];
@@ -973,7 +988,11 @@ function scenetracker_showthread_showtrackerstuff()
       }
 
       if ($mybb->settings['scenetracker_time_text'] == 0) {
-        $scenetracker_time = date('H:i', strtotime($thread['scenetracker_date']));
+        // Erstelle ein DateTime-Objekt
+        $date = new DateTime($scenetracker_date);
+
+        // Extrahiere die Uhrzeit im Format "H:i"
+        $scenetracker_time = $date->format('H:i');
         $time_input_type = "time";
         $input_time_placeholder = "";
         $time_input_name = "scenetracker_time";
@@ -1006,7 +1025,6 @@ function scenetracker_showthread_showtrackerstuff()
       //und am ende auch kein ', '
       $teilnehmer = rtrim($teilnehmer, ', ');
       $teilnehmer = $db->escape_string($teilnehmer);
-
 
       $db->query("UPDATE " . TABLE_PREFIX . "threads SET scenetracker_user = '" . $teilnehmer . "' WHERE tid = " . $tid . " ");
       $db->delete_query("scenetracker", "tid = " . $tid . " AND uid = " . $uiddelete . "");
@@ -1455,11 +1473,15 @@ function scenetracker_usercp()
         $lastpostdate = date('d.m.Y', $data['lastpost']);
         $lastposter = get_user($data['lastposteruid']);
         $alerttype = $data['type'];
+
         if ($mybb->settings['scenetracker_time_text'] == 0) {
-          $scenedate = date('d.m.Y - H:i', strtotime($data['scenetracker_date']));
+          $date = new DateTime($data['scenetracker_date']);
+          $scenedate = $date->format('d.m.Y - H:i');
         } else if ($mybb->settings['scenetracker_time_text'] == 1) {
           //einstellunge Zeit als offenes textfeld
-          $scenedate = date('d.m.Y ', strtotime($data['scenetracker_date'])) . " " . $data['scenetracker_time_text'];
+          $date = new DateTime($data['scenetracker_date']);
+          $dmy = $date->format('d.m.Y');
+          $scenedate = $dmy . " " . $data['scenetracker_time_text'];
         }
 
         $lastposterlink = '<a href="member.php?action=profile&uid=' . $lastposter['uid'] . '">' .  $lastposter['username'] . '</a>';
@@ -1703,7 +1725,6 @@ function scenetracker_showinprofile()
   //archiv-> auch immer anzeigen weil inkludiert in 'alle foren' 
   //Wir brauchen keine Einschränkung
   if (($ingame == "") || ($ingame == "-1") || ($archiv == "-1")) {
-
     $forenquerie = "";
   } else {
 
@@ -1711,7 +1732,6 @@ function scenetracker_showinprofile()
     $ingamestr = "";
     if ($ingame != "") {
       //ein array mit den fids machen
-
       $ingameexplode = explode(",", $ingame);
       foreach ($ingameexplode as $ingamefid) {
         //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
@@ -1727,7 +1747,6 @@ function scenetracker_showinprofile()
 
     $archivstr = "";
     if ($archiv != "") {
-
       $archivexplode = explode(",", $archiv);
       foreach ($archivexplode as $archivfid) {
         $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR ";
@@ -1763,6 +1782,7 @@ function scenetracker_showinprofile()
     } else {
       $scenetrigger = "";
     }
+
     if ($scenes['threadclosed'] == 1 or $scenes['threadsolved'] == 1) {
       if ($allowmanage || $mybb->usergroup['canmodcp'] == 1) {
         $scenestatus = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&closed=0&gettid=" . $tid . "\" data-id=\"#trackeropen\" data-tooltip=\"Szene öffnen\" data-position=\"top\" \"><i class=\"fas fa-check-circle\"></i></a>";
@@ -1782,12 +1802,27 @@ function scenetracker_showinprofile()
     } else {
       $scenehide = "";
     }
+    $date = new DateTime($scenes['scenetracker_date']);
+    // Formatieren des Datums im gewünschten Format
+    $scenedate_dm = $date->format('d.m.');
+    $scenedate_y = $date->format('Y - H:i');
+    $scenedate_y = preg_replace('/^0+/', '', $scenedate_y);
+    $scenedate = $scenedate_dm . $scenedate_y;
 
-    $scenedate = date('d.m.Y - H:i', strtotime($scenes['scenetracker_date']));
-    if ($dateYear != date('m.Y', strtotime($scenes['scenetracker_date']))) {
-      $scenedatetitle = date('F Y', strtotime($scenes['scenetracker_date']));
+    $scenedateMonthYear = $date->format('m.Y');
+
+    if ($dateYear != $scenedateMonthYear) {
+      $scenedatetitle_m = $date->format('F');
+      $scenedatetitle_y = $date->format('Y');
+
+      $scenedatetitle_y = preg_replace('/^0+/', '', $scenedatetitle_y);
+
+
+      $scenedatetitle = $scenedatetitle_m . " " . $scenedatetitle_y;
+
       eval("\$scenetracker_profil_bit_mY = \"" . $templates->get("scenetracker_profil_bit_mY") . "\";");
-      $dateYear = date('m.Y', strtotime($scenes['scenetracker_date']));
+      $dateNew = new DateTime($scenes['scenetracker_date']);
+      $dateYear = $dateNew->format('m.Y');
     } else {
       $scenetracker_profil_bit_mY = "";
     }
@@ -2054,26 +2089,32 @@ function scenetracker_calendar()
   $monthzero  = sprintf("%02d", $month);
 
   //wir müssen das Datum in das gleiche format wie den geburtstag bekommen
-  $datetoconvert = "{$daynew}.{$monthzero}.{$year}";
-  $timestamp = strtotime($datetoconvert);
+  // $datetoconvert = "{$daynew}.{$monthzero}.{$year}";
+  $datetoconvert = "{$daynew}-{$monthzero}-{$year}";
+
+  $dateconvert = new DateTime($datetoconvert);
+  // Beispiel: Ausgabe in einem anderen Format
+  $timestamp = $dateconvert->format('d.m.Y');
+
   $setting_birhtday = $mybb->settings['scenetracker_birhday'];
   if ($setting_birhtday == "0") {
-    $converteddate = date("d.m", $timestamp);
+    $converteddate = $dateconvert->format("d.m");
     $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
     $get_birthdays = $db->write_query("
       SELECT username, uid FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid" . $setting_fid . " LIKE '{$converteddate}%'");
     $birth_num = $db->num_rows($get_birthdays);
   } elseif ($setting_birhtday == "1") {
     // 9-4-1987
+    $converteddate = $dateconvert->format("j-n");
     $converteddate = date("j-n", $timestamp);
     //convert date setting_fid 
     $get_birthdays = $db->write_query("
       SELECT username, uid FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '{$converteddate}%'");
-    // $scenedatetitle = date('%d.%m.%Y', strtotime($scenes['scenetracker_date']));
     $birth_num = $db->num_rows($get_birthdays);
   } elseif ($setting_birhtday == "3") {
     //application ucp
-    $converteddate = date("m-d", $timestamp);
+    $converteddate = $dateconvert->format("m-d");
+    // $converteddate = date("m-d", $timestamp);
     $identifier = $mybb->settings['scenetracker_birhdayfid'];
     $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
     $get_birthdays = $db->write_query("SELECT uf.uid, username FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
@@ -2183,15 +2224,16 @@ function scenetracker_calendar()
  * build_forumbits_forum -> über dem Ingame
  */
 
-//wir stellen mit isset sicher, dass wir im ACP keine Fehlermeldung kriegen
-//Im Forum den Hook auswöhlen der benötigt wird
 
+//Im Forum den Hook auswöhlen der benötigt wird
 $plugins->add_hook('build_forumbits_forum', 'scenetracker_minicalendar');
 $plugins->add_hook('global_intermediate', 'scenetracker_minicalendar');
 
 function scenetracker_minicalendar(&$forum)
 {
   global $db, $mybb, $templates, $lang, $monthnames, $scenetracker_calendar_wrapper, $scenetracker_calendar, $scenetracker_calendar_bit;
+
+
 
   if (!empty($forum)) {
     $forum['minicalendar'] = "";
@@ -2260,19 +2302,26 @@ function scenetracker_minicalendar(&$forum)
   //Monate des Ingames durchgehen
   foreach ($ingame as $monthyear) {
     //Titel aus dem Monatsnamen Array holen
-    $monthindex = date('n', strtotime($monthyear . "-01"));
+    $dateDT = new DateTime($monthyear . "-01");
+    // Extrahiere den Monat aus dem DateTime-Objekt
+    $monthindex = (int) $dateDT->format('n'); // 'n' gibt den Monat als Zahl (1 bis 12) zurück
+
     $kal_title =  $monthnames[$monthindex];
 
     // Jahr setzen
     $year = "";
-    $year = date('Y', strtotime($monthyear . "-01"));
+    $year = new DateTime($monthyear . '-01-01'); // Erstelle ein DateTime-Objekt mit 01. Januar des Jahres
+    // Extrahiere das Jahr
+    $year = $year->format('Y');  // Gibt das Jahr als 'YYYY' zurück
 
     // Monat ohne führende Null
     $month = "";
-    $month = date('n', strtotime($monthyear . "-01"));
+    // Erstelle ein DateTime-Objekt für den 1. Januar des angegebenen Jahres
+    $dateDT = new DateTime($monthyear . '-01-01');
+    // Extrahiere den Monat ohne führende Null
+    $month = $dateDT->format('n');  // 'n' gibt den Monat ohne führende Null zurück
 
     //Daten für vorherigen und nächsten Monat
-
     $prev_month = get_prev_month($month, $year);
     $next_month = get_next_month($month, $year);
 
@@ -2360,7 +2409,10 @@ function scenetracker_minicalendar(&$forum)
       $setting_fid = $mybb->settings['scenetracker_birhdayfid'];
 
       //den monat des geburtstags mit führender 0 aber . als umklammerung
-      $converteddate = date('.m.', strtotime($monthyear . "-01"));
+      $date = new DateTime($monthyear . '-01');
+      // Formatiere den Monat mit führender Null und umklammert mit '.'
+      $converteddate = '.' . $date->format('m') . '.';
+
       $get_birthdays = $db->write_query("
               SELECT username, uid, fid" . $setting_fid . " FROM " . TABLE_PREFIX . "userfields LEFT JOIN " . TABLE_PREFIX . "users ON ufid = uid WHERE fid" . $setting_fid . " LIKE '%{$converteddate}%'");
 
@@ -2373,7 +2425,12 @@ function scenetracker_minicalendar(&$forum)
       }
     } elseif ($setting_birhtday == "1") {
       // MyBB Geburtstagsfeld Monat ohne führende 0
-      $converteddate = date('-n-', strtotime($monthyear . "-01"));
+      // Erstelle ein DateTime-Objekt für den 1. Januar des angegebenen Jahres
+      $date = new DateTime($monthyear . '-01');
+
+      // Formatiere den Monat ohne führende Null und umklammert mit '-'
+      $converteddate = '-' . $date->format('n') . '-';
+
       $get_birthdays = $db->write_query("
               SELECT username, uid, birthday FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '%{$converteddate}%'");
 
@@ -2388,7 +2445,11 @@ function scenetracker_minicalendar(&$forum)
     } elseif ($setting_birhtday == "3") {
       // application ucp
       //den monat des geburtstags mit führender 0
-      $converteddate = date('-m-', strtotime($monthyear . "-01"));
+      // Erstelle ein DateTime-Objekt für den 1. Januar des angegebenen Jahres
+      $date = new DateTime($monthyear . '-01');
+      // Formatiere den Monat mit führender Null und umklammert mit '-'
+      $converteddate = '-' . $date->format('m') . '-';
+
       $identifier = $mybb->settings['scenetracker_birhdayfid'];
       $feldid = $db->fetch_field($db->simple_select("application_ucp_fields", "id", "fieldname = '{$identifier}'"), "id");
       $get_birthdays = $db->write_query("SELECT uf.uid, username, uf.value FROM " . TABLE_PREFIX . "application_ucp_userfields uf 
@@ -2680,11 +2741,20 @@ function scenetracker_misc_list()
         $scenestatus = "";
       }
 
-      $scenedate = date('d.m.Y - H:i', strtotime($scenes['scenetracker_date']));
-      if ($dateYear != date('m.Y', strtotime($scenes['scenetracker_date']))) {
-        $scenedatetitle = date('F Y', strtotime($scenes['scenetracker_date']));
+      $date = new DateTime($scenes['scenetracker_date']);
+      // Formatieren des Datums im gewünschten Format
+      $scenedate = $date->format('d.m.Y - H:i');
+      $scenedateMonthYear = $date->format('m.Y');
+
+      if ($dateYear != $scenedateMonthYear) {
+        $scenedatetitle_m = $date->format('F');
+        $scenedatetitle_y = $date->format('Y');
+
+        $scenedatetitle_y = preg_replace('/^0+/', '', $scenedatetitle_y);
+        $scenedatetitle = $scenedatetitle_m . " " . $scenedatetitle_y;
         eval("\$scenetracker_profil_bit_mY = \"" . $templates->get("scenetracker_profil_bit_mY") . "\";");
-        $dateYear = date('m.Y', strtotime($scenes['scenetracker_date']));
+        $dateNew = new DateTime($scenes['scenetracker_date']);
+        $dateYear = $dateNew->format('m.Y');
       } else {
         $scenetracker_profil_bit_mY = "";
       }
@@ -3133,7 +3203,12 @@ function scenetracker_get_scenes($charas, $tplstring)
         $lastpostdate = date('d.m.Y', $data['lastpost']);
         $lastposter = get_user($data['lastposteruid']);
         $alerttype = $data['type'];
-        $scenedate = date('d.m.Y H:i', strtotime($data['scenetracker_date']));
+
+        $datetime = new DateTime($data['scenetracker_date']);
+
+        // Formatieren des Datums im gewünschten Format
+        $scenedate = $datetime->format('d.m.Y H:i');
+
         $lastposterlink = '<a href="member.php?action=profile&uid=' . $lastposter['uid'] . '">' .  $lastposter['username'] . '</a>';
         $users = $sceneusers = str_replace(",", ", ", $data['scenetracker_user']);
         $sceneplace = $data['scenetracker_place'];
