@@ -951,6 +951,7 @@ function scenetracker_showthread_showtrackerstuff()
 
     $scenetracker_date = $datetime->format('Y-m-d');
     $scenetracker_date_thread = $datetime->format('d.m.Y');
+    $scenetracker_time_test = $datetime->format('H:i');
 
     $sceneplace = $thread['scenetracker_place'];
     $scenetriggerinput = $thread['scenetracker_trigger'];
