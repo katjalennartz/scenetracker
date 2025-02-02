@@ -1,7 +1,7 @@
 # Szenentracker
 ## Updates: 		
 Last: 25. November 2024
-Version: 1.0.10
+Version: 1.0.11
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
