@@ -248,7 +248,7 @@ function scenetracker_settings_peek(&$peekers)
 $plugins->add_hook("newthread_start", "scenetracker_newthread", 20);
 function scenetracker_newthread()
 {
-  global $db, $mybb, $templates, $fid, $scenetracker_newthread, $thread, $scenetrackeredit, $post_errors, $scenetracker_date, $scenetracker_time, $scenetracker_time_input, $scenetracker_user;
+  global $db, $mybb, $templates, $fid, $scenetracker_newthread, $thread, $scenetrackeredit, $post_errors, $scenetracker_date, $scenetracker_date_d, $scenetracker_date_m, $scenetracker_date_y, $scenetracker_time, $scenetracker_time_input, $scenetracker_user;
   $scenetrackeredit = $scenetracker_place = $scenetracker_time_input = $scenetracker_trigger = "";
 
   if (scenetracker_testParentFid($fid)) {
@@ -271,6 +271,7 @@ function scenetracker_newthread()
       }
       $scenetracker_user = $mybb->user['username'] . ",";
     }
+    
     if ($mybb->settings['scenetracker_time_text'] == 0) {
       $time_input_type = "time";
       $input_time_placeholder = "";
@@ -931,7 +932,7 @@ function scenetracker_showthread_showtrackerstuff()
   global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $statusscene_new, $scenetrigger;
 
   $lang->load("scenetracker");
-
+  $scenestatus = $edit = "";
   if (scenetracker_testParentFid($fid)) {
     $allowclosing = false;
     $thisuser = intval($mybb->user['uid']);
@@ -1050,16 +1051,16 @@ function scenetracker_showthread_showtrackerstuff()
 $plugins->add_hook("usercp_start", "scenetracker_usercp");
 function scenetracker_usercp()
 {
-  global $mybb, $db, $templates, $lang, $cache, $templates, $themes, $headerinclude, $header, $footer, $usercpnav, $ucp_main_calendarsettings, $scenetracker_ucp_main, $scenetracker_ucp_bit_char, $scenetracker_ucp_bit_chara_new, $scenetracker_ucp_bit_chara_old, $scenetracker_ucp_bit_chara_closed, $scenetracker_ucp_filterscenes_username, $ucp_main_reminderopt;
+  global $mybb, $db, $templates, $lang, $cache, $templates, $themes, $theme, $headerinclude, $header, $footer, $usercpnav, $ucp_main_calendarsettings, $scenetracker_ucp_main, $scenetracker_ucp_bit_char, $scenetracker_ucp_bit_chara_new, $scenetracker_ucp_bit_chara_old, $scenetracker_ucp_bit_chara_closed, $scenetracker_ucp_filterscenes_username, $ucp_main_reminderopt;
   if ($mybb->get_input('action') != "scenetracker") {
     return false;
   }
   $lang->load('scenetracker');
-
   //Variablen initialisieren
-  $hidden = $yes_ind = $no_ind = $yes_rem = $no_rem = $yes_indall =  $no_indall = $move = $status = "";
-  $always  = $scenetracker_ucp_bit_chara  = "";
-  $sel_s["both"] = $sel_s["closed"] = $sel_m["beides"] = $sel_m["ja"] = $sel_m["nein"] = "";
+  $hidden = $yes_ind = $no_ind = $yes_rem = $no_rem = $yes_indall =  $no_indall = $move = $status = $player = "";
+  $always  = $scenetracker_ucp_bit_chara = $scenetracker_calendarview_ownall  = "";
+
+  $sel_s["both"] = $sel_s['open'] = $sel_s["closed"] = $sel_m["beides"] = $sel_m["ja"] = $sel_m["nein"] = "";
 
   //$thisuser user setzen
   $thisuser = $mybb->user['uid'];
@@ -1384,6 +1385,7 @@ function scenetracker_usercp()
   $cnt = 0;
   foreach ($charasquery as $uid => $charname) {
     $querymove = "";
+    $player_query_str = "";
     if ($move == "ja") {
       $querymove .=   " 
                       AND (
@@ -1475,7 +1477,7 @@ function scenetracker_usercp()
         $lastposter = get_user($data['lastposteruid']);
         $alerttype = $data['type'];
 
-        if ($mybb->settings['scenetracker_time_text'] == 0) {
+        if (isset($mybb->settings['scenetracker_time_text']) && $mybb->settings['scenetracker_time_text'] == 0) {
           $date = new DateTime($data['scenetracker_date']);
           $scenedate = $date->format('d.m.Y - H:i');
         } else if ($mybb->settings['scenetracker_time_text'] == 1) {
@@ -1496,6 +1498,9 @@ function scenetracker_usercp()
         } else if ($alerttype == 'always') {
           $alerttype = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways;
           $alertclass = "always";
+        } else if ($alerttype == 'always_always') {
+          $alerttype = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways_always;
+          $alertclass = "always_always";
         } else if ($alerttype == 'never') {
           $alerttype = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypenever;
           $alertclass = "never";
@@ -1509,7 +1514,12 @@ function scenetracker_usercp()
           $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $username;
         } else if ($alerttype_alert == 'always') {
           $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $lang->scenetracker_alerttypealways;
-          $alertclass = "always";
+          $alertclass = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways;
+          $alerttype_alert = $data['type_alert'];
+        } else if ($alerttype_alert == 'always_always') {
+          $alerttype = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways_always;
+          $alertclass = "always_always";
+          $alerttype_alert = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways_always;
         } else if ($alerttype_alert == 'never') {
           $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $lang->scenetracker_alerttypenever;
           $alertclass = "never";
@@ -1573,11 +1583,19 @@ function scenetracker_usercp()
         if ($data['type_alert'] == 'always') {
           $always_opt = "selected";
           $never_opt = "";
+          $always_always_opt = "";
+          $users_options_bit = $select_users;
+        }
+        if ($data['type_alert'] == 'always_always') {
+          $always_opt = "";
+          $always_always_opt = "selected";
+          $never_opt = "";
           $users_options_bit = $select_users;
         }
         if ($data['type_alert'] == 'never') {
           $never_opt = "selected";
           $always_opt = "";
+          $always_always_opt = "";
           $users_options_bit = $select_users;
         }
         eval("\$scenetracker_popup_select_options_alert =\"" . $templates->get("scenetracker_popup_select_options") . "\";");
@@ -1593,6 +1611,7 @@ function scenetracker_usercp()
   }
 
   if ($mybb->settings['scenetracker_filterusername_yesno'] == 1) {
+    $scenetracker_ucp_filterscenes = "";
     eval("\$scenetracker_ucp_filterscenes_username .= \"" . $templates->get('scenetracker_ucp_filterscenes_username') . "\";");
   }
   eval("\$scenetracker_ucp_filterscenes .= \"" . $templates->get('scenetracker_ucp_filterscenes') . "\";");
@@ -1760,7 +1779,7 @@ function scenetracker_showinprofile()
 
   $scene_query = $db->write_query("
           SELECT s.*,t.fid, parentlist, subject, dateline, t.closed as threadclosed, 
-          scenetracker_date, scenetracker_user, scenetracker_place, scenetracker_trigger" . $solved . " FROM " . TABLE_PREFIX . "scenetracker s, 
+          scenetracker_date, scenetracker_time_text, scenetracker_user, scenetracker_place, scenetracker_trigger" . $solved . " FROM " . TABLE_PREFIX . "scenetracker s, 
           " . TABLE_PREFIX . "threads t LEFT JOIN " . TABLE_PREFIX . "forums fo ON t.fid = fo.fid 
           WHERE t.tid = s.tid AND s.uid = " . $userprofil . "  
           $forenquerie AND s.profil_view = 1 ORDER by scenetracker_date DESC;
@@ -1804,6 +1823,7 @@ function scenetracker_showinprofile()
       $scenehide = "";
     }
     $date = new DateTime($scenes['scenetracker_date']);
+
     // Formatieren des Datums im gewünschten Format
     $scenedate_dm = $date->format('d.m.');
     $scenedate_y = $date->format('Y - H:i');
@@ -2543,7 +2563,7 @@ function scenetracker_minicalendar_global()
           $popitemclass = " scene";
           foreach ($scene_cache["$day-$calendar_month-$calendar_year"] as $scene) {
             $teilnehmer = str_replace(",", ", ", $scene['scenetracker_user']);
-            if ($mybb->settings['scenetracker_time_text'] == 1) {
+            if (isset($mybb->settings['scenetracker_time_text']) && $mybb->settings['scenetracker_time_text'] == 1) {
               $scene['scenetime'] = $scene['scenetracker_time_text'];
             } else {
               $scene['scenetime'] = $scene['scenetime'];
@@ -2567,24 +2587,40 @@ function scenetracker_minicalendar_global()
           eval("\$birthdayshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
         }
 
-        //Jules Plottracker? Plot Block
-        $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
         if ($plottracker == 1) {
-          // DATE_FORMAT(FROM_UNIXTIME(`user.registration`), '%e %b %Y') AS 'date_formatted'
-          // $plotquery =  $db->simple_select("plots", "*", "'{$day}-{$monthyear}' BETWEEN DATE_FORMAT(FROM_UNIXTIME(`startdate`), '%e-%c-%Y') AND DATE_FORMAT(FROM_UNIXTIME(`enddate`), '%e-%c-%Y')");
-          $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots WHERE
-          DATE_FORMAT('{$monthyear}-{$day}', '%e-%c-%Y') BETWEEN
-          DATE_FORMAT(DATE_ADD('1970-01-01', INTERVAL (`startdate` + 86400) SECOND), '%e-%c-%Y') AND 
-          DATE_FORMAT(DATE_ADD('1970-01-01', INTERVAL (`enddate` + 86400) SECOND), '%e-%c-%Y') 
-          ");
-          while ($plot = $db->fetch_array($plotquery)) {
-            $popupflag = "1";
-            $popitemclass = " plot";
-            $plotcss = " plot";
-            $caption = $lang->scenetracker_minical_caption_plot;
-            eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_plot_bit") . "\";");
+          //Jules Plottracker? Plot Block
+          $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
+          $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots where type='Event'");
+          while ($plot = $db->fetch_array($plotquery)) {            $plotdate_start = $plotdate_end =  $thisday = "";
+            $plotdate_start = date("Ymd", $plot['startdate']);
+
+            $plotdate_end = date("Ymd", $plot['enddate']);
+            $thisday = date("Ymd", strtotime("{$monthyear}-{$day}"));
+            if ($plotdate_start == $thisday && $in_month == 1) {
+              //wenn startdate = this day -> plot easy
+              $popupflag = "1";
+              $popitemclass = " plot";
+              $plotcss = " plot";
+              $caption = $lang->scenetracker_minical_caption_plot;
+              eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_plot_bit") . "\";");
+            } else {
+              //ist enddate = startdate - alles fein event ist nur ein tag - tue nichts
+              //sonst
+              if ($plotdate_end != $plotdate_start &&  $in_month == 1) {
+                //event kann länger als ein tag gehen.
+                //thisday > als startdate & <= endate
+                if (($thisday > $plotdate_start && $thisday <= $plotdate_end) && ($plotdate_start <= $plotdate_end)) {
+                  // echo "($thisday > $plotdate_start) && ($plotdate_start <= $plotdate_end)<br>";
+                  $popupflag = "1";
+                  $popitemclass = " plot";
+                  $plotcss = " plot";
+                  $caption = $lang->scenetracker_minical_caption_plot;
+                  eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_plot_bit") . "\";");
+                }
+              }
+            }
+            eval("\$plotshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
           }
-          eval("\$plotshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
         }
         $day_link = get_calendar_link($calendar['cid'], $calendar_year, $calendar_month, $day);
 
@@ -2630,8 +2666,8 @@ function scenetracker_minicalendar_forum(&$forum)
   $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene = $birthdaycss = $eventcss = $scenetracker_calendar_wrapper = "";
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
-      $forum['minicalender'] = "";
-      if ($mybb->settings['scenetracker_forumbit'] != 0 && $forum['fid'] == $mybb->settings['scenetracker_forumbit']) {
+  $forum['minicalender'] = "";
+  if ($mybb->settings['scenetracker_forumbit'] != 0 && $forum['fid'] == $mybb->settings['scenetracker_forumbit']) {
     // Jules Plottracker ist installiert
     if ($db->table_exists("plots")) {
       $plottracker = 1;
@@ -2951,26 +2987,42 @@ function scenetracker_minicalendar_forum(&$forum)
               eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_birthday_bit") . "\";");
             }
             eval("\$birthdayshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
-    }
+          }
 
           //Jules Plottracker? Plot Block
           $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
           if ($plottracker == 1) {
-            // DATE_FORMAT(FROM_UNIXTIME(`user.registration`), '%e %b %Y') AS 'date_formatted'
-            // $plotquery =  $db->simple_select("plots", "*", "'{$day}-{$monthyear}' BETWEEN DATE_FORMAT(FROM_UNIXTIME(`startdate`), '%e-%c-%Y') AND DATE_FORMAT(FROM_UNIXTIME(`enddate`), '%e-%c-%Y')");
-            $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots WHERE
-          DATE_FORMAT('{$monthyear}-{$day}', '%e-%c-%Y') BETWEEN
-          DATE_FORMAT(DATE_ADD('1970-01-01', INTERVAL (`startdate` + 86400) SECOND), '%e-%c-%Y') AND 
-          DATE_FORMAT(DATE_ADD('1970-01-01', INTERVAL (`enddate` + 86400) SECOND), '%e-%c-%Y') 
-          ");
-            while ($plot = $db->fetch_array($plotquery)) {
-              $popupflag = "1";
-              $popitemclass = " plot";
-              $plotcss = " plot";
-              $caption = $lang->scenetracker_minical_caption_plot;
-              eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_plot_bit") . "\";");
+            $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots where type='Event'");
+            while ($plot = $db->fetch_array($plotquery)) {              $plotdate_start = $plotdate_end =  $thisday = "";
+              $plotdate_start = date("Ymd", $plot['startdate']);
+
+              $plotdate_end = date("Ymd", $plot['enddate']);
+              $thisday = date("Ymd", strtotime("{$monthyear}-{$day}"));
+              if ($plotdate_start == $thisday && $in_month == 1) {
+                //wenn startdate = this day -> plot easy
+                $popupflag = "1";
+                $popitemclass = " plot";
+                $plotcss = " plot";
+                $caption = $lang->scenetracker_minical_caption_plot;
+                eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_plot_bit") . "\";");
+              } else {
+                //ist enddate = startdate - alles fein event ist nur ein tag - tue nichts
+                //sonst
+                if ($plotdate_end != $plotdate_start &&  $in_month == 1) {
+                  //event kann länger als ein tag gehen.
+                  //thisday > als startdate & <= endate
+                  if (($thisday > $plotdate_start && $thisday <= $plotdate_end) && ($plotdate_start <= $plotdate_end)) {
+                    // echo "($thisday > $plotdate_start) && ($plotdate_start <= $plotdate_end)<br>";
+                    $popupflag = "1";
+                    $popitemclass = " plot";
+                    $plotcss = " plot";
+                    $caption = $lang->scenetracker_minical_caption_plot;
+                    eval("\$scenetracker_calender_popbit_bit .= \"" . $templates->get("scenetracker_calender_plot_bit") . "\";");
+                  }
+                }
+              }
+              eval("\$plotshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
             }
-            eval("\$plotshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
           }
           $day_link = get_calendar_link($calendar['cid'], $calendar_year, $calendar_month, $day);
 
@@ -3530,9 +3582,9 @@ function scenetracker_get_scenes($charas, $tplstring)
   // var_dump($cnt);
   foreach ($charas as $uid => $charname) {
     if ($tplstring == "new" or $tplstring == "index") {
-      $query =  " AND (closed = 0 " . $solved . ") AND ((lastposteruid != $uid and type ='always') OR (alert = 1 and type = 'certain'))";
+      $query =  " AND (closed = 0 " . $solved . ") AND ((lastposteruid != $uid and type ='always') OR (type ='always_always') OR (alert = 1 and type = 'certain'))";
     } elseif ($tplstring == "old") {
-      $query =  " AND (closed = 0 " . $solved . ") AND ((lastposteruid = $uid and type = 'always') OR (alert = 0 and type = 'certain'))";
+      $query =  " AND (closed = 0 " . $solved . ") AND ((lastposteruid = $uid and type = 'always') OR (type ='always_always') OR (alert = 0 and type = 'certain'))";
       // $query =  " AND (closed = 0 OR threadsolved=0) AND lastposteruid != $uid";
     } elseif ($tplstring == "closed") {
       $query =  " AND (closed = 1 " . $solved . ") ";
@@ -3604,8 +3656,11 @@ function scenetracker_get_scenes($charas, $tplstring)
           $username = build_profile_link($info['username'], $data['inform_by']);
           $alerttype =  $username;
         } else if ($alerttype == 'always') {
-          $alerttype = $lang->scenetracker_alerttypealways . "test";
+          $alerttype = $lang->scenetracker_alerttypealways;
           $alertclass = "always";
+        } else if ($alerttype == 'always') {
+          $alerttype = $lang->scenetracker_alerttypealways_always;
+          $alertclass = "always_always";
         } else if ($alerttype == 'never') {
           $alerttype = $lang->scenetracker_alerttypenever;
           $alertclass = "never";
@@ -3643,6 +3698,12 @@ function scenetracker_get_scenes($charas, $tplstring)
         }
         if ($data['type'] == 'always') {
           $always_opt = "selected";
+          $never_opt = "";
+          $users_options_bit = $select_users;
+        }
+        if ($data['type'] == 'always_always') {
+          $always_opt = "";
+          $always_always_opt = "selected";
           $never_opt = "";
           $users_options_bit = $select_users;
         }
@@ -3731,6 +3792,10 @@ function scenetracker_scene_inform_status($id, $type, $value, $remdays = 0)
     if ($value == 0) {
       //always
       $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET inform_by = '0', type='always' WHERE id = '" . $id . "' ");
+    }
+    if ($value == -2) {
+      //always
+      $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET inform_by = '0', type='always_always' WHERE id = '" . $id . "' ");
     } else if ($value == -1) {
       //never
       $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET inform_by = '0', type='never' WHERE id = '" . $id . "' ");
@@ -3759,26 +3824,28 @@ function scenetracker_scene_inform_status($id, $type, $value, $remdays = 0)
           $alert = 1;
         }
       }
-      $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET alert = '{$alert}', inform_by = '" . $value . "', type='certain' WHERE  id = '" . $id . "' ");
+      $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET alert = '{$alert}', inform_by = '" . $value . "', type='certain' WHERE  id = '" . $id . "' ");
     }
   }
   if ($type == "alert") {
     if ($value == 0) {
       //Immer einen Alert losschicken
-      $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='always' WHERE id = '" . $id . "' ");
+      $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='always' WHERE id = '" . $id . "' ");
     } else if ($value == -1) {
       //Niemals einen Alert losschicken
-      $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='never' WHERE id = '" . $id . "' ");
+      $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='never' WHERE id = '" . $id . "' ");
+    } elseif ($value == -2) {
+      $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='always_always' WHERE id = '" . $id . "' ");
     } else {
       //nur wenn ein bestimmter User gepostet hat
-      $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '" . $value . "', type_alert='certain' WHERE  id = '" . $id . "' ");
+      $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '" . $value . "', type_alert='certain' WHERE  id = '" . $id . "' ");
     }
   }
   if ($type == "reminder") {
     //Reminder anzeigen
-    $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET index_view_reminder = '$value' WHERE id = '" . $id . "' ");
+    $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET index_view_reminder = '$value' WHERE id = '" . $id . "' ");
     if ($remdays > 0) {
-      $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET index_view_reminder_days = '$remdays' WHERE id = '" . $id . "' ");
+      $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET index_view_reminder_days = '$remdays' WHERE id = '" . $id . "' ");
     }
   }
 }
@@ -3852,9 +3919,9 @@ function scenetracker_scene_change_status($close, $tid, $uid)
     }
   } elseif ($close == 0) {
     if (scenetracker_change_allowed($teilnehmer)) {
-      $db->query("UPDATE " . TABLE_PREFIX . "threads SET closed = '0' WHERE tid = " . $tid . " ");
+      $db->write_query("UPDATE " . TABLE_PREFIX . "threads SET closed = '0' WHERE tid = " . $tid . " ");
       if ($solvplugin == "1") {
-        $db->query("UPDATE " . TABLE_PREFIX . "threads SET threadsolved = '0' WHERE tid = " . $tid . " ");
+        $db->write_query("UPDATE " . TABLE_PREFIX . "threads SET threadsolved = '0' WHERE tid = " . $tid . " ");
       }
     }
   }
@@ -3868,7 +3935,7 @@ function scenetracker_scene_change_view($hidescene, $id, $uid)
   global $db, $mybb;
   //security check, is this user allowes to change entry?
   if (scenetracker_check_switcher($uid)) {
-    $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET profil_view = '" . $hidescene . "' WHERE id = " . $id . " ");
+    $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET profil_view = '" . $hidescene . "' WHERE id = " . $id . " ");
   }
 }
 
@@ -3990,9 +4057,7 @@ function scenetracker_alert()
      */
     public function init()
     {
-      if (!$this->lang->scenetracker) {
-        $this->lang->load('scenetracker');
-      }
+      $this->lang->load('scenetracker');
     }
     /**
      * We want to define where we want to link to. 
@@ -4061,7 +4126,7 @@ function scenetracker_admin_rpgstuff_menu(&$sub_menu)
 $plugins->add_hook("admin_load", "scenetracker_admin_manage");
 function scenetracker_admin_manage()
 {
-  global $mybb, $db, $lang, $page, $run_module, $action_file, $cache;
+  global $mybb, $db, $lang, $page, $run_module, $action_file, $cache, $theme;
 
   if ($page->active_action != 'scenetracker_transfer') {
     return false;
@@ -6000,6 +6065,7 @@ function scenetracker_add_templates($type = 'install')
   $templates[] = array(
     "title" => 'scenetracker_popup_select_options',
     "template" => '<option value=\"0\" {$always_opt}>{$lang->scenetracker_alersetting_always}</option>
+    <option value=\"-2\" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option>
   <option value=\"-1\" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>
   {$users_options_bit}',
     "sid" => "-2",
