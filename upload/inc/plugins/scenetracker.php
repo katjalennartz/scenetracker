@@ -271,7 +271,7 @@ function scenetracker_newthread()
       }
       $scenetracker_user = $mybb->user['username'] . ",";
     }
-    
+
     if ($mybb->settings['scenetracker_time_text'] == 0) {
       $time_input_type = "time";
       $input_time_placeholder = "";
@@ -929,10 +929,11 @@ function scenetracker_search_showtrackerstuff()
 $plugins->add_hook("showthread_end", "scenetracker_showthread_showtrackerstuff");
 function scenetracker_showthread_showtrackerstuff()
 {
-  global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $statusscene_new, $scenetrigger;
+  global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $statusscene_new, $scenetrigger, $scenetracker_time;
 
   $lang->load("scenetracker");
   $scenestatus = $edit = "";
+  $scenetracker_time = $scene_date = $scenetracker_date_thread = $scenetracker_user = $scenetracker_date = $sceneplace = $scenetriggerinput = "";
   if (scenetracker_testParentFid($fid)) {
     $allowclosing = false;
     $thisuser = intval($mybb->user['uid']);
@@ -953,6 +954,7 @@ function scenetracker_showthread_showtrackerstuff()
     $scenetracker_date = $datetime->format('Y-m-d');
     $scenetracker_date_thread = $datetime->format('d.m.Y');
     $scenetracker_time_test = $datetime->format('H:i');
+    $scenetracker_time = $datetime->format('H:i');
 
     $sceneplace = $thread['scenetracker_place'];
     $scenetriggerinput = $thread['scenetracker_trigger'];
@@ -1056,6 +1058,7 @@ function scenetracker_usercp()
     return false;
   }
   $lang->load('scenetracker');
+
   //Variablen initialisieren
   $hidden = $yes_ind = $no_ind = $yes_rem = $no_rem = $yes_indall =  $no_indall = $move = $status = $player = "";
   $always  = $scenetracker_ucp_bit_chara = $scenetracker_calendarview_ownall  = "";
@@ -1069,6 +1072,7 @@ function scenetracker_usercp()
   }
   //Einstellung - Soll die Szenen auf dem Index angezeigt werden
   $index_settinguser = $db->fetch_field($db->simple_select("users", "tracker_index", "uid = " . $mybb->user['uid']), "tracker_index");
+
   if ($index_settinguser == 1) {
     $yes_ind = "checked";
     $no_ind = "";
@@ -2591,7 +2595,8 @@ function scenetracker_minicalendar_global()
           //Jules Plottracker? Plot Block
           $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
           $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots where type='Event'");
-          while ($plot = $db->fetch_array($plotquery)) {            $plotdate_start = $plotdate_end =  $thisday = "";
+          while ($plot = $db->fetch_array($plotquery)) {
+            $plotdate_start = $plotdate_end =  $thisday = "";
             $plotdate_start = date("Ymd", $plot['startdate']);
 
             $plotdate_end = date("Ymd", $plot['enddate']);
@@ -2993,7 +2998,8 @@ function scenetracker_minicalendar_forum(&$forum)
           $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
           if ($plottracker == 1) {
             $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots where type='Event'");
-            while ($plot = $db->fetch_array($plotquery)) {              $plotdate_start = $plotdate_end =  $thisday = "";
+            while ($plot = $db->fetch_array($plotquery)) {
+              $plotdate_start = $plotdate_end =  $thisday = "";
               $plotdate_start = date("Ymd", $plot['startdate']);
 
               $plotdate_end = date("Ymd", $plot['enddate']);
@@ -3204,6 +3210,145 @@ function scenetracker_misc_list()
     output_page($page);
   }
 }
+
+
+/**
+ * Auflistung von allen Szenen auf misc Seite
+ * misc.php?action=scenelist
+ */
+$plugins->add_hook("misc_start", "scenetracker_misc_list_2nd");
+function scenetracker_misc_list_2nd()
+{
+  global $mybb, $db, $templates, $header, $footer, $theme, $headerinclude, $scenes;
+
+  if (!($mybb->get_input('action') == "scenelist2nd")) {
+    return;
+  }
+
+  if ($mybb->get_input('action') == "scenelist2nd") {
+    $page = "";
+    $thisuser = intval($mybb->user['uid']);
+    $scenetracker_profil_bit = "";
+    $sort = "0";
+    $dateYear = "";
+    date_default_timezone_set('Europe/Berlin');
+    setlocale(LC_ALL, 'de_DE.utf8', 'de_DE@euro', 'de_DE', 'de', 'ge');
+    $ingame =  $mybb->settings['scenetracker_ingame'];
+    $archiv = $mybb->settings['scenetracker_archiv'];
+    if ($ingame == '') $ingame = "0";
+    if ($archiv == '') $archiv = "0";
+
+    $show_monthYear = array();
+
+    if ($mybb->settings['scenetracker_solved'] == 1) {
+      $solved = ", threadsolved";
+    }
+
+    // catch error if settings for threadsolved are wrong
+    if (!$db->field_exists("threadsolved", "threads")) {
+      $solved = "";
+    }
+
+    //wenn alle foren bei ingame ausgewählt sind oder keins (weil keins macht keinen sinn), alle foren zeigen. 
+    //archiv-> auch immer anzeigen weil inkludiert in 'alle foren' 
+    //Wir brauchen keine Einschränkung
+    if (($ingame == "") || ($ingame == "-1") || ($archiv == "-1")) {
+
+      $forenquerie = "";
+    } else {
+
+      //ingame -> foren ausgewählt & archiv foren ausgewählt
+      $ingamestr = "";
+      if ($ingame != "") {
+        //ein array mit den fids machen
+
+        $ingameexplode = explode(",", $ingame);
+        foreach ($ingameexplode as $ingamefid) {
+          //wir basteln unseren string fürs querie um zu schauen ob das forum in der parentlist (also im ingame ist)
+          $ingamestr .= " concat(',',parentlist,',') LIKE '%," . $ingamefid . ",%' OR ";
+          // $ingamestr .= "$ingamefid in (parentlist) OR ";
+        }
+      }
+
+      //wenn kein archiv mehr folgt, das letzte OR rauswerfen
+      if ($archiv == "" || $archiv == "-1") {
+        $ingamestr = substr($ingamestr, 0, -3);
+      }
+
+      $archivstr = "";
+      if ($archiv != "") {
+
+        $archivexplode = explode(",", $archiv);
+        foreach ($archivexplode as $archivfid) {
+          $archivstr .= " concat(',',parentlist,',') LIKE '%," . $archivfid . ",%' OR ";
+        }
+        // das letzte OR rauswerfen
+        $archivstr = substr($archivstr, 0, -3);
+      }
+      $forenquerie = " AND ($ingamestr $archivstr) ";
+    }
+
+    $scene_query = $db->write_query("
+          SELECT s.*,t.fid, parentlist, DATE_FORMAT(FROM_UNIXTIME(dateline), '%d.%m.%Y') AS formatted_date, subject, dateline, t.closed as threadclosed, 
+          scenetracker_date, scenetracker_user, scenetracker_place, scenetracker_trigger" . $solved . " FROM " . TABLE_PREFIX . "scenetracker s, 
+          " . TABLE_PREFIX . "threads t LEFT JOIN " . TABLE_PREFIX . "forums fo ON t.fid = fo.fid 
+          WHERE t.tid = s.tid   
+          $forenquerie AND s.profil_view = 1 
+          AND dateline BETWEEN 1710201601 AND 1741651199 
+          GROUP by t.tid
+          ORDER by scenetracker_date DESC;
+    ");
+
+    $date_flag = "1";
+    while ($scenes = $db->fetch_array($scene_query)) {
+      $scenes['threadsolved'] = "";
+      if ($solved == "") {
+        $scenes['threadsolved'] = $scenes['threadclosed'];
+      }
+      $scenestatus = "";
+      $tid = $scenes['tid'];
+      $sid = $scenes['id'];
+      $subject = $scenes['subject'];
+      $sceneusers = str_replace(",", ", ", $scenes['scenetracker_user']);
+      $sceneplace = $scenes['scenetracker_place'];
+      if ($scenes['scenetracker_trigger'] != "") {
+        $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Triggerwarnung: {$scenes['scenetracker_trigger']}</div>";
+      } else {
+        $scenetrigger = "";
+      }
+      $scenestatus .= " eröffnet am: " . $scenes['formatted_date'];
+      if ($scenes['threadclosed'] == 1 or $scenes['threadsolved'] == 1) {
+        $scenestatus .= " <i class=\"fas fa-check-circle\"></i> (Szene geschlossen)";
+      } else {
+        $scenestatus .= "";
+      }
+
+      $date = new DateTime($scenes['scenetracker_date']);
+      // Formatieren des Datums im gewünschten Format
+      $scenedate = $date->format('d.m.Y - H:i');
+      $scenedateMonthYear = $date->format('m.Y');
+
+      if ($dateYear != $scenedateMonthYear) {
+        $scenedatetitle_m = $date->format('F');
+        $scenedatetitle_y = $date->format('Y');
+
+        $scenedatetitle_y = preg_replace('/^0+/', '', $scenedatetitle_y);
+        $scenedatetitle = $scenedatetitle_m . " " . $scenedatetitle_y;
+        eval("\$scenetracker_profil_bit_mY = \"" . $templates->get("scenetracker_profil_bit_mY") . "\";");
+        $dateNew = new DateTime($scenes['scenetracker_date']);
+        $dateYear = $dateNew->format('m.Y');
+      } else {
+        $scenetracker_profil_bit_mY = "";
+      }
+      eval("\$scenetracker_profil_bit .= \"" . $templates->get("scenetracker_profil_bit") . "\";");
+    }
+    eval("\$scenes= \"" . $templates->get("scenetracker_profil") . "\";");
+
+    eval("\$page = \"" . $templates->get("scenetracker_misc_allscenes") . "\";");
+    output_page($page);
+  }
+}
+
 
 /**
  * einträge in der Szenentracker Tabelle löschen, wenn ein thread gelöscht wird
@@ -3606,9 +3751,7 @@ function scenetracker_get_scenes($charas, $tplstring)
       $tplcount = 0;
     } else {
       $tplcount = 1;
-      $info_by = "";
-      $selected = "";
-      $users_options_bit = "";
+      $info_by = $selected = $users_options_bit = $scenetracker_popup_select_options_index = "";
 
       while ($data = $db->fetch_array($scenes)) {
         $edit = "";
@@ -6216,6 +6359,13 @@ function scenetracker_updated_templates()
         </form>',
     "action" => 'replace',
     "action_string" => '{$scenetracker_ucp_filterscenes}'
+  );
+
+  $update_template[] = array(
+    "templatename" => 'scenetracker_popup_select_options',
+    "change_string" => '<option value="0" {$always_opt}>{$lang->scenetracker_alersetting_always}</option>',
+    "action" => 'add',
+    "action_string" => '<option value="0" {$always_opt}>{$lang->scenetracker_alersetting_always}</option><option value="-2" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option>'
   );
 
   $update_template[] = array(
