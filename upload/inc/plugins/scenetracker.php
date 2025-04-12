@@ -6207,9 +6207,9 @@ function scenetracker_add_templates($type = 'install')
 
   $templates[] = array(
     "title" => 'scenetracker_popup_select_options',
-    "template" => '<option value=\"0\" {$always_opt}>{$lang->scenetracker_alersetting_always}</option>
-    <option value=\"-2\" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option>
-  <option value=\"-1\" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>
+    "template" => '<option value="0" {$always_opt}>{$lang->scenetracker_alersetting_always}</option>
+    <option value="-2" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option>
+  <option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>
   {$users_options_bit}',
     "sid" => "-2",
     "version" => "",
