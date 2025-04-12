@@ -1,6 +1,6 @@
 # Szenentracker
 ## Updates: 		
-Last: 2.Feb 2024
+Last: 12. April 2024
 Version: 1.0.11
 		
 ### Todo nach Update: 
@@ -13,7 +13,9 @@ Version: 1.0.11
 #### 1.0.10 -> 1.0.11
 - Auslagern der Options fürs UCP aus der PHP in Templates (einfacher anzupassen)
 - Aufspaltung Alerts und Index.
+- Hinzufügen der Auswahl für Index und Alerts 'always' (vorher nur 'ein anderer user hat gepostet oder nie oder ein bestimmter)  
 - Einstellung des Szenenreminders pro Szene
+
 
 #### 1.0.9 -> 1.0.10
 - Integration RPG Modul von Lara
