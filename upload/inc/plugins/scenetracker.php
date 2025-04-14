@@ -1391,16 +1391,22 @@ function scenetracker_usercp()
     $querymove = "";
     $player_query_str = "";
     if ($move == "ja") {
-      $querymove .=   " 
-                      AND (
-                        (lastposteruid != {$uid} and type ='always') 
-                      OR (alert = 1 and type = 'certain')
+      $querymove .=   " AND ( 
+                        ((lastposteruid != {$uid} and type ='always')
+                          OR
+                          type ='always_always'
+                        ) 
+                        OR 
+                        (alert = 1 and type = 'certain')
                       )";
       $move_str = "Ja";
     }
     if ($move == "nein") {
       $querymove .=  "  AND (
-                          (lastposteruid = {$uid} and type = 'always') 
+                          ((lastposteruid = {$uid} and type = 'always')
+                          OR
+                          type ='always_always'
+                          ) 
                             OR 
                               (alert = 0 and type = 'certain')
                         ) ";
@@ -1416,7 +1422,7 @@ function scenetracker_usercp()
     SELECT s.*,
       fid, subject, dateline, lastpost, lastposter, 
       lastposteruid, closed, {$solvefield} 
-      scenetracker_date, scenetracker_user, scenetracker_place, scenetracker_trigger
+      scenetracker_date, scenetracker_user, scenetracker_place, scenetracker_trigger, scenetracker_time_text
       FROM " . TABLE_PREFIX . "scenetracker  s LEFT JOIN 
       " . TABLE_PREFIX . "threads t on s.tid = t.tid WHERE 
       s.uid = {$uid}
@@ -1443,7 +1449,7 @@ function scenetracker_usercp()
       while ($data = $db->fetch_array($scenes)) {
         $statusofscene = $db->fetch_array($db->write_query("SELECT s.*, t.lastposteruid FROM " . TABLE_PREFIX . "scenetracker s INNER JOIN " . TABLE_PREFIX . "threads t ON s.tid = t.tid WHERE s.tid = {$data['tid']} AND s.uid = {$uid}"));
 
-        if ($statusofscene['type'] == "always" && $statusofscene['lastposteruid'] != $uid) {
+        if (($statusofscene['type'] == "always" || $statusofscene['type'] == "always_always") && $statusofscene['lastposteruid'] != $uid) {
           $statusclass = "<span class=\"yourturn\">{$lang->scenetracker_yourturn}</span>";
         } else if ($statusofscene['type'] == "certain" && $statusofscene['lastposteruid'] == $statusofscene['inform_by']) {
           $statusclass = "<span class=\"yourturn\">{$lang->scenetracker_yourturn}</span>";
@@ -1479,7 +1485,7 @@ function scenetracker_usercp()
 
         $lastpostdate = date('d.m.Y', $data['lastpost']);
         $lastposter = get_user($data['lastposteruid']);
-        $alerttype = $data['type'];
+        $alerttype_index = $data['type'];
 
         if (isset($mybb->settings['scenetracker_time_text']) && $mybb->settings['scenetracker_time_text'] == 0) {
           $date = new DateTime($data['scenetracker_date']);
@@ -1493,41 +1499,41 @@ function scenetracker_usercp()
 
         $lastposterlink = '<a href="member.php?action=profile&uid=' . $lastposter['uid'] . '">' .  $lastposter['username'] . '</a>';
         $users = $sceneusers = str_replace(",", ", ", $data['scenetracker_user']);
+        $username = "";
         $sceneplace = $data['scenetracker_place'];
-        if ($alerttype == 'certain') {
+        if ($alerttype_index == 'certain') {
           $info = get_user($data['inform_by']);
           $alertclass = "certain";
           $username = build_profile_link($info['username'], $data['inform_by']);
           $alerttype =  $lang->scenetracker_ucp_alerttype_index . $username;
-        } else if ($alerttype == 'always') {
+        } else if ($alerttype_index == 'always') {
           $alerttype = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways;
           $alertclass = "always";
-        } else if ($alerttype == 'always_always') {
+        } else if ($alerttype_index == 'always_always') {
           $alerttype = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways_always;
           $alertclass = "always_always";
-        } else if ($alerttype == 'never') {
+        } else if ($alerttype_index == 'never') {
           $alerttype = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypenever;
           $alertclass = "never";
         }
 
-        $alerttype_alert = $data['type_alert'];
-        if ($alerttype_alert == 'certain') {
+        $alerttype_alert_data = $data['type_alert'];
+        if ($alerttype_alert_data == 'certain') {
           $info = get_user($data['inform_by']);
           $alertclass = "certain";
           $username = build_profile_link($info['username'], $data['inform_by']);
           $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $username;
-        } else if ($alerttype_alert == 'always') {
+        } else if ($alerttype_alert_data == 'always') {
           $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $lang->scenetracker_alerttypealways;
-          $alertclass = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways;
-          $alerttype_alert = $data['type_alert'];
-        } else if ($alerttype_alert == 'always_always') {
-          $alerttype = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways_always;
+          $alertclass = "index always";
+        } else if ($alerttype_alert_data == 'always_always') {
           $alertclass = "always_always";
-          $alerttype_alert = $lang->scenetracker_ucp_alerttype_index . $lang->scenetracker_alerttypealways_always;
-        } else if ($alerttype_alert == 'never') {
+          $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $lang->scenetracker_alerttypealways_always;
+        } else if ($alerttype_alert_data == 'never') {
           $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $lang->scenetracker_alerttypenever;
           $alertclass = "never";
         }
+
         $scene = '<a href="showthread.php?tid=' . $data['tid'] . '&action=lastpost" class="scenelink">' . $data['subject'] . '</a>';
         if ($data['profil_view'] == 1) {
           $hide = "{$lang->scenetracker_displaystatus_shown} <a href=\"usercp.php?action=scenetracker&showsceneprofil=0&getsid=" . $id . "\"><i class=\"fas fa-toggle-on\"></i></a>";
@@ -3932,14 +3938,13 @@ function scenetracker_scene_inform_status($id, $type, $value, $remdays = 0)
   global $db;
 
   if ($type == "index") {
-    if ($value == 0) {
+    if ($value == "0") {
       //always
       $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET inform_by = '0', type='always' WHERE id = '" . $id . "' ");
-    }
-    if ($value == -2) {
+    } else if ($value == "-2") {
       //always
       $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET inform_by = '0', type='always_always' WHERE id = '" . $id . "' ");
-    } else if ($value == -1) {
+    } else if ($value == "-1") {
       //never
       $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET inform_by = '0', type='never' WHERE id = '" . $id . "' ");
     } else {
@@ -3974,10 +3979,10 @@ function scenetracker_scene_inform_status($id, $type, $value, $remdays = 0)
     if ($value == 0) {
       //Immer einen Alert losschicken
       $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='always' WHERE id = '" . $id . "' ");
-    } else if ($value == -1) {
+    } else if ($value == '-1') {
       //Niemals einen Alert losschicken
       $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='never' WHERE id = '" . $id . "' ");
-    } elseif ($value == -2) {
+    } elseif ($value == '-2') {
       $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='always_always' WHERE id = '" . $id . "' ");
     } else {
       //nur wenn ein bestimmter User gepostet hat
