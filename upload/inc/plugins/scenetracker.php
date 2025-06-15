@@ -1348,7 +1348,7 @@ function scenetracker_usercp()
         $as_uid = $playerarr['as_uid'];
       }
     }
-
+    $player_query_str = "";
     $charaarray = scenetracker_get_accounts($playeruid, $as_uid);
     $player_query_str = " AND (";
     foreach ($charaarray as $uid => $username) {
@@ -1362,6 +1362,7 @@ function scenetracker_usercp()
   } else {
     $player_str = "egal";
   }
+
 
   $selectchara = "<select name=\"charakter\" id=\"charakter\">
     <option value=\"0\">{$lang->scenetracker_select_allChars}</option>";
@@ -1389,7 +1390,7 @@ function scenetracker_usercp()
   $cnt = 0;
   foreach ($charasquery as $uid => $charname) {
     $querymove = "";
-    $player_query_str = "";
+
     if ($move == "ja") {
       $querymove .=   " AND ( 
                         ((lastposteruid != {$uid} and type ='always')
