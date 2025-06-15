@@ -1,15 +1,26 @@
 # Szenentracker
 ## Updates: 		
-Last: 25. November 2024
-Version: 1.0.10
+Last: Juni 2024
+Version: 1.0.11
+
+### Must Have
+- RPG Modul von Lara
+- Accountswitcher
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
 - Reiter RPG-Erweiterungen -> Plugins aktualisieren
-- **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Update
+- **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Update übernommen werden
 
 
 ### Changelog: 
+#### 1.0.10 -> 1.0.11
+- Auslagern der Options fürs UCP aus der PHP in Templates (einfacher anzupassen)
+- Aufspaltung Alerts und Index.
+- Hinzufügen der Auswahl für Index und Alerts 'always' (vorher nur 'ein anderer user hat gepostet oder nie oder ein bestimmter)  
+- Einstellung des Szenenreminders pro Szene
+
+
 #### 1.0.9 -> 1.0.10
 - Integration RPG Modul von Lara
 - Optimierung Update Prozess
