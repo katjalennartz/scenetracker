@@ -1,7 +1,11 @@
 # Szenentracker
 ## Updates: 		
-Last: 12. April 2024
+Last: Juni 2024
 Version: 1.0.11
+
+### Must Have
+- RPG Modul von Lara
+- Accountswitcher
 		
 ### Todo nach Update: 
 - Dateien neu hochladen
