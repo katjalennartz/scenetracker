@@ -2149,7 +2149,6 @@ function scenetracker_calendar()
   } elseif ($setting_birhtday == "1") {
     // 9-4-1987
     $converteddate = $dateconvert->format("j-n");
-    $converteddate = date("j-n", $timestamp);
     //convert date setting_fid 
     $get_birthdays = $db->write_query("
       SELECT username, uid FROM " . TABLE_PREFIX . "users WHERE birthday LIKE '{$converteddate}%'");
