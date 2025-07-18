@@ -1834,12 +1834,19 @@ function scenetracker_showinprofile()
       $scenehide = "";
     }
     $date = new DateTime($scenes['scenetracker_date']);
-
     // Formatieren des Datums im gewünschten Format
+    if ($mybb->settings['scenetracker_time_text'] == 0) {
     $scenedate_dm = $date->format('d.m.');
     $scenedate_y = $date->format('Y - H:i');
     $scenedate_y = preg_replace('/^0+/', '', $scenedate_y);
     $scenedate = $scenedate_dm . $scenedate_y;
+    } else {
+      $scenedate_dm = $date->format('d.m.');
+      $scenedate_y = $date->format('Y') . " - " . $scenes['scenetracker_time_text'];
+      $scenedate_y = preg_replace('/^0+/', '', $scenedate_y);
+      $scenedate = $scenedate_dm . $scenedate_y;
+    }
+
 
     $scenedateMonthYear = $date->format('m.Y');
 
@@ -1854,6 +1861,7 @@ function scenetracker_showinprofile()
 
       eval("\$scenetracker_profil_bit_mY = \"" . $templates->get("scenetracker_profil_bit_mY") . "\";");
       $dateNew = new DateTime($scenes['scenetracker_date']);
+
       $dateYear = $dateNew->format('m.Y');
     } else {
       $scenetracker_profil_bit_mY = "";
