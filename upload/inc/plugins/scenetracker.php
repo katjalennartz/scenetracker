@@ -2608,7 +2608,7 @@ function scenetracker_minicalendar_global()
         if ($plottracker == 1) {
           //Jules Plottracker? Plot Block
           $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
-          $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots where type='Event'");
+          $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots");
           while ($plot = $db->fetch_array($plotquery)) {
             $plotdate_start = $plotdate_end =  $thisday = "";
             $plotdate_start = date("Ymd", $plot['startdate']);
@@ -3011,7 +3011,7 @@ function scenetracker_minicalendar_forum(&$forum)
           //Jules Plottracker? Plot Block
           $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
           if ($plottracker == 1) {
-            $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots where type='Event'");
+            $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots");
             while ($plot = $db->fetch_array($plotquery)) {
               $plotdate_start = $plotdate_end =  $thisday = "";
               $plotdate_start = date("Ymd", $plot['startdate']);
