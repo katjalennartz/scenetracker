@@ -3328,7 +3328,7 @@ function scenetracker_savescene()
   }
 
   if ($mybb->get_input('action') == 'xml_st_getusers') {
-    $get_users = $db->query("SELECT username From mybb_users ORDER by username");
+    $get_users = $db->query("SELECT username From " . TABLE_PREFIX . "users ORDER by username");
     $user = array();
     while ($row = $db->fetch_array($get_users)) {
       $user[] = $row;
