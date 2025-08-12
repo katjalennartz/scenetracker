@@ -1,7 +1,7 @@
 # Szenentracker
 ## Updates: 		
 Last: Juni 2024
-Version: 1.0.11
+Version: 1.0.12
 
 ### Must Have
 - RPG Modul von Lara
@@ -29,6 +29,11 @@ Version: 1.0.11
 - in PhpOffice den Ordner PHPWord einfügen
 
 ### Changelog: 
+#### 1.0.11 -> 1.0.12
+- Einstellung des Szenenreminders pro Szene
+- Export als PDF oder Word, wenn gewollt (Im ACP einstellbar)
+- bugfixes
+  
 #### 1.0.10 -> 1.0.11
 - Auslagern der Options fürs UCP aus der PHP in Templates (einfacher anzupassen)
 - Aufspaltung Alerts und Index.
