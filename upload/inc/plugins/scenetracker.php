@@ -988,7 +988,7 @@ function scenetracker_loadlib($class)
 $plugins->add_hook("showthread_end", "scenetracker_showthread_showtrackerstuff");
 function scenetracker_showthread_showtrackerstuff()
 {
-  global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $statusscene_new, $scenetrigger, $exp_sel, $scenetracker_time, $edit;
+  global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $scenetrigger, $exp_sel, $scenetracker_time, $edit;
   $exp_option = "";
   $lang->load("scenetracker");
   $scenestatus = $edit = "";
