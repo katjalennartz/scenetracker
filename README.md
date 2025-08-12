@@ -6,12 +6,27 @@ Version: 1.0.11
 ### Must Have
 - RPG Modul von Lara
 - Accountswitcher
-		
+- Für Export als PDF: https://github.com/dompdf/dompdf/releases **Installationshinweis beachten**
+- Für Export als Word: https://github.com/PHPOffice/PHPWord **Installationshinweis beachten**
+
 ### Todo nach Update: 
 - Dateien neu hochladen
 - Reiter RPG-Erweiterungen -> Plugins aktualisieren
 - **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Update übernommen werden
 
+### Instaaltionshinweise Bibliotheken (PDF und Word) 
+#### PDF
+- auf https://github.com/dompdf/dompdf/releases gehen
+- die neuste Version suchen, hier den ersten Zip Ordner nehmen (der mit dem Viereck als Symbol!) Nur der enthält alle Dateien die ihr braucht.
+- falls noch nicht vorhanden im Hauptverzeichnis des Forums einen Ordner 'lib' erstellen
+- dort den gesamten Ordner 'dompfd' reinladen
+
+#### Word
+- auf https://github.com/PHPOffice/PHPWord gehen und das Rep runterladen
+- entpacken und den Ordner src/PHPWord kopieren (ihr braucht nur diesen Ordner)
+- alls noch nicht vorhanden im Hauptverzeichnis des Forums einen Ordner 'lib' erstellen
+- in lib einen Ordner 'PhpOffice' erstellen
+- in PhpOffice den Ordner PHPWord einfügen
 
 ### Changelog: 
 #### 1.0.10 -> 1.0.11
