@@ -20,7 +20,7 @@ function scenetracker_info()
   return array(
     "name" => "Szenentracker von Risuena",
     "description" => "Automatischer Tracker, mit Benachrichtigungseinstellung, (Mini-)Kalender, Indexanzeige und Reminder.<br/>
-      <b style=\"color: red;\">Achtung</b> Bitte die Infos in der <b>readme</b> beachten, um Szenen im Kalender angezeigt zu bekommen.",
+      <b style=\"color: red;\">Achtung</b> Bitte die Infos in der <b>readme</b> beachten, um Szenen im Kalender angezeigt zu bekommen und Szenen exportieren zu können.",
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
@@ -1067,15 +1067,17 @@ function scenetracker_showthread_showtrackerstuff()
         $time_input_name = "scenetracker_time_str";
       }
       $edit = "";
-
+      $showexp = false;
       if ($mybb->settings['scenetracker_export_word'] == 1 && $mybb->settings['scenetracker_export_pdf_all'] == 1) {
         if (scenetracker_testParentFid($fid)) {
           $exp_option .= '<option value="word" {$sel_m[\'word\']}>Word</option>';
+          $showexp = true;
         }
       }
       if ($mybb->settings['scenetracker_export_pdf'] == 1 && $mybb->settings['scenetracker_export_pdf_all'] == 1) {
         if (scenetracker_testParentFid($fid)) {
           $exp_option .= '<option value="pdf" {$sel_m[\'pdf\']}>PDF</option>';
+          $showexp = true;
         }
       }
       eval("\$edit = \"" . $templates->get("scenetracker_showthread_edit") . "\";");
@@ -1083,16 +1085,18 @@ function scenetracker_showthread_showtrackerstuff()
     if ($mybb->settings['scenetracker_export_word'] == 1 && $mybb->settings['scenetracker_export_word_all'] == 0) {
       if (scenetracker_testParentFid($fid)) {
         $exp_option .= '<option value="word" {$sel_m[\'word\']}>Word</option>';
+        $showexp = true;
       }
     }
     if ($mybb->settings['scenetracker_export_pdf'] == 1 && $mybb->settings['scenetracker_export_pdf_all'] == 0) {
       if (scenetracker_testParentFid($fid)) {
         $exp_option .= '<option value="pdf" {$sel_m[\'pdf\']}>PDF</option>';
+        $showexp = true;
       }
     }
-    if ($mybb->settings['scenetracker_export_pdf'] == 1 || $mybb->settings['scenetracker_export_pdf'] == 1) {
-      $exp_sel = '<select name="export_sel" id="scenetracker_export">' . $exp_option . '</select>';
 
+    if ($showexp) {
+      $exp_sel = '<select name="export_sel" id="scenetracker_export">' . $exp_option . '</select>';
       eval("\$scenetracker_showthread_export.= \"" . $templates->get("scenetracker_showthread_export") . "\";");
     }
 
@@ -1177,19 +1181,21 @@ function scenetracker_showthread_showtrackerstuff()
         $section->addText($thread['subject'], array('name' => 'Arial', 'size' => 20, 'bold' => 'true'));
         $section->addTextBreak();
         //Szenentracker Infos
-        $section->addText("Teilnehmer: " . $thread['scenetracker_user']);
+        $section->addText("Teilnehmende: " . $thread['scenetracker_user']);
         $section->addText("Ort: " . $thread['scenetracker_place']);
+
         if ($mybb->settings['scenetracker_time_text'] == 0) {
           $datetime = new DateTime($thread['scenetracker_date']);
-          // Formatieren des Datums im gewünschten Format
+          // Formatieren des Datums
           $scene_date = $datetime->format('d.m.Y - H:i');
-          $scene_date = preg_replace('/(\d{2})\.(\d{2})\.(0)(\d{1,4})/', '$1.$2.$4', $scene_date);
+          $scene_date = preg_replace('/0*([0-9]+)\.0*([0-9]+)\.0*([0-9]+)/', '$1.$2.$3', $scene_date);
         } else if ($mybb->settings['scenetracker_time_text'] == 1) {
           //einstellunge Zeit als offenes textfeld
           $datetime = new DateTime($thread['scenetracker_date']);
           $scene_date = $datetime->format('d.m.Y') . " " . $thread['scenetracker_time_text'];
-          $scene_date = preg_replace('/(\d{2})\.(\d{2})\.(0)(\d{1,4})/', '$1.$2.$4', $scene_date);
+          $scene_date = preg_replace('/0*([0-9]+)\.0*([0-9]+)\.0*([0-9]+)/', '$1.$2.$3', $scene_date);
         }
+
         $section->addText("Datum: " . $scene_date);
         $section->addTextBreak();
         $lineStyle = array('weight' => 1, 'width' => 500, 'height' => 0, 'color' => 000000);
@@ -1238,13 +1244,16 @@ function scenetracker_showthread_showtrackerstuff()
         $teilnehmer = implode(' & ', $namen);
 
         /* Datum formatieren */
-        if (isset($mybb->settings['scenetracker_time_text']) && $mybb->settings['scenetracker_time_text'] == 0) {
-          $date = new DateTime($thread['scenetracker_date']);
-          $scenedate = $date->format('d.m.Y - H:i');
+        if ($mybb->settings['scenetracker_time_text'] == 0) {
+          $datetime = new DateTime($thread['scenetracker_date']);
+          // Formatieren des Datums
+          $scenedate = $datetime->format('d.m.Y - H:i');
+          $scenedate = preg_replace('/0*([0-9]+)\.0*([0-9]+)\.0*([0-9]+)/', '$1.$2.$3', $scenedate);
         } else if ($mybb->settings['scenetracker_time_text'] == 1) {
-          $date = new DateTime($thread['scenetracker_date']);
-          $dmy = $date->format('d.m.Y');
-          $scenedate = $dmy . " " . $thread['scenetracker_time_text'];
+          //einstellunge Zeit als offenes textfeld
+          $datetime = new DateTime($thread['scenetracker_date']);
+          $scenedate = $datetime->format('d.m.Y') . " " . $thread['scenetracker_time_text'];
+          $scenedate = preg_replace('/0*([0-9]+)\.0*([0-9]+)\.0*([0-9]+)/', '$1.$2.$3', $scenedate);
         }
 
         $place = $thread['scenetracker_place'];
@@ -1345,9 +1354,9 @@ function scenetracker_showthread_showtrackerstuff()
             <div class="cover">
               <div class="centerheader">
                 <h1>' . $thread['subject'] . '</h1>
-                <div class="meta"><strong>Teilnehmer:</strong> ' . $teilnehmer . '<br>
-                <strong>Datum:</strong> ' . $scenedate . '<br>
-                <strong>Ort:</strong>' . $place . '</div>
+                <div class="meta">' . $teilnehmer . '<br>
+                ' . $scenedate . '<br>
+               ' . $place . '</div>
               </div>
             </div>
 
@@ -2210,7 +2219,7 @@ function scenetracker_global_intermediate()
   }
   $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
   $cnts = scenetracker_count_scenes($charas);
-  $counter = "( {$cnts['open']} / {$cnts['all']} )";
+  $counter = "({$cnts['open']}/{$cnts['all']})";
 }
 
 /**
@@ -2298,7 +2307,7 @@ function scenetracker_list()
       redirect('index.php');
     }
     $cnts = scenetracker_count_scenes($charas);
-    $counter = "( {$cnts['open']} / {$cnts['all']} )";
+    $counter = "({$cnts['open']}/{$cnts['all']})";
 
     eval("\$scenetracker_index_main =\"" . $templates->get("scenetracker_index_main") . "\";");
   }
@@ -2932,8 +2941,8 @@ function scenetracker_minicalendar_global()
           eval("\$birthdayshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
         }
 
+        //Jules Plottracker? Plot Block
         if ($plottracker == 1) {
-          //Jules Plottracker? Plot Block
           $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
           $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots");
           while ($plot = $db->fetch_array($plotquery)) {
@@ -3955,6 +3964,7 @@ function scenetracker_get_scenes($charas, $tplstring)
     } else {
       $tplcount = 1;
       $info_by = $selected = $users_options_bit = $scenetracker_popup_select_options_index = "";
+      $users_options_bit = "";
 
       while ($data = $db->fetch_array($scenes)) {
         $edit = "";
@@ -3992,8 +4002,7 @@ function scenetracker_get_scenes($charas, $tplstring)
 
         // Formatieren des Datums im gewünschten Format
         if (isset($mybb->settings['scenetracker_time_text']) && $mybb->settings['scenetracker_time_text'] == 0) {
-          $date = new DateTime($data['scenetracker_date']);
-          $scenedate = $date->format('d.m.Y - H:i');
+          $scenedate = $datetime->format('d.m.Y - H:i');
         } else if ($mybb->settings['scenetracker_time_text'] == 1) {
 
           //einstellunge Zeit als offenes textfeld
@@ -4660,27 +4669,21 @@ function scenetracker_admin_update_plugin(&$table)
     //Datenbank updaten
     scenetracker_database("update");
 
-    //Stylesheet hinzufügen wenn nötig:
+    //Stylesheets Updaten wen nötig - hinzufügen von neuem css
     //array mit updates bekommen.
     $update_data_all = scenetracker_stylesheet_update();
-    //alle Themes bekommen
-    $theme_query = $db->simple_select('themes', 'tid, name');
     require_once MYBB_ADMIN_DIR . "inc/functions_themes.php";
 
+    //alle Themes bekommen in der es die scenetracker.css gibt - sonst erbt sie von irgendwo
+    $theme_query = $db->simple_select("themestylesheets", "*", "name='scenetracker.css'");
+    // $theme_query = $db->simple_select('themes', 'tid, name');
+
+    //styles durchgehen
+
     while ($theme = $db->fetch_array($theme_query)) {
-      //wenn im style nicht vorhanden, dann gesamtes css hinzufügen
-      $templatequery = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
-
-      if ($db->num_rows($templatequery) == 0) {
-        $css = scenetracker_stylesheet($theme['tid']);
-
-        $sid = $db->insert_query("themestylesheets", $css);
-        $db->update_query("themestylesheets", array("cachefile" => "scenetracker.css"), "sid = '" . $sid . "'", 1);
-        update_theme_stylesheet_list($theme['tid']);
-      }
-
-      //testen ob updatestring vorhanden - sonst an css in theme hinzufügen
+      //schauen ob es csss zum updaten gibt
       $update_data_all = scenetracker_stylesheet_update();
+
       //array durchgehen mit eventuell hinzuzufügenden strings
       foreach ($update_data_all as $update_data) {
         //hinzuzufügegendes css
@@ -4694,15 +4697,17 @@ function scenetracker_admin_update_plugin(&$table)
           //string war nicht vorhanden
           if ($db->num_rows($test_ifin) == 0) {
             //altes css holen
-            $oldstylesheet = $db->fetch_field($db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css'"), "stylesheet");
+            $oldstylesheet = $theme['stylesheet'];
             //Hier basteln wir unser neues array zum update und hängen das neue css hinten an das alte dran
             $updated_stylesheet = array(
               "cachefile" => $db->escape_string('scenetracker.css'),
               "stylesheet" => $db->escape_string($oldstylesheet . "\n\n" . $update_stylesheet),
               "lastmodified" => TIME_NOW
             );
+            $themename = $db->fetch_field($db->simple_select("themes", "name", "tid = '{$theme['tid']}'"), "name");
+
             $db->update_query("themestylesheets", $updated_stylesheet, "name='scenetracker.css' AND tid = '{$theme['tid']}'");
-            echo "In Theme mit der ID {$theme['tid']} wurde CSS hinzugefügt -  $update_string <br>";
+            echo "Im Theme {$themename}(ID:{$theme['tid']})  wurde CSS hinzugefügt -  '$update_string' <br>";
           }
         }
         update_theme_stylesheet_list($theme['tid']);
@@ -5346,7 +5351,6 @@ function scenetracker_stylesheet_update()
   );
 
 
-
   return $update_array_all;
 }
 
@@ -5986,7 +5990,11 @@ function scenetracker_add_templates($type = 'install')
   );
   $templates[] = array(
     "title" => 'scenetracker_showthread_export',
-    "template" => '<div class="scenetracker__sceneitem scene_export">{$exp_sel}</div>',
+    "template" => '<div class="scenetracker__sceneitem scene_export">
+	<form  method="post">
+		{$exp_sel} <input type="submit" name="export_scene" value="export" id="export" />
+	</form>
+</div>',
     "sid" => "-2",
     "version" => "",
     "dateline" => TIME_NOW
@@ -6467,6 +6475,18 @@ function scenetracker_add_templates($type = 'install')
     "dateline" => TIME_NOW
   );
 
+  $templates[] = array(
+    "title" => 'scenetracker_showthread_export',
+    "template" => '<div class="scenetracker__sceneitem scene_export">
+	<form  method="post">
+		{$exp_sel} <input type="submit" name="export_scene" value="export" id="export" />
+	</form>
+</div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
   if ($type == 'update') {
     foreach ($templates as $template) {
       $query = $db->simple_select("templates", "tid, template", "title = '" . $template['title'] . "' AND sid = '-2'");
@@ -6613,13 +6633,6 @@ function scenetracker_updated_templates()
   );
 
   $update_template[] = array(
-    "templatename" => 'scenetracker_popup_select_options',
-    "change_string" => '<option value="0" {$always_opt}>{$lang->scenetracker_alersetting_always}</option>',
-    "action" => 'add',
-    "action_string" => '<option value="0" {$always_opt}>{$lang->scenetracker_alersetting_always}</option><option value="-2" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option>'
-  );
-
-  $update_template[] = array(
     "templatename" => 'scenetracker_index_reminder_bit',
     "change_string" => '({$lastpostdays} Tage)',
     "action" => 'add',
@@ -6678,6 +6691,13 @@ function scenetracker_updated_templates()
     "change_string" => '{$edit}',
     "action" => 'add',
     "action_string" => '{$scenetracker_showthread_export}{$edit}'
+  );
+
+  $update_template[] = array(
+    "templatename" => 'scenetracker_popup_select_options',
+    "change_string" => '<option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>',
+    "action" => 'add',
+    "action_string" => '<option value="-2" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option><option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>'
   );
 
   return $update_template;
@@ -6817,23 +6837,15 @@ function scenetracker_is_updated()
   //Testen ob im CSS etwas fehlt
   $update_data_all = scenetracker_stylesheet_update();
   //alle Themes bekommen
-  $theme_query = $db->simple_select('themes', 'tid, name');
+  $theme_query = $db->simple_select("themestylesheets", "*", "name='scenetracker.css'");
+
   while ($theme = $db->fetch_array($theme_query)) {
-    //wenn im style nicht vorhanden, dann gesamtes css hinzufügen
-    $templatequery = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
-    //scenetracker.css ist in keinem style nicht vorhanden
-    if ($db->num_rows($templatequery) == 0) {
-      echo ("Nicht im {$theme['tid']} vorhanden <br>");
-      $needupdate = 1;
-    } else {
-      //scenetracker.css ist in einem style nicht vorhanden
-      //css ist vorhanden, testen ob alle updatestrings vorhanden sind
-      $update_data_all = scenetracker_stylesheet_update();
-      //array durchgehen mit eventuell hinzuzufügenden strings
       foreach ($update_data_all as $update_data) {
-        //String bei dem getestet wird ob er im alten css vorhanden ist
+      $update_stylesheet = $update_data['stylesheet'];
         $update_string = $update_data['update_string'];
-        //updatestring darf nicht leer sein
+      if (!empty($update_string)) {
+        $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
+        if ($db->num_rows($test_ifin) == 0) {
         if (!empty($update_string)) {
           //checken ob updatestring in css vorhanden ist - dann muss nichts getan werden
           $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
@@ -6841,6 +6853,7 @@ function scenetracker_is_updated()
           if ($db->num_rows($test_ifin) == 0) {
             echo ("Mindestens Theme {$theme['tid']} muss aktualisiert werden <br>");
             $needupdate = 1;
+            }
           }
         }
       }
@@ -6872,7 +6885,7 @@ function scenetracker_is_updated()
       //wenn ja muss das template aktualisiert werden.
       if ($check) {
         $templateset = $db->fetch_field($db->simple_select("templatesets", "title", "sid = '{$old_template['sid']}'"), "title");
-        echo ("Template {$update_template['templatename']} im Set {$templateset}'(SID: {$old_template['sid']}') muss aktualisiert werden. ({$update_template['change_string']} zu {$update_template['action_string']})<br>");
+        echo ("Template {$update_template['templatename']} im Template-Set {$templateset}'(SID: {$old_template['sid']}') muss aktualisiert werden. ({$update_template['change_string']} zu {$update_template['action_string']})<br>");
         $needupdate = 1;
       }
     }
