@@ -39,7 +39,6 @@ Version: 1.0.12
 - Aufspaltung Alerts und Index.
 - Hinzufügen der Auswahl für Index und Alerts 'always' (vorher nur 'ein anderer user hat gepostet oder nie oder ein bestimmter)  
 - Einstellung des Szenenreminders pro Szene
-- Export als PDF oder Word, wenn gewollt (Im ACP einstellbar)
 
 #### 1.0.9 -> 1.0.10
 - Integration RPG Modul von Lara
