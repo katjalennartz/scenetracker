@@ -1052,7 +1052,7 @@ function scenetracker_showthread_showtrackerstuff()
 
       if ($mybb->settings['scenetracker_time_text'] == 0) {
         // Erstelle ein DateTime-Objekt
-        $date = new DateTime($scenetracker_date);
+     	$date = new DateTime($thread['scenetracker_date']);
 
         // Extrahiere die Uhrzeit im Format "H:i"
         $scenetracker_time = $date->format('H:i');
