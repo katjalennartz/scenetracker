@@ -1,6 +1,7 @@
 # Szenentracker
 ## Updates: 		
-Last: Juni 2024
+
+Last: Aug 2025
 Version: 1.0.12
 
 ### Must Have
