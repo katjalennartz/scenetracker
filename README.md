@@ -1,7 +1,7 @@
 # Szenentracker
 ## Updates: 		
 
-Last: Aug 2025
+Last: Aug 2025  
 Version: 1.0.12
 
 ### Must Have
@@ -31,7 +31,6 @@ Version: 1.0.12
 
 ### Changelog: 
 #### 1.0.11 -> 1.0.12
-- Einstellung des Szenenreminders pro Szene
 - Export als PDF oder Word, wenn gewollt (Im ACP einstellbar)
 - bugfixes
   
