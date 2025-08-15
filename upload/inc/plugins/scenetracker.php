@@ -20,11 +20,11 @@ function scenetracker_info()
   return array(
     "name" => "Szenentracker von Risuena",
     "description" => "Automatischer Tracker, mit Benachrichtigungseinstellung, (Mini-)Kalender, Indexanzeige und Reminder.<br/>
-      <b style=\"color: red;\">Achtung</b> Bitte die Infos in der <b>readme</b> beachten, um Szenen im Kalender angezeigt zu bekommen.",
+      <b style=\"color: red;\">Achtung</b> Bitte die Infos in der <b>readme</b> beachten, um Szenen im Kalender angezeigt zu bekommen und Szenen exportieren zu können.",
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
-    "version" => "1.0.11",
+    "version" => "1.0.12",
     "compatibility" => "18*"
   );
 }
@@ -236,8 +236,61 @@ function scenetracker_settings_peek(&$peekers)
   if ($scenetracker_settings_peeker) {
     $peekers[] = 'new Peeker($(".setting_scenetracker_filterusername_yesno"), $("#row_setting_scenetracker_filterusername_id"),/1/,true)';
     $peekers[] = 'new Peeker($(".setting_scenetracker_filterusername_yesno"), $("#row_setting_scenetracker_filterusername_typ"),/1/,true)';
+    // $peekers[] = 'new Peeker($(".scenetracker_export_word"), $("#row_setting_scenetracker_filterusername_typ"),/1/,true)';
+    // $peekers[] = 'new Peeker($(".scenetracker_export_pdf"), $("#row_setting_scenetracker_filterusername_typ"),/1/,true)';
+
   }
+
+  echo "<script type=\"text/javascript\">
+            async function checkPhpWordFolder() {
+          const testUrl = '{$mybb->settings['bburl']}/lib/PhpOffice/PhpWord/PhpWord.php'; // irgendeine Datei in dem Ordner
+
+          try {
+              const response = await fetch(testUrl, { method: 'HEAD' }); // nur Header anfragen
+              if (response.ok) {
+                  $('#row_setting_scenetracker_export_word .form_row').before( '<div class=\"lib-hinweis\" style=\"color:green; font-weight:bold;\">PhpWord ist vorhanden</div>');
+              
+                  return true;
+              } else {
+                  $('#row_setting_scenetracker_export_word .form_row').before( '<div class=\"lib-hinweis\" style=\"color:red; font-weight:bold;\">Bitte zuerst die <a href=\"https://github.com/PHPOffice/PHPWord\" target=\"_blank\">PhpWord-Bibliothek</a> herunterladen! Den Ordner \'src/PhpWord\' runterladen und in den ganzen Ordner PhpWord in folgenden Ordner im FTP hochladen \'lib/PhpOffice/\'  Diese Ordnerstruktur ist <b>zwingend</b> nötig. Wenn die Meldung hier nach dem hochladen noch da ist, ist die Struktur falsch.</div>');
+
+                  return false;
+              }
+          } catch (error) {
+              console.log('Fehler beim Prüfen:', error);
+              return false;
+          }
+      }
+
+checkPhpWordFolder();
+    </script>";
+
+  echo "<script type=\"text/javascript\">
+          async function checkPhpPDFFolder() {
+          const testUrl = '{$mybb->settings['bburl']}/lib/dompdf/vendor/autoload.php'; // irgendeine Datei in dem Ordner
+
+          try {
+              const response = await fetch(testUrl, { method: 'HEAD' }); // nur Header anfragen
+              if (response.ok) {
+                  console.log(testUrl);
+                  $('#row_setting_scenetracker_export_pdf .form_row').before( '<div class=\"lib-hinweis\" style=\"color:green; font-weight:bold;\">dompdf ist vorhanden</div>');
+                  return true;
+              } else {
+          console.log('haifisch');
+
+                  $('#row_setting_scenetracker_export_pdf .form_row').before( '<div class=\"lib-hinweis\" style=\"color:red; font-weight:bold;\">Bitte zuerst die <a href=\"https://github.com/dompdf/dompdf/releases\" target=\"_blank\">dompdf</a> herunterladen. Dazu den Zip ordner laden (z.b. dompdf-3.1.0.zip). Den Ordner \'src PhpWord\' runterladen und in den ganzen Ordner dompdf in folgenden Ordner im FTP hochladen \'lib/\'  Diese Ordnerstruktur ist <b>zwingend</b> nötig. Wenn die Meldung hier nach dem hochladen noch da ist, ist die Struktur falsch.</div>');
+
+                  return false;
+              }
+          } catch (error) {
+              console.log('Fehler beim Prüfen:', error);
+              return false;
+          }
+      }
+  checkPhpPDFFolder();
+    </script>";
 }
+
 
 /**************************
  * Plugin Hauptfunktionen
@@ -923,14 +976,20 @@ function scenetracker_search_showtrackerstuff()
   }
 }
 
+function scenetracker_loadlib($class)
+{
+  $path = dirname(__DIR__, 2) . "/lib";
+  require_once $path . $class . ".php";
+}
+
 /**
  * Anzeige von Datum, Ort und Teilnehmer im showthread
  */
 $plugins->add_hook("showthread_end", "scenetracker_showthread_showtrackerstuff");
 function scenetracker_showthread_showtrackerstuff()
 {
-  global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $statusscene_new, $scenetrigger, $scenetracker_time;
-
+  global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $scenetrigger, $exp_sel, $scenetracker_time, $edit;
+  $exp_option = "";
   $lang->load("scenetracker");
   $scenestatus = $edit = "";
   $scenetracker_time = $scene_date = $scenetracker_date_thread = $scenetracker_user = $scenetracker_date = $sceneplace = $scenetriggerinput = "";
@@ -993,7 +1052,7 @@ function scenetracker_showthread_showtrackerstuff()
 
       if ($mybb->settings['scenetracker_time_text'] == 0) {
         // Erstelle ein DateTime-Objekt
-        $date = new DateTime($scenetracker_date);
+     	$date = new DateTime($thread['scenetracker_date']);
 
         // Extrahiere die Uhrzeit im Format "H:i"
         $scenetracker_time = $date->format('H:i');
@@ -1008,9 +1067,38 @@ function scenetracker_showthread_showtrackerstuff()
         $time_input_name = "scenetracker_time_str";
       }
       $edit = "";
+      $showexp = false;
+      if ($mybb->settings['scenetracker_export_word'] == 1 && $mybb->settings['scenetracker_export_pdf_all'] == 1) {
+        if (scenetracker_testParentFid($fid)) {
+          $exp_option .= '<option value="word" {$sel_m[\'word\']}>Word</option>';
+          $showexp = true;
+        }
+      }
+      if ($mybb->settings['scenetracker_export_pdf'] == 1 && $mybb->settings['scenetracker_export_pdf_all'] == 1) {
+        if (scenetracker_testParentFid($fid)) {
+          $exp_option .= '<option value="pdf" {$sel_m[\'pdf\']}>PDF</option>';
+          $showexp = true;
+        }
+      }
       eval("\$edit = \"" . $templates->get("scenetracker_showthread_edit") . "\";");
     }
-    $statusscene_new = "<div class=\"bl-sceneinfos__item bl-sceneinfos__item--status bl-smallfont \">" . $scenestatus . $edit . "</div>";
+    if ($mybb->settings['scenetracker_export_word'] == 1 && $mybb->settings['scenetracker_export_word_all'] == 0) {
+      if (scenetracker_testParentFid($fid)) {
+        $exp_option .= '<option value="word" {$sel_m[\'word\']}>Word</option>';
+        $showexp = true;
+      }
+    }
+    if ($mybb->settings['scenetracker_export_pdf'] == 1 && $mybb->settings['scenetracker_export_pdf_all'] == 0) {
+      if (scenetracker_testParentFid($fid)) {
+        $exp_option .= '<option value="pdf" {$sel_m[\'pdf\']}>PDF</option>';
+        $showexp = true;
+      }
+    }
+
+    if ($showexp) {
+      $exp_sel = '<select name="export_sel" id="scenetracker_export">' . $exp_option . '</select>';
+      eval("\$scenetracker_showthread_export.= \"" . $templates->get("scenetracker_showthread_export") . "\";");
+    }
 
     eval("\$scenetracker_showthread = \"" . $templates->get("scenetracker_showthread") . "\";");
   }
@@ -1044,6 +1132,254 @@ function scenetracker_showthread_showtrackerstuff()
   if ($mybb->get_input('scenestate') == "close") {
     scenetracker_scene_change_status(1,  $tid,  $thisuser);
     redirect("showthread.php?tid=" . $tid);
+  }
+
+  //Szene exportieren
+  if ($mybb->settings['scenetracker_export_word'] == 1 || $mybb->settings['scenetracker_export_pdf'] == 1) {
+    if ($mybb->get_input('export_scene')) {
+      //Gäste dürfen nicht exportieren
+      if ($mybb->user['uid'] == 0) {
+        error_no_permission();
+      }
+
+      if ($mybb->get_input('export_sel') == "word") {
+
+        //autoload klasse um Bibliothek zu laden, workaround weil nicht mit composer
+        spl_autoload_register(function ($class) {
+          //prefix 
+          $prefix = 'PhpOffice\\';
+          if (strncmp($prefix, $class, strlen($prefix)) !== 0) {
+            return;
+          }
+
+          // Pfad
+          $relative_class = substr($class, strlen($prefix));
+          $relative_path = str_replace('\\', DIRECTORY_SEPARATOR, $relative_class) . '.php';
+
+          // Suchen/testen vom Pfad 
+          $base_dirs = [
+            dirname(__DIR__, 2) . '/PhpWord/',        // z.B. /inc/plugins/PhpWord/
+            dirname(__DIR__, 2) . '/lib/PhpOffice/',  // z.B. /inc/plugins/lib/PhpOffice/
+          ];
+
+          foreach ($base_dirs as $base_dir) {
+            $file = $base_dir . $relative_path;
+            if (file_exists($file)) {
+              require_once $file;
+              return;
+            }
+          }
+        });
+
+        //Lets do the magic
+        $phpWord = new \PhpOffice\PhpWord\PhpWord();
+        $section = $phpWord->addSection();
+
+        //Thread infos
+        $thread = get_thread($tid);
+        //Title
+        $section->addText($thread['subject'], array('name' => 'Arial', 'size' => 20, 'bold' => 'true'));
+        $section->addTextBreak();
+        //Szenentracker Infos
+        $section->addText("Teilnehmende: " . $thread['scenetracker_user']);
+        $section->addText("Ort: " . $thread['scenetracker_place']);
+
+        if ($mybb->settings['scenetracker_time_text'] == 0) {
+          $datetime = new DateTime($thread['scenetracker_date']);
+          // Formatieren des Datums
+          $scene_date = $datetime->format('d.m.Y - H:i');
+          $scene_date = preg_replace('/0*([0-9]+)\.0*([0-9]+)\.0*([0-9]+)/', '$1.$2.$3', $scene_date);
+        } else if ($mybb->settings['scenetracker_time_text'] == 1) {
+          //einstellunge Zeit als offenes textfeld
+          $datetime = new DateTime($thread['scenetracker_date']);
+          $scene_date = $datetime->format('d.m.Y') . " " . $thread['scenetracker_time_text'];
+          $scene_date = preg_replace('/0*([0-9]+)\.0*([0-9]+)\.0*([0-9]+)/', '$1.$2.$3', $scene_date);
+        }
+
+        $section->addText("Datum: " . $scene_date);
+        $section->addTextBreak();
+        $lineStyle = array('weight' => 1, 'width' => 500, 'height' => 0, 'color' => 000000);
+        $section->addLine($lineStyle);
+        $section->addTextBreak();
+        // Posts auslesen
+        $query = $db->simple_select("posts", "*", "tid=" . (int)$tid, ["order_by" => "dateline", "order_dir" => "ASC"]);
+        while ($post = $db->fetch_array($query)) {
+          $username = htmlspecialchars_uni($post['username']);
+          $message  = strip_tags($post['message']); // Hier könntest du später einen BBCode-Parser nutzen
+
+          $section->addText($username . " schrieb:", ['bold' => true]);
+          $section->addText($message);
+          $section->addTextBreak();
+          $section->addLine($lineStyle);
+          $section->addTextBreak();
+          $section->addTextBreak();
+        }
+
+        // titel für Download
+        $safeTitle = preg_replace('/[^A-Za-z0-9 _-]/u', '_', $thread['subject']);
+        // Unterstriche/Leerzeichen auf einen reduzieren
+        $safeTitle = preg_replace('/_+/', '_', $safeTitle);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        header('Content-Disposition: attachment;filename="' . $safeTitle . '.docx"');
+
+        // Datei ausgeben
+        $writer = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+        $writer->save('php://output');
+        exit;
+      }
+      // export als pdf
+      if ($mybb->get_input('export_sel') == "pdf") {
+        require_once "./lib/dompdf/autoload.inc.php";
+
+        $dompdf = new \Dompdf\Dompdf();
+
+        $tid = (int)$mybb->input['tid'];
+        $thread = get_thread($tid);
+
+        /* Teilnehmer hübsch machen */
+        $teilnehmer = $thread['scenetracker_user'];
+        $teilnehmer = rtrim($teilnehmer, " ,");
+        $namen = array_map('trim', explode(',', $teilnehmer));
+        $teilnehmer = implode(' & ', $namen);
+
+        /* Datum formatieren */
+        if ($mybb->settings['scenetracker_time_text'] == 0) {
+          $datetime = new DateTime($thread['scenetracker_date']);
+          // Formatieren des Datums
+          $scenedate = $datetime->format('d.m.Y - H:i');
+          $scenedate = preg_replace('/0*([0-9]+)\.0*([0-9]+)\.0*([0-9]+)/', '$1.$2.$3', $scenedate);
+        } else if ($mybb->settings['scenetracker_time_text'] == 1) {
+          //einstellunge Zeit als offenes textfeld
+          $datetime = new DateTime($thread['scenetracker_date']);
+          $scenedate = $datetime->format('d.m.Y') . " " . $thread['scenetracker_time_text'];
+          $scenedate = preg_replace('/0*([0-9]+)\.0*([0-9]+)\.0*([0-9]+)/', '$1.$2.$3', $scenedate);
+        }
+
+        $place = $thread['scenetracker_place'];
+
+        /* Posts holen */
+        $posts_html = "";
+        $post_query = $db->simple_select("posts", "message,username", "tid='$tid'", array(
+          "order_by" => 'pid',
+          "order_dir" => 'ASC'
+        ));
+        require_once MYBB_ROOT . "inc/class_parser.php";
+        $parser = new postParser;
+        $parser_options = array(
+          "allow_html" => 1,
+          "allow_mycode" => 1,
+          "allow_smilies" => 0,
+          "allow_imgcode" => 0,
+          "allow_videocode" => 0,
+          "nl2br" => 1
+        );
+        while ($post = $db->fetch_array($post_query)) {
+          $message = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $post['message']);
+          $message = $parser->parse_message($message, $parser_options);
+
+          $posts_html .= "
+            <div class='post-block'>
+                <h3>{$post['username']}</h3>
+                <p>{$message}</p>
+            </div>
+        ";
+        }
+
+        /* HTML fürs PDF */
+        $html = '<html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              /* Reserviere Platz oben/bottom für Kopf-/Fußzeile auf normalen Seiten */
+              @page {
+                margin: 80px 40px 60px 40px; /* top right bottom left */
+              }
+              /* Erste Seite (Cover) bekommt keine obere Margin */
+              @page :first {
+                margin-top: 300px;
+              }
+
+              body {
+                font-family: "DejaVu Sans", sans-serif;
+                font-size: 12px;
+                margin: 0;
+                padding: 0;
+              }
+
+              /* Header, der auf allen Seiten erscheint, auf denen dieses Element im Fluss liegt.
+                Weil wir das Header-Element *nach* der Cover-Seite platzieren, erscheint er erst ab Seite 2. */
+              .header {
+                position: fixed;
+                top: -40px;
+                left: 40px;
+                right: 40px;
+                height: 50px;
+                text-align: center;
+                font-family: "Courier", serif;
+                font-size: 10px;
+                padding-bottom: 6px;
+              }
+
+              h1 { 
+                font-size:14px;
+              }
+
+              h3 {
+                margin:0;
+              }
+              
+              .cover {
+                /* Vollseiten-Cover */
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                page-break-after: always; /* zwingt Umbruch nach der Titelseite */
+              }
+              .cover .meta {
+                font-family: "Courier", serif;
+              }
+              .post-block p{
+                    margin:0;
+                    margin-top:0;
+                    padding-top:0;
+                    margin-bottom: 20px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="cover">
+              <div class="centerheader">
+                <h1>' . $thread['subject'] . '</h1>
+                <div class="meta">' . $teilnehmer . '<br>
+                ' . $scenedate . '<br>
+               ' . $place . '</div>
+              </div>
+            </div>
+
+            <div class="header">' . $thread['subject'] . '</div>
+            ' . $posts_html . '
+          </body>
+          </html>';
+
+        /* PDF erzeugen */
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        // Footer mit Seitenzahlen (unten rechts)
+        $canvas = $dompdf->getCanvas();
+        $canvas->page_text(520, 820, "{PAGE_NUM}/{PAGE_COUNT}", $font, 9, [0, 0, 0]);
+
+        /* PDF ausgeben */
+        $filename = preg_replace('/[^a-zA-Z0-9-_]/', '_', $thread['subject']) . ".pdf";
+        $dompdf->stream($filename, ["Attachment" => true]);
+        exit;
+      }
+    }
   }
 }
 
@@ -1883,7 +2219,7 @@ function scenetracker_global_intermediate()
   }
   $charas = scenetracker_get_accounts($mybb->user['uid'], $mybb->user['as_uid']);
   $cnts = scenetracker_count_scenes($charas);
-  $counter = "( {$cnts['open']} / {$cnts['all']} )";
+  $counter = "({$cnts['open']}/{$cnts['all']})";
 }
 
 /**
@@ -1971,7 +2307,7 @@ function scenetracker_list()
       redirect('index.php');
     }
     $cnts = scenetracker_count_scenes($charas);
-    $counter = "( {$cnts['open']} / {$cnts['all']} )";
+    $counter = "({$cnts['open']}/{$cnts['all']})";
 
     eval("\$scenetracker_index_main =\"" . $templates->get("scenetracker_index_main") . "\";");
   }
@@ -2605,8 +2941,8 @@ function scenetracker_minicalendar_global()
           eval("\$birthdayshow = \"" . $templates->get("scenetracker_calender_popbit") . "\";");
         }
 
+        //Jules Plottracker? Plot Block
         if ($plottracker == 1) {
-          //Jules Plottracker? Plot Block
           $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
           $plotquery = $db->write_query("SELECT * FROM " . TABLE_PREFIX . "plots");
           while ($plot = $db->fetch_array($plotquery)) {
@@ -3628,6 +3964,7 @@ function scenetracker_get_scenes($charas, $tplstring)
     } else {
       $tplcount = 1;
       $info_by = $selected = $users_options_bit = $scenetracker_popup_select_options_index = "";
+      $users_options_bit = "";
 
       while ($data = $db->fetch_array($scenes)) {
         $edit = "";
@@ -3665,8 +4002,7 @@ function scenetracker_get_scenes($charas, $tplstring)
 
         // Formatieren des Datums im gewünschten Format
         if (isset($mybb->settings['scenetracker_time_text']) && $mybb->settings['scenetracker_time_text'] == 0) {
-          $date = new DateTime($data['scenetracker_date']);
-          $scenedate = $date->format('d.m.Y - H:i');
+          $scenedate = $datetime->format('d.m.Y - H:i');
         } else if ($mybb->settings['scenetracker_time_text'] == 1) {
 
           //einstellunge Zeit als offenes textfeld
@@ -4333,27 +4669,21 @@ function scenetracker_admin_update_plugin(&$table)
     //Datenbank updaten
     scenetracker_database("update");
 
-    //Stylesheet hinzufügen wenn nötig:
+    //Stylesheets Updaten wen nötig - hinzufügen von neuem css
     //array mit updates bekommen.
     $update_data_all = scenetracker_stylesheet_update();
-    //alle Themes bekommen
-    $theme_query = $db->simple_select('themes', 'tid, name');
     require_once MYBB_ADMIN_DIR . "inc/functions_themes.php";
 
+    //alle Themes bekommen in der es die scenetracker.css gibt - sonst erbt sie von irgendwo
+    $theme_query = $db->simple_select("themestylesheets", "*", "name='scenetracker.css'");
+    // $theme_query = $db->simple_select('themes', 'tid, name');
+
+    //styles durchgehen
+
     while ($theme = $db->fetch_array($theme_query)) {
-      //wenn im style nicht vorhanden, dann gesamtes css hinzufügen
-      $templatequery = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
-
-      if ($db->num_rows($templatequery) == 0) {
-        $css = scenetracker_stylesheet($theme['tid']);
-
-        $sid = $db->insert_query("themestylesheets", $css);
-        $db->update_query("themestylesheets", array("cachefile" => "scenetracker.css"), "sid = '" . $sid . "'", 1);
-        update_theme_stylesheet_list($theme['tid']);
-      }
-
-      //testen ob updatestring vorhanden - sonst an css in theme hinzufügen
+      //schauen ob es csss zum updaten gibt
       $update_data_all = scenetracker_stylesheet_update();
+
       //array durchgehen mit eventuell hinzuzufügenden strings
       foreach ($update_data_all as $update_data) {
         //hinzuzufügegendes css
@@ -4367,15 +4697,17 @@ function scenetracker_admin_update_plugin(&$table)
           //string war nicht vorhanden
           if ($db->num_rows($test_ifin) == 0) {
             //altes css holen
-            $oldstylesheet = $db->fetch_field($db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css'"), "stylesheet");
+            $oldstylesheet = $theme['stylesheet'];
             //Hier basteln wir unser neues array zum update und hängen das neue css hinten an das alte dran
             $updated_stylesheet = array(
               "cachefile" => $db->escape_string('scenetracker.css'),
               "stylesheet" => $db->escape_string($oldstylesheet . "\n\n" . $update_stylesheet),
               "lastmodified" => TIME_NOW
             );
+            $themename = $db->fetch_field($db->simple_select("themes", "name", "tid = '{$theme['tid']}'"), "name");
+
             $db->update_query("themestylesheets", $updated_stylesheet, "name='scenetracker.css' AND tid = '{$theme['tid']}'");
-            echo "In Theme mit der ID {$theme['tid']} wurde CSS hinzugefügt -  $update_string <br>";
+            echo "Im Theme {$themename}(ID:{$theme['tid']})  wurde CSS hinzugefügt -  '$update_string' <br>";
           }
         }
         update_theme_stylesheet_list($theme['tid']);
@@ -5019,32 +5351,15 @@ function scenetracker_stylesheet_update()
   );
 
 
-
   return $update_array_all;
 }
 
 /**
- * Settings hinzufügen oder updaten
+ * Settingarray
  */
-function scenetracker_add_settings($type = 'install')
+
+function scenetracker_settingarray()
 {
-
-  global $db;
-
-  if ($type == 'install') {
-    // Admin Einstellungen
-    $setting_group = array(
-      'name' => 'scenetracker',
-      'title' => 'Szenentracker',
-      'description' => 'Einstellungen für Risuenas Szenentracker.<br/> <b>Achtung</b> Bitte die Infos in der Readme beachten um Szenen im Kalender angezeigt zu bekommen.',
-      'disporder' => 7, // The order your setting group will display
-      'isdefault' => 0
-    );
-    $gid = $db->insert_query("settinggroups", $setting_group);
-  } else {
-    $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settinggroups` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
-  }
-
   $setting_array = array(
     'scenetracker_index' => array(
       'title' => 'Indexanzeige',
@@ -5201,8 +5516,61 @@ function scenetracker_add_settings($type = 'install')
       'value' => '0', // Default
       'disporder' => 21
     ),
+    'scenetracker_export_word' => array(
+      'title' => 'Word: Exportieren von Szenen',
+      'description' => "Soll man Szenen als Worddatei exportieren können?",
+      'optionscode' => "yesno",
+      'value' => 'yes', // Default
+      'disporder' => 22
+    ),
+    'scenetracker_export_word_all' => array(
+      'title' => 'Exportieren von Szenen - Nur Teilnehmer?',
+      'description' => "Dürfen nur Teilnehmer ihre Szenen als pdf exportieren? (Bei Nein, dürfen alle)",
+      'optionscode' => "yesno",
+      'value' => 'yes', // Default
+      'disporder' => 23
+    ),
+    'scenetracker_export_pdf' => array(
+      'title' => 'PDF: Exportieren von Szenen',
+      'description' => "Soll man Szenen als PDF exportieren können?",
+      'optionscode' => "yesno",
+      'value' => 'yes', // Default
+      'disporder' => 24
+    ),
+    'scenetracker_export_pdf_all' => array(
+      'title' => 'Exportieren von Szenen - Nur Teilnehmer?',
+      'description' => "Dürfen nur Teilnehmer ihre Szenen als pdf exportieren? (Bei Nein, dürfen alle)",
+      'optionscode' => "yesno",
+      'value' => 'yes', // Default
+      'disporder' => 25
+    ),
 
   );
+  return $setting_array;
+}
+/**
+ * Settings hinzufügen oder updaten
+ */
+function scenetracker_add_settings($type = 'install')
+{
+
+  global $db;
+
+  if ($type == 'install') {
+    // Admin Einstellungen
+    $setting_group = array(
+      'name' => 'scenetracker',
+      'title' => 'Szenentracker',
+      'description' => 'Einstellungen für Risuenas Szenentracker.<br/> <b>Achtung</b> Bitte die Infos in der Readme beachten um Szenen im Kalender angezeigt zu bekommen.',
+      'disporder' => 7, // The order your setting group will display
+      'isdefault' => 0
+    );
+    $gid = $db->insert_query("settinggroups", $setting_group);
+  } else {
+    $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settinggroups` WHERE name like 'scenetracker%' LIMIT 1;"), "gid");
+  }
+
+  $setting_array = scenetracker_settingarray();
 
   if ($type == 'install') {
     foreach ($setting_array as $name => $setting) {
@@ -5236,13 +5604,8 @@ function scenetracker_add_settings($type = 'install')
             $setting_old['disporder'] != $setting['disporder']
           ) {
             //wir wollen den value nicht überspeichern, also nur die anderen werte aktualisieren
-            $update_array = array(
-              'title' => $setting['title'],
-              'description' => $setting['description'],
-              'optionscode' => $setting['optionscode'],
-              'disporder' => $setting['disporder']
-            );
-            $db->update_query('settings', $update_array, "name='{$name}'");
+            unset($setting['value']);
+            $db->update_query('settings', $setting, "name='{$name}'");
             echo "Setting: {$name} wurde aktualisiert.<br>";
           }
         }
@@ -5618,8 +5981,20 @@ function scenetracker_add_templates($type = 'install')
             <div class="scenetracker__sceneitem scene_status icon"><i class="fas fa-play"></i> {$scenestatus}</div>
             {$scenetrigger}
             <div class="scenetracker__sceneitem scene_users icon"><i class="fas fa-users"></i>{$scenetracker_showthread_user}</div> 
+            {$scenetracker_showthread_export}
             {$edit}
           </div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_showthread_export',
+    "template" => '<div class="scenetracker__sceneitem scene_export">
+	<form  method="post">
+		{$exp_sel} <input type="submit" name="export_scene" value="export" id="export" />
+	</form>
+</div>',
     "sid" => "-2",
     "version" => "",
     "dateline" => TIME_NOW
@@ -6100,6 +6475,18 @@ function scenetracker_add_templates($type = 'install')
     "dateline" => TIME_NOW
   );
 
+  $templates[] = array(
+    "title" => 'scenetracker_showthread_export',
+    "template" => '<div class="scenetracker__sceneitem scene_export">
+	<form  method="post">
+		{$exp_sel} <input type="submit" name="export_scene" value="export" id="export" />
+	</form>
+</div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
   if ($type == 'update') {
     foreach ($templates as $template) {
       $query = $db->simple_select("templates", "tid, template", "title = '" . $template['title'] . "' AND sid = '-2'");
@@ -6246,13 +6633,6 @@ function scenetracker_updated_templates()
   );
 
   $update_template[] = array(
-    "templatename" => 'scenetracker_popup_select_options',
-    "change_string" => '<option value="0" {$always_opt}>{$lang->scenetracker_alersetting_always}</option>',
-    "action" => 'add',
-    "action_string" => '<option value="0" {$always_opt}>{$lang->scenetracker_alersetting_always}</option><option value="-2" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option>'
-  );
-
-  $update_template[] = array(
     "templatename" => 'scenetracker_index_reminder_bit',
     "change_string" => '({$lastpostdays} Tage)',
     "action" => 'add',
@@ -6306,6 +6686,20 @@ function scenetracker_updated_templates()
       </div>'
   );
 
+  $update_template[] = array(
+    "templatename" => 'scenetracker_showthread',
+    "change_string" => '{$edit}',
+    "action" => 'add',
+    "action_string" => '{$scenetracker_showthread_export}{$edit}'
+  );
+
+  $update_template[] = array(
+    "templatename" => 'scenetracker_popup_select_options',
+    "change_string" => '<option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>',
+    "action" => 'add',
+    "action_string" => '<option value="-2" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option><option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>'
+  );
+
   return $update_template;
 }
 
@@ -6334,114 +6728,132 @@ function scenetracker_createRegexPattern($html)
 function scenetracker_is_updated()
 {
   global $db, $mybb;
-
+  $needupdate = 0;
   if (!$db->field_exists("scenetracker_date", "threads")) {
     echo ("In der Threadtabelle muss das Feld scenetracker_date  hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if (!$db->field_exists("scenetracker_trigger", "threads")) {
     echo ("In der Threadtabelle muss das Feld scenetracker_trigger  hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if (!$db->field_exists("scenetracker_time_text", "threads")) {
     echo ("In der Threadtabelle muss das Feld scenetracker_time_text  hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if (!$mybb->settings['scenetracker_filterusername_yesno']) {
     echo ("setting scenetracker_filterusername_yesno muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
 
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_filterscenes'")) == 0) {
     echo ("template scenetracker_ucp_filterscenes muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_showthread_trigger'")) == 0) {
     echo ("template scenetracker_showthread_trigger muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_showthread_edit'")) == 0) {
     echo ("template scenetracker_showthread_edit muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
 
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_search_results'")) == 0) {
     echo ("template scenetracker_search_results muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_reminder'")) == 0) {
     echo ("template scenetracker_ucp_options_reminder muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_calendarform'")) == 0) {
     echo ("template scenetracker_ucp_options_calendarform muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_calendar_all'")) == 0) {
     echo ("template scenetracker_ucp_options_calendar_all muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_minicalendar'")) == 0) {
     echo ("template scenetracker_ucp_options_minicalendar muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_calendar'")) == 0) {
     echo ("template scenetracker_ucp_options_calendar muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
 
   if (!$db->field_exists("type_alert", "scenetracker")) {
     echo ("In der Scenetrackertabelle muss das Feld type_alert  hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
 
   if (!$db->field_exists("type_alert_inform_by", "scenetracker")) {
     echo ("In der Scenetrackertabelle muss das Feld type_alert_inform_by  hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
 
   if (!$db->field_exists("index_view_reminder", "scenetracker")) {
     echo ("In Scenetrackertabelle muss das Feld index_view zu index_view_reminder umbenannt werden <br>");
-    return false;
+    $needupdate = 1;
   }
 
   if (!$db->field_exists("index_view_reminder_days", "scenetracker")) {
     echo ("In der Scenetrackertabelle muss das Feld index_view_reminder_days  hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
   }
 
   if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_popup_select_options'")) == 0) {
     echo ("template scenetracker_popup_select_options muss hinzugefügt werden <br>");
-    return false;
+    $needupdate = 1;
+  }
+
+  $setting_array = scenetracker_settingarray();
+  $gid = $db->fetch_field($db->simple_select("settinggroups", "gid", "name = 'activitytracker'"), "gid");
+
+  foreach ($setting_array as $name => $setting) {
+    $setting['name'] = $name;
+    $setting['gid'] = $gid;
+    $check2 = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
+    if ($db->num_rows($check2) > 0) {
+      while ($setting_old = $db->fetch_array($check2)) {
+        if (
+          $setting_old['title'] != $setting['title'] ||
+          $setting_old['description'] != $setting['description'] ||
+          $setting_old['optionscode'] != $setting['optionscode'] ||
+          $setting_old['disporder'] != $setting['disporder']
+        ) {
+          echo "Setting: {$name} muss aktualisiert werden.<br>";
+          $needupdate = 1;
+        }
+      }
+    } else {
+      echo "Setting: {$name} muss hinzugefügt werden.<br>";
+      $needupdate = 1;
+    }
   }
 
   //Testen ob im CSS etwas fehlt
   $update_data_all = scenetracker_stylesheet_update();
   //alle Themes bekommen
-  $theme_query = $db->simple_select('themes', 'tid, name');
+  $theme_query = $db->simple_select("themestylesheets", "*", "name='scenetracker.css'");
+
   while ($theme = $db->fetch_array($theme_query)) {
-    //wenn im style nicht vorhanden, dann gesamtes css hinzufügen
-    $templatequery = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "themestylesheets` where tid = '{$theme['tid']}' and name ='scenetracker.css'");
-    //scenetracker.css ist in keinem style nicht vorhanden
-    if ($db->num_rows($templatequery) == 0) {
-      echo ("Nicht im {$theme['tid']} vorhanden <br>");
-      return false;
-    } else {
-      //scenetracker.css ist in einem style nicht vorhanden
-      //css ist vorhanden, testen ob alle updatestrings vorhanden sind
-      $update_data_all = scenetracker_stylesheet_update();
-      //array durchgehen mit eventuell hinzuzufügenden strings
       foreach ($update_data_all as $update_data) {
-        //String bei dem getestet wird ob er im alten css vorhanden ist
+      $update_stylesheet = $update_data['stylesheet'];
         $update_string = $update_data['update_string'];
-        //updatestring darf nicht leer sein
+      if (!empty($update_string)) {
+        $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
+        if ($db->num_rows($test_ifin) == 0) {
         if (!empty($update_string)) {
           //checken ob updatestring in css vorhanden ist - dann muss nichts getan werden
           $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
           //string war nicht vorhanden
           if ($db->num_rows($test_ifin) == 0) {
             echo ("Mindestens Theme {$theme['tid']} muss aktualisiert werden <br>");
-            return false;
+            $needupdate = 1;
+            }
           }
         }
       }
@@ -6473,10 +6885,13 @@ function scenetracker_is_updated()
       //wenn ja muss das template aktualisiert werden.
       if ($check) {
         $templateset = $db->fetch_field($db->simple_select("templatesets", "title", "sid = '{$old_template['sid']}'"), "title");
-        echo ("Template {$update_template['templatename']} im Set {$templateset}'(SID: {$old_template['sid']}') muss aktualisiert werden.");
-        return false;
+        echo ("Template {$update_template['templatename']} im Template-Set {$templateset}'(SID: {$old_template['sid']}') muss aktualisiert werden. ({$update_template['change_string']} zu {$update_template['action_string']})<br>");
+        $needupdate = 1;
       }
     }
+  }
+  if ($needupdate == 1) {
+    return false;
   }
   return true;
 }

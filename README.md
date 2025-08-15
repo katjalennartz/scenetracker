@@ -1,25 +1,45 @@
 # Szenentracker
 ## Updates: 		
-Last: Juni 2025
-Version: 1.0.11
+
+Last: Aug 2025
+Version: 1.0.12
 
 ### Must Have
 - RPG Modul von Lara
 - Accountswitcher
-		
+- Für Export als PDF: https://github.com/dompdf/dompdf/releases **Installationshinweis beachten**
+- Für Export als Word: https://github.com/PHPOffice/PHPWord **Installationshinweis beachten**
+
 ### Todo nach Update: 
 - Dateien neu hochladen
 - Reiter RPG-Erweiterungen -> Plugins aktualisieren
 - **achtung** Templateänderungen, nachprüfen ob sie automatisch mit dem Update übernommen werden
 
+### Installationshinweise Bibliotheken (PDF und Word) 
+#### PDF
+- auf https://github.com/dompdf/dompdf/releases gehen
+- die neuste Version suchen, hier den ersten Zip Ordner nehmen (der mit dem Viereck als Symbol!) Nur der enthält alle Dateien die ihr braucht.
+- falls noch nicht vorhanden im Hauptverzeichnis des Forums einen Ordner 'lib' erstellen
+- dort den gesamten Ordner (nach dem entpacken) 'dompfd' reinladen
+
+#### Word
+- auf https://github.com/PHPOffice/PHPWord gehen und das Rep runterladen
+- entpacken und den Ordner src/PHPWord kopieren (ihr braucht nur diesen Ordner)
+- alls noch nicht vorhanden im Hauptverzeichnis des Forums einen Ordner 'lib' erstellen
+- in lib einen Ordner 'PhpOffice' erstellen
+- in PhpOffice den Ordner PHPWord einfügen
 
 ### Changelog: 
+#### 1.0.11 -> 1.0.12
+- Einstellung des Szenenreminders pro Szene
+- Export als PDF oder Word, wenn gewollt (Im ACP einstellbar)
+- bugfixes
+  
 #### 1.0.10 -> 1.0.11
 - Auslagern der Options fürs UCP aus der PHP in Templates (einfacher anzupassen)
 - Aufspaltung Alerts und Index.
 - Hinzufügen der Auswahl für Index und Alerts 'always' (vorher nur 'ein anderer user hat gepostet oder nie oder ein bestimmter)  
 - Einstellung des Szenenreminders pro Szene
-
 
 #### 1.0.9 -> 1.0.10
 - Integration RPG Modul von Lara
