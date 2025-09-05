@@ -6810,7 +6810,7 @@ function scenetracker_is_updated()
   }
 
   $setting_array = scenetracker_settingarray();
-  $gid = $db->fetch_field($db->simple_select("settinggroups", "gid", "name = 'activitytracker'"), "gid");
+  $gid = $db->fetch_field($db->simple_select("settinggroups", "gid", "name = 'scenetracker'"), "gid");
 
   foreach ($setting_array as $name => $setting) {
     $setting['name'] = $name;
