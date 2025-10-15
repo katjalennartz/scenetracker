@@ -154,7 +154,7 @@ function scenetracker_activate()
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tbody style="{$collapsed[\'usercpmisc_e\']}" id="usercpmisc_e">') . "#i", '
   <tbody style="{$collapsed[\'usercpmisc_e\']}" id="usercpmisc_e"><tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>
   ');
-  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$day_events}') . "#i", '{$day_events}{$scene_ouput}{$birthday_ouput}');
+  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$day_events}') . "#i", '{$day_events}{$scene_ouput}{$birthday_ouput}{$plotoutput}');
   find_replace_templatesets("footer", "#" . preg_quote('<div id="footer">') . "#i", '<div id="footer">{$scenetracker_calendar_wrapper}');
 
   //  find_replace_templatesets("newthread", "#" . preg_quote('{$thread[\'profilelink\']}') . "#i", '{$scenetrackerforumdisplay}{$thread[\'profilelink\']}');
@@ -198,7 +198,8 @@ function scenetracker_deactivate()
   find_replace_templatesets("index", "#" . preg_quote('{$scenetracker_index_main}') . "#i", '');
   find_replace_templatesets("member_profile", "#" . preg_quote('</tr><tr><td colspan="2">{$scenetracker_profil}</td>') . "#i", '');
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>') . "#i", '');
-  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}') . "#i", '');
+  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}{$plotoutput}') . "#i", '');
+  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$plotoutput}') . "#i", '');
   find_replace_templatesets("footer", "#" . preg_quote('{$scenetracker_calendar_wrapper}') . "#i", '');
 
   // Alerts deaktivieren
@@ -2520,7 +2521,8 @@ function scenetracker_calendar()
   }
   $plotoutput = "";
   if ($plottracker == 1) {
-    $plotquery =  $db->simple_select("plots", "*", "{$timestamp} BETWEEN startdate AND enddate;");
+    $unixtimestamp = $dateconvert->getTimestamp();
+    $plotquery =  $db->simple_select("plots", "*", "{$unixtimestamp} BETWEEN startdate AND enddate;");
     while ($plot = $db->fetch_array($plotquery)) {
       $plotoutput = "<a href=\"plottracker.php?action=view&plid={$plot['plid']}\">" . $plot['name'] . "</a>";
     }
