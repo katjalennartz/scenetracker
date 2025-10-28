@@ -36,13 +36,15 @@ Version: 1.0.13
 - entfernen internen Updatefunktionen
 - Einfügen von risuenas_updatefile/risuena_updatefile.php (enthält die updatefunktionen)
 - {$plotoutput} hinzufegügt zu template calendar_weekrow_thismonth
+- Kein Update nötig
 
 #### 1.0.11 -> 1.0.12
 - Export als PDF oder Word, wenn gewollt (Im ACP einstellbar)
 - bugfixes
+- Update nötig
   
 #### 1.0.10 -> 1.0.11
-- Auslagern der Options fürs UCP aus der PHP in Templates (einfacher anzupassen)
+- Auslagern der Options fürs UCP aus der PHP, in Templates (einfacher anzupassen)
 - Aufspaltung Alerts und Index.
 - Hinzufügen der Auswahl für Index und Alerts 'always' (vorher nur 'ein anderer user hat gepostet oder nie oder ein bestimmter)  
 - Einstellung des Szenenreminders pro Szene
