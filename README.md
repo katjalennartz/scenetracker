@@ -31,6 +31,12 @@ Version: 1.0.13
 - in PhpOffice den Ordner PHPWord einfügen
 
 ### Changelog: 
+#### 1.0.12 -> 1.0.13
+- bugfixes
+- entfernen internen Updatefunktionen
+- Einfügen von risuenas_updatefile/risuena_updatefile.php (enthält die updatefunktionen)
+- {$plotoutput} hinzufegügt zu template calendar_weekrow_thismonth
+
 #### 1.0.11 -> 1.0.12
 - Export als PDF oder Word, wenn gewollt (Im ACP einstellbar)
 - bugfixes
