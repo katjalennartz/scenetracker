@@ -1,11 +1,12 @@
 # Szenentracker
 ## Updates: 		
 
-Last: Aug 2025  
-Version: 1.0.12
+Last: Okto 2025  
+Version: 1.0.13
 
 ### Must Have
 - RPG Modul von Lara
+- Der Ordner risuenas_updatefile mit der Datei risuena_updatefile.php
 - Accountswitcher
 - Für Export als PDF: https://github.com/dompdf/dompdf/releases **Installationshinweis beachten**
 - Für Export als Word: https://github.com/PHPOffice/PHPWord **Installationshinweis beachten**
