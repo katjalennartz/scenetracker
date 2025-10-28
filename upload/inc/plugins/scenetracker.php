@@ -198,7 +198,7 @@ function scenetracker_deactivate()
   find_replace_templatesets("index", "#" . preg_quote('{$scenetracker_index_main}') . "#i", '');
   find_replace_templatesets("member_profile", "#" . preg_quote('</tr><tr><td colspan="2">{$scenetracker_profil}</td>') . "#i", '');
   find_replace_templatesets("usercp_nav_misc", "#" . preg_quote('<tr><td class="trow1 smalltext"><a href="usercp.php?action=scenetracker">Szenentracker</a></td></tr>') . "#i", '');
-  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}{$plotoutput}') . "#i", '');
+  find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$scene_ouput}{$birthday_ouput}') . "#i", '');
   find_replace_templatesets("calendar_weekrow_thismonth", "#" . preg_quote('{$plotoutput}') . "#i", '');
   find_replace_templatesets("footer", "#" . preg_quote('{$scenetracker_calendar_wrapper}') . "#i", '');
 
@@ -911,7 +911,7 @@ function scenetracker_forumdisplay_showtrackerstuff()
     $delete = "";
     $scenetrigger = "";
     if ($thread['scenetracker_trigger'] != "") {
-      // $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Triggerwarnung: {$thread['scenetracker_trigger']}</div>";
+      // $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Inhaltswarnung: {$thread['scenetracker_trigger']}</div>";
       eval("\$scenetrigger.= \"" . $templates->get("scenetracker_forumdisplay_trigger") . "\";");
     } else {
       $scenetrigger = "";
@@ -958,7 +958,7 @@ function scenetracker_search_showtrackerstuff()
     $author = build_profile_link($thread['username'], $thread['uid']);
     $scenetracker_forumdisplay_user = "";
     if ($thread['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker_trigger\"><span style=\"color: var(--alert-color);\"><i class=\"fas fa-circle-exclamation\"></i>Triggerwarnung: {$thread['scenetracker_trigger']}</span></div>";
+      $scenetrigger = "<div class=\"scenetracker_trigger\"><span style=\"color: var(--alert-color);\"><i class=\"fas fa-circle-exclamation\"></i>Inhaltswarnung: {$thread['scenetracker_trigger']}</span></div>";
     } else {
       $scenetrigger = "";
     }
@@ -2146,7 +2146,7 @@ function scenetracker_showinprofile()
     $sceneusers = str_replace(",", ", ", $scenes['scenetracker_user']);
     $sceneplace = $scenes['scenetracker_place'];
     if ($scenes['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Triggerwarnung: {$scenes['scenetracker_trigger']}</div>";
+      $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes['scenetracker_trigger']}</div>";
     } else {
       $scenetrigger = "";
     }
@@ -2619,7 +2619,7 @@ function scenetracker_minicalendar_global()
 {
   global $db, $mybb, $templates, $lang, $monthnames, $scenetracker_calendar_wrapper, $scenetracker_calendar, $scenetracker_calendar_bit;
   $scenetracker_calendar = $scenetracker_calendar_bit = $fullmoon = $ownscene = $birthdaycss = $eventcss = $scenetracker_calendar_wrapper = "";
-
+  $popitemclass = $plotshow = $scenetracker_calender_popbit_bit = $caption = $plotcss = "";
   $startdate_ingame = $mybb->settings['scenetracker_ingametime_tagstart'];
   $enddate_ingame = $mybb->settings['scenetracker_ingametime_tagend'];
 
@@ -2684,6 +2684,7 @@ function scenetracker_minicalendar_global()
     $dateDT = new DateTime($monthyear . "-01");
     // Extrahiere den Monat aus dem DateTime-Objekt
     $monthindex = (int) $dateDT->format('n'); // 'n' gibt den Monat als Zahl (1 bis 12) zurück
+    $year = $dateDT->format('Y'); // 'n' gibt den Monat als Zahl (1 bis 12) zurück
 
     $kal_title =  $monthnames[$monthindex];
 
@@ -3527,7 +3528,7 @@ function scenetracker_misc_list()
       $sceneusers = str_replace(",", ", ", $scenes['scenetracker_user']);
       $sceneplace = $scenes['scenetracker_place'];
       if ($scenes['scenetracker_trigger'] != "") {
-        $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Triggerwarnung: {$scenes['scenetracker_trigger']}</div>";
+        $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes['scenetracker_trigger']}</div>";
       } else {
         $scenetrigger = "";
       }
@@ -4666,7 +4667,9 @@ function scenetracker_admin_update_plugin(&$table)
     scenetracker_add_templates("update");
 
     //templates bearbeiten wenn nötig
-    scenetracker_replace_templates();
+    require_once MYBB_ROOT . "inc/plugins/risuena_updates/risuena_updatefile.php";
+    $update_template_all = scenetracker_updated_templates();
+    risuenaupdatefile_replace_templates($update_template_all);
 
     //Datenbank updaten
     scenetracker_database("update");
@@ -5601,7 +5604,7 @@ function scenetracker_add_settings($type = 'install')
         while ($setting_old = $db->fetch_array($check2)) {
           if (
             $setting_old['title'] != $setting['title'] ||
-            $setting_old['description'] != $setting['description'] ||
+            stripslashes($setting_old['description']) != stripslashes($setting['description']) ||
             $setting_old['optionscode'] != $setting['optionscode'] ||
             $setting_old['disporder'] != $setting['disporder']
           ) {
@@ -5857,14 +5860,14 @@ function scenetracker_add_templates($type = 'install')
           </td>
           </tr>
             <tr>
-          <td class="trow2" width="20%"><strong>Triggerwarnung:</strong></td>
+          <td class="trow2" width="20%"><strong>Inhaltswarnung:</strong></td>
           <td class="trow2">
             <div class="con">
               <div class="con-item">
                 <input type="text" id="scenetracker_trigger" name="scenetracker_trigger" size="40" value="{$scenetracker_trigger}" />
               </div>
               <div class="con-item">
-                Gibt es eine Triggerwarnung für die Szene? Wenn ja dann mit aussagekräftigem Begriff(en) füllen.
+                Gibt es eine Inhaltswarnung für die Szene? Wenn ja dann mit aussagekräftigem Begriff(en) füllen.
               </div>
             </div>
           </td>
@@ -6489,100 +6492,34 @@ function scenetracker_add_templates($type = 'install')
     "dateline" => TIME_NOW
   );
 
-  if ($type == 'update') {
-    foreach ($templates as $template) {
-      $query = $db->simple_select("templates", "tid, template", "title = '" . $template['title'] . "' AND sid = '-2'");
-      $existing_template = $db->fetch_array($query);
+  // if ($type == 'update') {
+  // foreach ($templates as $template) {
+  //   $query = $db->simple_select("templates", "tid, template", "title = '" . $template['title'] . "' AND sid = '-2'");
+  //   $existing_template = $db->fetch_array($query);
 
-      if ($existing_template) {
-        if ($existing_template['template'] !== $template['template']) {
-          $db->update_query("templates", array(
-            'template' => $template['template'],
-            'dateline' => TIME_NOW
-          ), "tid = '" . $existing_template['tid'] . "'");
-        }
-      } else {
-        $db->insert_query("templates", $template);
-      }
-    }
-  } else {
+  //   if ($existing_template) {
+  //     if ($existing_template['template'] !== $template['template']) {
+  //       $db->update_query("templates", array(
+  //         'template' => $template['template'],
+  //         'dateline' => TIME_NOW
+  //       ), "tid = '" . $existing_template['tid'] . "'");
+  //     }
+  //   } else {
+  //     $db->insert_query("templates", $template);
+  //   }
+  // }
+  // } else {
     foreach ($templates as $template) {
       $check = $db->num_rows($db->simple_select("templates", "title", "title = '" . $template['title'] . "'"));
       if ($check == 0) {
         $db->insert_query("templates", $template);
       }
     }
-  }
+  // }
 }
 
-/**
- * Funktion um alte Templates des Plugins bei Bedarf zu aktualisieren
- */
-function scenetracker_replace_templates()
-{
-  global $db;
-  //Wir wollen erst einmal die templates, die eventuellverändert werden müssen
-  $update_template_all = scenetracker_updated_templates();
-  if (!empty($update_template_all)) {
-    //diese durchgehen
-    foreach ($update_template_all as $update_template) {
-      //anhand des templatenames holen
-      $old_template_query = $db->simple_select("templates", "tid, template", "title = '" . $update_template['templatename'] . "'");
-      //in old template speichern
-      while ($old_template = $db->fetch_array($old_template_query)) {
-        //was soll gefunden werden? das mit pattern ersetzen (wir schmeißen leertasten, tabs, etc raus)
 
-        if ($update_template['action'] == 'replace') {
-          $pattern = scenetracker_createRegexPattern($update_template['change_string']);
-        } elseif ($update_template['action'] == 'add') {
-          //bei add wird etwas zum template hinzugefügt, wir müssen also testen ob das schon geschehen ist
-          $pattern = scenetracker_createRegexPattern($update_template['action_string']);
-        } elseif ($update_template['action'] == 'overwrite') {
-          $pattern = scenetracker_createRegexPattern($update_template['change_string']);
-        }
 
-        //was soll gemacht werden -> momentan nur replace 
-        if ($update_template['action'] == 'replace') {
-          //wir ersetzen wenn gefunden wird
-          if (preg_match($pattern, $old_template['template'])) {
-            $template = preg_replace($pattern, $update_template['action_string'], $old_template['template']);
-            $update_query = array(
-              "template" => $db->escape_string($template),
-              "dateline" => TIME_NOW
-            );
-            $db->update_query("templates", $update_query, "tid='" . $old_template['tid'] . "'");
-            echo ("Template -replace- {$update_template['templatename']} in {$old_template['tid']} wurde aktualisiert <br>");
-          }
-        }
-        if ($update_template['action'] == 'add') { //hinzufügen nicht ersetzen
-          //ist es schon einmal hinzugefügt wurden? nur ausführen, wenn es noch nicht im template gefunden wird
-          if (!preg_match($pattern, $old_template['template'])) {
-            $pattern_rep = scenetracker_createRegexPattern($update_template['change_string']);
-            $template = preg_replace($pattern_rep, $update_template['action_string'], $old_template['template']);
-            $update_query = array(
-              "template" => $db->escape_string($template),
-              "dateline" => TIME_NOW
-            );
-            $db->update_query("templates", $update_query, "tid='" . $old_template['tid'] . "'");
-            echo ("Template -add- {$update_template['templatename']} in  {$old_template['tid']} wurde aktualisiert <br>");
-          }
-        }
-        if ($update_template['action'] == 'overwrite') { //komplett ersetzen
-          //checken ob das bei change string angegebene vorhanden ist - wenn ja wurde das template schon überschrieben, wenn nicht überschreiben wir das ganze template
-          if (!preg_match($pattern, $old_template['template'])) {
-            $template = $update_template['action_string'];
-            $update_query = array(
-              "template" => $db->escape_string($template),
-              "dateline" => TIME_NOW
-            );
-            $db->update_query("templates", $update_query, "tid='" . $old_template['tid'] . "'");
-            echo ("Template -overwrite- {$update_template['templatename']} in  {$old_template['tid']} wurde aktualisiert <br>");
-          }
-        }
-      }
-    }
-  }
-}
 
 /**
  * Hier werden Templates gespeichert, die im Laufe der Entwicklung aktualisiert wurden
@@ -6705,22 +6642,6 @@ function scenetracker_updated_templates()
   return $update_template;
 }
 
-/**
- * Funktion um ein pattern für preg_replace zu erstellen
- * und so templates zu vergleichen.
- * @return string - pattern für preg_replace zum vergleich
- */
-function scenetracker_createRegexPattern($html)
-{
-  // Entkomme alle Sonderzeichen und ersetze Leerzeichen mit flexiblen Platzhaltern
-  $pattern = preg_quote($html, '/');
-
-  // Ersetze Leerzeichen in `class`-Attributen mit `\s+` (flexible Leerzeichen)
-  $pattern = preg_replace('/\s+/', '\\s+', $pattern);
-
-  // Passe das Muster an, um Anfang und Ende zu markieren
-  return '/' . $pattern . '/si';
-}
 
 /**
  * Update Check
@@ -6822,7 +6743,7 @@ function scenetracker_is_updated()
       while ($setting_old = $db->fetch_array($check2)) {
         if (
           $setting_old['title'] != $setting['title'] ||
-          $setting_old['description'] != $setting['description'] ||
+          stripslashes($setting_old['description']) != stripslashes($setting['description']) ||
           $setting_old['optionscode'] != $setting['optionscode'] ||
           $setting_old['disporder'] != $setting['disporder']
         ) {
@@ -6865,6 +6786,8 @@ function scenetracker_is_updated()
   //Testen ob eins der Templates aktualisiert werden muss
   //Wir wollen erst einmal die templates, die eventuellverändert werden müssen
   $update_template_all = scenetracker_updated_templates();
+  require_once MYBB_ROOT . "inc/plugins/risuena_updates/risuena_updatefile.php";
+
   //alle themes durchgehen
   foreach ($update_template_all as $update_template) {
     //entsprechendes Tamplate holen
@@ -6872,15 +6795,15 @@ function scenetracker_is_updated()
     while ($old_template = $db->fetch_array($old_template_query)) {
       //pattern bilden
       if ($update_template['action'] == 'replace') {
-        $pattern = scenetracker_createRegexPattern($update_template['change_string']);
+        $pattern = risuenaupdatefile_createRegexPattern($update_template['change_string']);
         $check = preg_match($pattern, $old_template['template']);
       } elseif ($update_template['action'] == 'add') {
         //bei add wird etwas zum template hinzugefügt, wir müssen also testen ob das schon geschehen ist
-        $pattern = scenetracker_createRegexPattern($update_template['action_string']);
+        $pattern = risuenaupdatefile_createRegexPattern($update_template['action_string']);
         $check = !preg_match($pattern, $old_template['template']);
       } elseif ($update_template['action'] == 'overwrite') {
         //checken ob das bei change string angegebene vorhanden ist - wenn ja wurde das template schon überschrieben
-        $pattern = scenetracker_createRegexPattern($update_template['change_string']);
+        $pattern = risuenaupdatefile_createRegexPattern($update_template['change_string']);
         $check = !preg_match($pattern, $old_template['template']);
       }
       //testen ob der zu ersetzende string vorhanden ist
