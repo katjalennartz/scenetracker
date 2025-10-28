@@ -24,7 +24,7 @@ function scenetracker_info()
     "website" => "https://github.com/katjalennartz",
     "author" => "risuena",
     "authorsite" => "https://github.com/katjalennartz",
-    "version" => "1.0.12",
+    "version" => "1.0.13",
     "compatibility" => "18*"
   );
 }
