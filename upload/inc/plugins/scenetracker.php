@@ -4672,8 +4672,6 @@ function scenetracker_admin_update_plugin(&$table)
     //templates hinzufügen
     scenetracker_add_templates("update");
 
-
-
     //templates bearbeiten wenn nötig
     require_once MYBB_ROOT . "inc/plugins/risuena_updates/risuena_updatefile.php";
     $update_template_all = scenetracker_updated_templates();
@@ -5756,7 +5754,7 @@ function scenetracker_add_templates($type = 'install')
 
   $templates[] = array(
     "title" => 'scenetracker_trigger',
-    "template" => '<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes[\'scenetracker_trigger\']}</div>',
+    "template" => $db->escape_string('<div class="scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info">Inhaltswarnung: {$scenes[\'scenetracker_trigger\']}</div>'),
     "sid" => "-2",
     "version" => "",
     "dateline" => TIME_NOW
