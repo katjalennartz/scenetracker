@@ -912,7 +912,7 @@ function scenetracker_forumdisplay_showtrackerstuff()
     $scenetrigger = "";
     if ($thread['scenetracker_trigger'] != "") {
       // $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Inhaltswarnung: {$thread['scenetracker_trigger']}</div>";
-      eval("\$scenetrigger.= \"" . $templates->get("scenetracker_forumdisplay_trigger") . "\";");
+      eval("\$scenetrigger = \"" . $templates->get("scenetracker_forumdisplay_trigger") . "\";");
     } else {
       $scenetrigger = "";
     }
@@ -958,7 +958,9 @@ function scenetracker_search_showtrackerstuff()
     $author = build_profile_link($thread['username'], $thread['uid']);
     $scenetracker_forumdisplay_user = "";
     if ($thread['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker_trigger\"><span style=\"color: var(--alert-color);\"><i class=\"fas fa-circle-exclamation\"></i>Inhaltswarnung: {$thread['scenetracker_trigger']}</span></div>";
+      eval("\$scenetrigger = \"" . $templates->get("scenetracker_trigger") . "\";");
+
+      // $scenetrigger = "<div class=\"scenetracker_trigger\"><span style=\"color: var(--alert-color);\"><i class=\"fas fa-circle-exclamation\"></i>Inhaltswarnung: {$thread['scenetracker_trigger']}</span></div>";
     } else {
       $scenetrigger = "";
     }
@@ -1053,7 +1055,7 @@ function scenetracker_showthread_showtrackerstuff()
 
       if ($mybb->settings['scenetracker_time_text'] == 0) {
         // Erstelle ein DateTime-Objekt
-     	$date = new DateTime($thread['scenetracker_date']);
+        $date = new DateTime($thread['scenetracker_date']);
 
         // Extrahiere die Uhrzeit im Format "H:i"
         $scenetracker_time = $date->format('H:i');
@@ -2146,7 +2148,9 @@ function scenetracker_showinprofile()
     $sceneusers = str_replace(",", ", ", $scenes['scenetracker_user']);
     $sceneplace = $scenes['scenetracker_place'];
     if ($scenes['scenetracker_trigger'] != "") {
-      $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes['scenetracker_trigger']}</div>";
+      eval("\$scenetrigger = \"" . $templates->get("scenetracker_trigger") . "\";");
+
+      // $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes['scenetracker_trigger']}</div>";
     } else {
       $scenetrigger = "";
     }
@@ -2173,10 +2177,10 @@ function scenetracker_showinprofile()
     $date = new DateTime($scenes['scenetracker_date']);
     // Formatieren des Datums im gewünschten Format
     if ($mybb->settings['scenetracker_time_text'] == 0) {
-    $scenedate_dm = $date->format('d.m.');
-    $scenedate_y = $date->format('Y - H:i');
-    $scenedate_y = preg_replace('/^0+/', '', $scenedate_y);
-    $scenedate = $scenedate_dm . $scenedate_y;
+      $scenedate_dm = $date->format('d.m.');
+      $scenedate_y = $date->format('Y - H:i');
+      $scenedate_y = preg_replace('/^0+/', '', $scenedate_y);
+      $scenedate = $scenedate_dm . $scenedate_y;
     } else {
       $scenedate_dm = $date->format('d.m.');
       $scenedate_y = $date->format('Y') . " - " . $scenes['scenetracker_time_text'];
@@ -3528,7 +3532,9 @@ function scenetracker_misc_list()
       $sceneusers = str_replace(",", ", ", $scenes['scenetracker_user']);
       $sceneplace = $scenes['scenetracker_place'];
       if ($scenes['scenetracker_trigger'] != "") {
-        $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes['scenetracker_trigger']}</div>";
+        eval("\$scenetrigger = \"" . $templates->get("scenetracker_trigger") . "\";");
+
+        // $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes['scenetracker_trigger']}</div>";
       } else {
         $scenetrigger = "";
       }
@@ -4666,6 +4672,8 @@ function scenetracker_admin_update_plugin(&$table)
     //templates hinzufügen
     scenetracker_add_templates("update");
 
+
+
     //templates bearbeiten wenn nötig
     require_once MYBB_ROOT . "inc/plugins/risuena_updates/risuena_updatefile.php";
     $update_template_all = scenetracker_updated_templates();
@@ -5747,6 +5755,14 @@ function scenetracker_add_templates($type = 'install')
   );
 
   $templates[] = array(
+    "title" => 'scenetracker_trigger',
+    "template" => '<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes[\'scenetracker_trigger\']}</div>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
     "title" => 'scenetracker_search_results',
     "template" => '<div class="sceneinfo-container">
         <div class="scenetracker_date"><i class="fas fa-calendar"></i>{$scene_date}</div>
@@ -6509,12 +6525,12 @@ function scenetracker_add_templates($type = 'install')
   //   }
   // }
   // } else {
-    foreach ($templates as $template) {
-      $check = $db->num_rows($db->simple_select("templates", "title", "title = '" . $template['title'] . "'"));
-      if ($check == 0) {
-        $db->insert_query("templates", $template);
-      }
+  foreach ($templates as $template) {
+    $check = $db->num_rows($db->simple_select("templates", "title", "title = '" . $template['title'] . "'"));
+    if ($check == 0) {
+      $db->insert_query("templates", $template);
     }
+  }
   // }
 }
 
@@ -6763,19 +6779,19 @@ function scenetracker_is_updated()
   $theme_query = $db->simple_select("themestylesheets", "*", "name='scenetracker.css'");
 
   while ($theme = $db->fetch_array($theme_query)) {
-      foreach ($update_data_all as $update_data) {
+    foreach ($update_data_all as $update_data) {
       $update_stylesheet = $update_data['stylesheet'];
-        $update_string = $update_data['update_string'];
+      $update_string = $update_data['update_string'];
       if (!empty($update_string)) {
         $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
         if ($db->num_rows($test_ifin) == 0) {
-        if (!empty($update_string)) {
-          //checken ob updatestring in css vorhanden ist - dann muss nichts getan werden
-          $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
-          //string war nicht vorhanden
-          if ($db->num_rows($test_ifin) == 0) {
-            echo ("Mindestens Theme {$theme['tid']} muss aktualisiert werden <br>");
-            $needupdate = 1;
+          if (!empty($update_string)) {
+            //checken ob updatestring in css vorhanden ist - dann muss nichts getan werden
+            $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
+            //string war nicht vorhanden
+            if ($db->num_rows($test_ifin) == 0) {
+              echo ("Mindestens Theme {$theme['tid']} muss aktualisiert werden <br>");
+              $needupdate = 1;
             }
           }
         }
