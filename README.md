@@ -36,7 +36,9 @@ Version: 1.0.13
 - entfernen internen Updatefunktionen
 - Einfügen von risuenas_updatefile/risuena_updatefile.php (enthält die updatefunktionen)
 - {$plotoutput} hinzufegügt zu template calendar_weekrow_thismonth
-- Kein Update nötig
+- Umbenennung Triggerwarnung -> Inhaltswarnung  
+- Auslagern der Triggerwarnung aus der PHP in Template (scenetracker_trigger)  
+- Update nötig
 
 #### 1.0.11 -> 1.0.12
 - Export als PDF oder Word, wenn gewollt (Im ACP einstellbar)
