@@ -19,6 +19,7 @@ if (!defined("IN_MYBB")) {
 
 /**
  * Funktion um alte Templates des Plugins bei Bedarf zu aktualisieren
+ * @param array zu updatende Templates
  */
 function risuenaupdatefile_replace_templates($updated_templates)
 {
@@ -150,10 +151,175 @@ function risuenaupdatefile_update_stylesheet($cssfilename, $update_data_all)
             "lastmodified" => TIME_NOW
           );
           $db->update_query("themestylesheets", $updated_stylesheet, "name='{$cssfilename}.css' AND tid = '{$theme['tid']}'");
-          echo "In Theme mit der ID {$theme['tid']} wurde CSS hinzugefügt -  $update_string <br>";
+          echo "In Theme mit der ID {$theme['tid']} wurde CSS hinzugefügt -  <div style=\"max-height: 100px; overflow:auto;\">" . htmlentities($update_string) . "</div><br>";
         }
       }
       update_theme_stylesheet_list($theme['tid']);
     }
   }
+}
+/**
+ * Funktion um Einstellungen zu aktualisieren oder hinzuzufügen
+ * @param array $setting_array - Array mit den Einstellungen
+ * @param string $type - Zu welchem Plugin gehört die Einstellung
+ */
+function risuenaupdatefile_update_settings($setting_array, $type)
+{
+  global $db;
+  $gid = $db->fetch_field($db->write_query("SELECT gid FROM `" . TABLE_PREFIX . "settinggroups` WHERE name like '$type%' LIMIT 1;"), "gid");
+
+  foreach ($setting_array as $name => $setting) {
+    $setting['name'] = $name;
+    $setting['gid'] = $gid;
+
+    //alte einstellung aus der db holen
+    $check = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
+    $check2 = $db->write_query("SELECT * FROM `" . TABLE_PREFIX . "settings` WHERE name = '{$name}'");
+    $check = $db->num_rows($check);
+
+    if ($check == 0) {
+      $db->insert_query('settings', $setting);
+      echo "$type Setting: {$name} wurde hinzugefügt.";
+    } else {
+
+      //die einstellung gibt es schon, wir testen ob etwas verändert wurde
+      while ($setting_old = $db->fetch_array($check2)) {
+        if (
+          $setting_old['title'] != $setting['title'] ||
+          stripslashes($setting_old['description']) != stripslashes($setting['description']) ||
+          $setting_old['optionscode'] != $setting['optionscode'] ||
+          $setting_old['disporder'] != $setting['disporder']
+        ) {
+          //wir wollen den value nicht überspeichern, also nur die anderen werte aktualisieren
+          unset($setting['value']);
+          $db->update_query('settings', $setting, "name='{$name}'");
+          echo "$type Setting: {$name} wurde aktualisiert.<br>";
+        }
+      }
+    }
+  }
+  rebuild_settings();
+}
+
+/**
+ * Vergleicht vorhandene Tabellen mit einem vorgegebenen Schema und aktualisiert(oder installiert) sie entsprechend
+ * @param array $schema - Array mit der gewünschten Tabellenstruktur (Feldname => Definition
+ */
+function risuenaupdatefile_sync_table($schema)
+{
+  global $db;
+
+  foreach ($schema as $table => $data) {
+    // DB Felder
+    $fields  = $data['fields'];
+    // Primary Key vorhanden? Sonst Null
+    $primary = $data['primary'] ?? null;
+    // DB Engine
+    $engine  = $data['engine'] ?? 'InnoDB';
+
+    $table_name = TABLE_PREFIX . $table;
+
+    //Table existiert nicht, also muss sie erstellt werden
+    if (!$db->table_exists($table)) {
+      $sql_fields = [];
+      //baue string zusammen mit allen feldern und ihren definitionen
+      foreach ($fields as $name => $def) {
+        $sql_fields[] = "`$name` $def";
+      }
+
+      if ($primary) {
+        $sql_fields[] = "PRIMARY KEY (`$primary`)";
+      }
+      // Felder aus dem Array holen und Tabelle erstellen, wenn sie nicht existiert
+      $db->write_query("
+                CREATE TABLE `$table_name` (
+                    " . implode(",\n", $sql_fields) . "
+                ) ENGINE=$engine " . $db->build_create_table_collation() . ";
+            ");
+
+      continue;
+    }
+
+    // Felder der existierenden Tabelle holen
+    $query = $db->write_query("SHOW COLUMNS FROM `$table_name`");
+    $existing = [];
+    //in ein Array packen
+    while ($col = $db->fetch_array($query)) {
+      $existing[$col['Field']] = $col;
+    }
+
+    // durch die Felder des Schemas gehen und mit den existierenden vergleichen
+    foreach ($fields as $name => $def) {
+      //existiert nicht, also hinzufügen
+      if (!isset($existing[$name])) {
+        $db->add_column($table, $name, $def);
+      } else {
+        //existiert, also Felddefinition vergleichen, wenn unterschiedlich -> aktualisieren
+        $current = strtolower($existing[$name]['Type']);
+        $target  = strtolower(preg_split('/\s+/', $def)[0]);
+
+        if (strpos($current, $target) === false) {
+          $db->modify_column($table, $name, $def);
+        }
+      }
+    }
+
+    $status = $db->fetch_array(
+      $db->write_query("SHOW TABLE STATUS LIKE '{$table_name}'")
+    );
+
+    if (!empty($status['Engine']) && $status['Engine'] != $engine) {
+      $db->query("ALTER TABLE `$table_name` ENGINE=$engine");
+    }
+  }
+}
+/**
+ * Funktion um die Tabellenstruktur mit einem vorgegebenen Schema zu vergleichen
+ * @param array $schema - Array mit der gewünschten Tabellenstruktur (Feldname => Definition
+ * @return bool - true wenn die Tabellenstruktur mit dem Schema übereinstimmt, false wenn nicht
+ */
+function risuenaupdatefile_check_schema($schema)
+{
+  global $db;
+
+
+  //jedes tabelle im Schhema durchegehn
+  foreach ($schema as $table => $data) {
+    //Felder einer Tabelle holen
+    $fields = $data['fields'];
+
+    //Tabellenname mit Prefix
+    $table_name = TABLE_PREFIX . $table;
+    //Tabelle existiert gar nicht, also false zurückliefern
+    if (!$db->table_exists($table)) {
+      return false;
+    }
+
+    // existierende Spalten der Tabelle holen
+    $query = $db->write_query("SHOW COLUMNS FROM `$table_name`");
+    $existing = [];
+    //array erstellen mit existierenden Spalten zum späteren Vergleich. 
+    while ($col = $db->fetch_array($query)) {
+      $existing[$col['Field']] = $col;
+    }
+
+    // Felder prüfen
+    foreach ($fields as $name => $def) {
+
+      // Gibt es in der existierenden Tabelle das Feld? Wenn nicht -> gib false zurück
+      if (!isset($existing[$name])) {
+        return false;
+      }
+
+      // Typen des Felders vergleichen, wenn etwas anders ist -> gib false zurück
+      $current = strtolower($existing[$name]['Type']);
+      $target  = strtolower(preg_split('/\s+/', $def)[0]);
+
+      if (strpos($current, $target) === false) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
