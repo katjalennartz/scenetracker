@@ -99,6 +99,10 @@ function risuenaupdatefile_replace_templates($updated_templates)
   }
 }
 
+function risuenaupdatefile_normalize($string)
+{
+    return preg_replace('/\s+/', '', trim($string));
+}
 
 /**
  * Funktion um ein pattern für preg_replace zu erstellen
@@ -199,6 +203,21 @@ function risuenaupdatefile_update_settings($setting_array, $type)
     }
   }
   rebuild_settings();
+}
+
+/**
+ * Checkt ob es Templates gibt, die noch nicht existieren und hinzugefügt werden müssen
+ * @param string $templatename - Array mit den Einstellungen
+ * @param string $type - Zu welchem Plugin gehört die Einstellung
+ */
+function risuenaupdatefile_check_templates($templatename)
+{
+  global $db;
+  $check = $db->num_rows($db->simple_select("templates", "title", "title = '" . $templatename . "'"));
+  if ($check == 0) {
+    return true;
+  }
+  return false;
 }
 
 /**
