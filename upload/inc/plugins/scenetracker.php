@@ -911,7 +911,6 @@ function scenetracker_forumdisplay_showtrackerstuff()
     $delete = "";
     $scenetrigger = "";
     if ($thread['scenetracker_trigger'] != "") {
-      // $scenetrigger = "<div class=\"scenetracker_forumdisplay scene_trigger icon  bl-btn bl-btn--info\"> Inhaltswarnung: {$thread['scenetracker_trigger']}</div>";
       eval("\$scenetrigger = \"" . $templates->get("scenetracker_forumdisplay_trigger") . "\";");
     } else {
       $scenetrigger = "";
@@ -959,8 +958,6 @@ function scenetracker_search_showtrackerstuff()
     $scenetracker_forumdisplay_user = "";
     if ($thread['scenetracker_trigger'] != "") {
       eval("\$scenetrigger = \"" . $templates->get("scenetracker_trigger") . "\";");
-
-      // $scenetrigger = "<div class=\"scenetracker_trigger\"><span style=\"color: var(--alert-color);\"><i class=\"fas fa-circle-exclamation\"></i>Inhaltswarnung: {$thread['scenetracker_trigger']}</span></div>";
     } else {
       $scenetrigger = "";
     }
@@ -992,11 +989,15 @@ $plugins->add_hook("showthread_end", "scenetracker_showthread_showtrackerstuff")
 function scenetracker_showthread_showtrackerstuff()
 {
   global $thread, $templates, $db, $fid, $tid, $mybb, $lang, $scenetracker_showthread, $scenetracker_showthread_user, $scene_newshowtread, $scenetrigger, $exp_sel, $scenetracker_time, $edit;
-  $exp_option = "";
-  $lang->load("scenetracker");
-  $scenestatus = $edit = "";
-  $scenetracker_time = $scene_date = $scenetracker_date_thread = $scenetracker_user = $scenetracker_date = $sceneplace = $scenetriggerinput = "";
   if (scenetracker_testParentFid($fid)) {
+    $lang->load("scenetracker");
+    $exp_option = $scenestatus = $edit = "";
+    $uid = "";
+    $scenetracker_showthread_export = "";
+    $showexp = false;
+    $scenetracker_time = $scene_date = $scenetracker_date_thread = $scenetracker_user = $scenetracker_date = $sceneplace = $scenetriggerinput = "";
+    $thisuser = "";
+    $datetime = new DateTime();
     $allowclosing = false;
     $thisuser = intval($mybb->user['uid']);
 
@@ -1040,12 +1041,11 @@ function scenetracker_showthread_showtrackerstuff()
     }
     if ($thread['scenetracker_trigger'] != "") {
       eval("\$scenetrigger = \"" . $templates->get("scenetracker_showthread_trigger") . "\";");
-      // $scenetrigger = "<div class=\"scenetracker__sceneitem scenethread scene_trigger\"><span class=\"scene_trigger__title\">{$lang->scenetracker_triggeredit}</span> {$thread['scenetracker_trigger']}</div>";
     } else {
       $scenetrigger = "";
     }
     if ($allowclosing || $mybb->usergroup['canmodcp'] == 1) {
-      if ($thread['closed'] == 1) {
+      if ($thread['closed'] == 1 || empty($data['closed'])) {
         $mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=open\">{$lang->scenetracker_openscene}</a></span>";
         $scenestatus = "<span class=\"scenestate bl-btn bl-btn--scenetracker\">{$lang->scenetracker_closescenestatus} " . $mark;
       } else {
@@ -1070,7 +1070,7 @@ function scenetracker_showthread_showtrackerstuff()
         $time_input_name = "scenetracker_time_str";
       }
       $edit = "";
-      $showexp = false;
+
       if ($mybb->settings['scenetracker_export_word'] == 1 && $mybb->settings['scenetracker_export_pdf_all'] == 1) {
         if (scenetracker_testParentFid($fid)) {
           $exp_option .= '<option value="word" {$sel_m[\'word\']}>Word</option>';
@@ -1089,12 +1089,18 @@ function scenetracker_showthread_showtrackerstuff()
       if (scenetracker_testParentFid($fid)) {
         $exp_option .= '<option value="word" {$sel_m[\'word\']}>Word</option>';
         $showexp = true;
+      } else {
+        $exp_option .= '';
+        $showexp = false;
       }
     }
     if ($mybb->settings['scenetracker_export_pdf'] == 1 && $mybb->settings['scenetracker_export_pdf_all'] == 0) {
       if (scenetracker_testParentFid($fid)) {
         $exp_option .= '<option value="pdf" {$sel_m[\'pdf\']}>PDF</option>';
         $showexp = true;
+      } else {
+        $exp_option .= '';
+        $showexp = false;
       }
     }
 
@@ -1399,9 +1405,8 @@ function scenetracker_usercp()
   $lang->load('scenetracker');
 
   //Variablen initialisieren
-  $hidden = $yes_ind = $no_ind = $yes_rem = $no_rem = $yes_indall =  $no_indall = $move = $status = $player = "";
-  $always  = $scenetracker_ucp_bit_chara = $scenetracker_calendarview_ownall  = "";
-
+  $hidden = $yes_ind = $no_ind = $yes_rem = $no_rem = $yes_indall =  $no_indall = $move = $status = $player = $always = $scenetracker_ucp_bit_chara = $scenetracker_calendarview_ownall = $solvefield = $setting_calendar = $solved_tozero = $solved_toone = $asstring = "";
+  $always_always_opt = $player_query_str =  $close = "";
   $sel_s["both"] = $sel_s['open'] = $sel_s["closed"] = $sel_m["beides"] = $sel_m["ja"] = $sel_m["nein"] = "";
 
   //$thisuser user setzen
@@ -1859,9 +1864,9 @@ function scenetracker_usercp()
 
         $alerttype_alert_data = $data['type_alert'];
         if ($alerttype_alert_data == 'certain') {
-          $info = get_user($data['inform_by']);
+          $info = get_user($data['type_alert_inform_by']);
           $alertclass = "certain";
-          $username = build_profile_link($info['username'], $data['inform_by']);
+          $username = build_profile_link($info['username'], $data['type_alert_inform_by']);
           $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $username;
         } else if ($alerttype_alert_data == 'always') {
           $alerttype_alert = $lang->scenetracker_ucp_alerttype_alert . $lang->scenetracker_alerttypealways;
@@ -1876,14 +1881,14 @@ function scenetracker_usercp()
 
         $scene = '<a href="showthread.php?tid=' . $data['tid'] . '&action=lastpost" class="scenelink">' . $data['subject'] . '</a>';
         if ($data['profil_view'] == 1) {
-          $hide = "{$lang->scenetracker_displaystatus_shown} <a href=\"usercp.php?action=scenetracker&showsceneprofil=0&getsid=" . $id . "\"><i class=\"fas fa-toggle-on\"></i></a>";
+          eval("\$hide =\"" . $templates->get("scenetracker_displaystatus_shown") . "\";");
         } else {
-          $hide = "{$lang->scenetracker_displaystatus_hidden} <a href=\"usercp.php?action=scenetracker&showsceneprofil=1&getsid=" . $id . "\"><i class=\"fas fa-toggle-off\"></i></a></a>";
+          eval("\$hide =\"" . $templates->get("scenetracker_displaystatus_hidden") . "\";");
         }
-        if ($data['closed'] == 1) {
-          $close = "{$lang->scenetracker_sceneisclosed} <a href=\"usercp.php?action=scenetracker&closed=0&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-unlock\"></i></a>";
+        if ($data['closed'] == 1 || empty($data['closed'])) {
+          eval("\$cleos =\"" . $templates->get("scenetracker_sceneisclosed") . "\";");
         } else {
-          $close = "{$lang->scenetracker_sceneisopen} <a href=\"usercp.php?action=scenetracker&closed=1&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-lock\"></i></a>";
+          eval("\$close =\"" . $templates->get("scenetracker_sceneisopen") . "\";");
         }
 
         if ($data['index_view_reminder'] == 1) {
@@ -1897,6 +1902,7 @@ function scenetracker_usercp()
         }
 
         if ($data['type'] == 'certain' && $info_by != 0) {
+          $users_options_bit = "";
           foreach ($all_users as $uid_sel => $username) {
             if ($info_by == $uid_sel) {
               $selected = "selected";
@@ -1907,13 +1913,22 @@ function scenetracker_usercp()
           }
           $always_opt = "";
           $never_opt = "";
+          $always_always_opt = "";
         }
         if ($data['type'] == 'always') {
           $always_opt = "selected";
+          $always_always_opt = "";
+          $never_opt = "";
+          $users_options_bit = $select_users;
+        }
+        if ($data['type'] == 'always_always') {
+          $always_always_opt = "selected";
+          $always_opt = "";
           $never_opt = "";
           $users_options_bit = $select_users;
         }
         if ($data['type'] == 'never') {
+          $always_always_opt = "";
           $never_opt = "selected";
           $always_opt = "";
           $users_options_bit = $select_users;
@@ -1921,9 +1936,10 @@ function scenetracker_usercp()
         eval("\$scenetracker_popup_select_options_index =\"" . $templates->get("scenetracker_popup_select_options") . "\";");
 
         if ($data['type_alert'] == 'certain' && $data['type_alert_inform_by'] != 0) {
+          $users_options_bit = "";
           foreach ($all_users as $uid_sel => $username) {
             if ($info_by == $uid_sel) {
-              $selected = "selected";
+              $data['type_alert_inform_by'] = "selected";
             } else {
               $selected = "";
             }
@@ -1994,9 +2010,8 @@ function scenetracker_usercp()
 
   //einstellungen benachrichtigung für szenen - scheiße benannt
   if ($mybb->get_input('certainuser')) {
-    //welche Szene
+    //welche id in szenentracker tabelle
     $id = intval($mybb->get_input('getid'));
-
     //Einstellung für Indexanzeige:
     $certained = intval($mybb->get_input('charakter'));
     scenetracker_scene_inform_status($id, "index", $certained);
@@ -2052,6 +2067,7 @@ function scenetracker_showinprofile()
   $thisuser = intval($mybb->user['uid']);
   $userprofil = $memprofile['uid'];
   $scenetracker_profil_bit = "";
+  $solved = "";
   $sort = "0";
   $dateYear = "";
   date_default_timezone_set('Europe/Berlin');
@@ -2149,31 +2165,31 @@ function scenetracker_showinprofile()
     $sceneplace = $scenes['scenetracker_place'];
     if ($scenes['scenetracker_trigger'] != "") {
       eval("\$scenetrigger = \"" . $templates->get("scenetracker_trigger") . "\";");
-
-      // $scenetrigger = "<div class=\"scenetracker__sceneitem scene_trigger icon bl-btn bl-btn--info \">Inhaltswarnung: {$scenes['scenetracker_trigger']}</div>";
     } else {
       $scenetrigger = "";
     }
 
     if ($scenes['threadclosed'] == 1 or $scenes['threadsolved'] == 1) {
+
       if ($allowmanage || $mybb->usergroup['canmodcp'] == 1) {
-        $scenestatus = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&closed=0&gettid=" . $tid . "\" data-id=\"#trackeropen\" data-tooltip=\"Szene öffnen\" data-position=\"top\" \"><i class=\"fas fa-check-circle\"></i></a>";
+        eval("\$scenestatus = \"" . $templates->get("scenetracker_scenestatus_solved_mod") . "\";");
       } else {
-        $scenestatus = "<i class=\"fas fa-check-circle\"></i>";
+        eval("\$scenestatus = \"" . $templates->get("scenetracker_scenestatus_solved") . "\";");
       }
     } else {
       if ($allowmanage || $mybb->usergroup['canmodcp'] == 1) {
-        $scenestatus = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&closed=1&gettid=" . $tid . "\" data-id=\"#trackerclose\" data-tooltip=\"Szene schließen\" data-position=\"top\" \"><i class=\"fas fa-times-circle\"></i></a>";
+        eval("\$scenestatus = \"" . $templates->get("scenetracker_scenestatus_unsolved_mod") . "\";");
       } else {
-        $scenestatus = "<i class=\"fas fa-times-circle\"></i>";
+        eval("\$scenestatus = \"" . $templates->get("scenetracker_scenestatus_unsolved") . "\";");
       }
     }
 
     if ($allowmanage || $mybb->usergroup['canmodcp'] == 1) {
-      $scenehide = "<a href=\"member.php?action=profile&uid=" . $userprofil . "&show=0&getsid=" . $sid . "\" data-id=\"#trackerhide\" data-tooltip=\"Szene ausblenden\" data-position=\"top\" \"><i class=\"fas fa-eye-slash\"></i></a>";
+      eval("\$scenehide = \"" . $templates->get("scenetracker_scenestatus_hide") . "\";");
     } else {
       $scenehide = "";
     }
+
     $date = new DateTime($scenes['scenetracker_date']);
     // Formatieren des Datums im gewünschten Format
     if ($mybb->settings['scenetracker_time_text'] == 0) {
@@ -2327,6 +2343,8 @@ function scenetracker_reminder()
 {
   global $mybb, $db, $templates, $scenetracker_index_reminder;
   $scenetracker_index_reminder_bit = "";
+  $charas = array();
+  $solved_tozero = "";
   $uid = $mybb->user['uid'];
 
   //set as uid
@@ -2458,7 +2476,7 @@ function scenetracker_calendar()
 {
   global $db, $mybb, $day, $month, $year, $scene_ouput, $birthday_ouput, $teilnehmer_scene, $plotoutput;
   $thisuser = $mybb->user['uid'];
-
+  $get_birthdays = array();
   if ($db->field_exists("as_uid", "users")) {
     if ($mybb->user['uid'] == 0) $mybb->user['as_uid'] = 0;
     $thisuseras_id = $mybb->user['as_uid'];
@@ -3447,6 +3465,7 @@ function scenetracker_misc_list()
   }
 
   if ($mybb->get_input('action') == "scenelist") {
+    $solved = "";
     $page = "";
     $thisuser = intval($mybb->user['uid']);
     $scenetracker_profil_bit = "";
@@ -3539,7 +3558,7 @@ function scenetracker_misc_list()
         $scenetrigger = "";
       }
       if ($scenes['threadclosed'] == 1 or $scenes['threadsolved'] == 1) {
-        $scenestatus = "<i class=\"fas fa-check-circle\"></i> (Szene geschlossen)";
+        eval("\$scenestatus = \"" . $templates->get("scenetracker_scenestatus_solved") . "\";");
       } else {
         $scenestatus = "";
       }
@@ -3918,7 +3937,7 @@ function scenetracker_get_scenes($charas, $tplstring)
   //fürs select feld, alle usernamen suchen 
   $solvplugin = $mybb->settings['scenetracker_solved'];
   $lang->load("scenetracker");
-  $hidden = $solved = $solvefield = $query = "";
+  $hidden = $solved = $solvefield = $query = $always_always_opt = "";
   $users_options_bit = "";
   $all_users = array();
   $get_users = $db->query("SELECT username, uid FROM " . TABLE_PREFIX . "users ORDER by username");
@@ -4041,25 +4060,26 @@ function scenetracker_get_scenes($charas, $tplstring)
 
         $scene = '<a href="showthread.php?tid=' . $data['tid'] . '&action=lastpost" class="scenelink">' . $data['subject'] . '</a>';
         if ($data['profil_view'] == 1) {
-          $hide = "wird angezeigt (Profil) <a href=\"usercp.php?action=scenetracker&showsceneprofil=0&getsid=" . $id . "\"><i class=\"fas fa-toggle-on\"></i></a>";
+          eval("\$hide = \"" . $templates->get("scenetracker_displaystatus_shown") . "\";");
         } else {
-          $hide = "wird versteckt <a href=\"usercp.php?action=scenetracker&showsceneprofil=1&getsid=" . $id . "\"><i class=\"fas fa-toggle-off\"></i></a></a>";
+          eval("\$hide = \"" . $templates->get("scenetracker_displaystatus_hidden") . "\";");
         }
-        if ($data['closed'] == 1) {
+        if ($data['closed'] == 1 || empty($data['closed'])) {
           if ($tplstring != "index") {
-            $close = "ist geschlossen <a href=\"usercp.php?action=scenetracker&closed=0&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-unlock\"></i></a>";
+            eval("\$close = \"" . $templates->get("scenetracker_sceneisclosed") . "\";");
           } else {
-            $close = "<a href=\"usercp.php?action=scenetracker&closed=0&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-unlock\"></i></a>";
+            eval("\$close = \"" . $templates->get("scenetracker_sceneisopen") . "\";");
           }
         } else {
           if ($tplstring != "index") {
-            $close = "ist offen <a href=\"usercp.php?action=scenetracker&closed=1&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-lock\"></i></a>";
+            eval("\$close = \"" . $templates->get("scenetracker_sceneisopen") . "\";");
           } else {
-            $close = "<a href=\"usercp.php?action=scenetracker&closed=1&getsid=" . $id . "&gettid=" . $tid . "&getuid=" . $uid . "\"><i class=\"fas fa-lock\"></i></a>";
+            eval("\$close = \"" . $templates->get("scenetracker_sceneisclosed") . "\";");
           }
         }
 
         if ($data['type'] == 'certain' && $info_by != 0) {
+          $users_options_bit = "";
           foreach ($all_users as $uid_sel => $username) {
             if ($info_by == $uid_sel) {
               $selected = "selected";
@@ -4072,6 +4092,7 @@ function scenetracker_get_scenes($charas, $tplstring)
         if ($data['type'] == 'always') {
           $always_opt = "selected";
           $never_opt = "";
+          $always_always_opt = "";
           $users_options_bit = $select_users;
         }
         if ($data['type'] == 'always_always') {
@@ -4083,13 +4104,15 @@ function scenetracker_get_scenes($charas, $tplstring)
         if ($data['type'] == 'never') {
           $never_opt = "selected";
           $always_opt = "";
+          $always_always_opt = "";
           $users_options_bit = $select_users;
         }
-        eval("\$scenetracker_popup_select_options_index .= \"" . $templates->get('scenetracker_popup_select_options') . "\";");
+        eval("\$scenetracker_popup_select_options_index = \"" . $templates->get('scenetracker_popup_select_options') . "\";");
 
         if ($data['type_alert'] == 'certain' && $data['type_alert_inform_by'] != 0) {
+          $users_options_bit = "";
           foreach ($all_users as $uid_sel => $username) {
-            if ($info_by == $uid_sel) {
+            if ($data['type_alert_inform_by'] == $uid_sel) {
               $selected = "selected";
             } else {
               $selected = "";
@@ -4099,11 +4122,19 @@ function scenetracker_get_scenes($charas, $tplstring)
         }
         if ($data['type_alert'] == 'always') {
           $always_opt = "selected";
+          $always_always_opt = "";
+          $never_opt = "";
+          $users_options_bit = $select_users;
+        }
+        if ($data['type_alert'] == 'always_always') {
+          $always_opt = "";
+          $always_always_opt = "selected";
           $never_opt = "";
           $users_options_bit = $select_users;
         }
         if ($data['type_alert'] == 'never') {
-          $never_opt = "selected";
+          $always_always_opt = "";
+          $never_opt = "selected never";
           $always_opt = "";
           $users_options_bit = $select_users;
         }
@@ -4154,8 +4185,9 @@ function scenetracker_get_scenes($charas, $tplstring)
 
 /**
  * Change alert type for scenes/posts (always/never/certain user)
- * @param int id of scenetracker entry
- * @param string string benachrichtigungsart
+ * @param int $id of scenetracker entry
+ * @param string $type or alert or
+ * @param int $value  uid or 0 for another user, -1 for never, -2 for always
  ****** */
 function scenetracker_scene_inform_status($id, $type, $value, $remdays = 0)
 {
@@ -4166,7 +4198,7 @@ function scenetracker_scene_inform_status($id, $type, $value, $remdays = 0)
       //always
       $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET inform_by = '0', type='always' WHERE id = '" . $id . "' ");
     } else if ($value == "-2") {
-      //always
+      //always always
       $db->query("UPDATE " . TABLE_PREFIX . "scenetracker SET inform_by = '0', type='always_always' WHERE id = '" . $id . "' ");
     } else if ($value == "-1") {
       //never
@@ -4207,8 +4239,10 @@ function scenetracker_scene_inform_status($id, $type, $value, $remdays = 0)
       //Niemals einen Alert losschicken
       $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='never' WHERE id = '" . $id . "' ");
     } elseif ($value == '-2') {
+
       $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '0', type_alert='always_always' WHERE id = '" . $id . "' ");
     } else {
+
       //nur wenn ein bestimmter User gepostet hat
       $db->write_query("UPDATE " . TABLE_PREFIX . "scenetracker SET type_alert_inform_by = '" . $value . "', type_alert='certain' WHERE  id = '" . $id . "' ");
     }
@@ -4224,7 +4258,7 @@ function scenetracker_scene_inform_status($id, $type, $value, $remdays = 0)
 
 /**
  * Überprüft ob der User den Status der Szene ändern darf
- * @param string der Teilnehmer
+ * @param string $str_teilnehmer der Teilnehmer
  * @return boolean true if allowed, false if not
  */
 function scenetracker_change_allowed($str_teilnehmer)
@@ -4254,9 +4288,9 @@ function scenetracker_change_allowed($str_teilnehmer)
 
 /**
  * Change status from scene (open/close)
- * @param int status of scene
- * @param int threadid
- * @param int user id
+ * @param int $close status of scene
+ * @param int $tid threadid
+ * @param int $uid user id
  */
 function scenetracker_scene_change_status($close, $tid, $uid)
 {
@@ -5372,13 +5406,6 @@ function scenetracker_stylesheet_update()
 function scenetracker_settingarray()
 {
   $setting_array = array(
-    'scenetracker_index' => array(
-      'title' => 'Indexanzeige',
-      'description' => 'Sollen die Szene auf Wunsch des Users auf dem Index angezeigt werden können?',
-      'optionscode' => 'yesno',
-      'value' => '1', // Default
-      'disporder' => 1
-    ),
     'scenetracker_solved' => array(
       'title' => 'Thema erledigt/unerledigt',
       'description' => 'Ist das Thema erledigt/unerledigt Plugin installiert und wird zum kennzeichnen von erledigten Szenen genutzt?',
@@ -5730,6 +5757,24 @@ function scenetracker_add_templates($type = 'install')
     $db->insert_query("templategroups", $templategrouparray);
   }
 
+  $templates = scenetracker_templates();
+
+  //nur template hinzufügen, wenn es noch nicht existiert
+  foreach ($templates as $template) {
+    $check = $db->num_rows($db->simple_select("templates", "title", "title = '" . $template['title'] . "'"));
+    if ($check == 0) {
+      $db->insert_query("templates", $template);
+    }
+  }
+}
+
+/**
+ * Array mit den Templates für den Szenentracker
+ */
+function scenetracker_templates()
+{
+  global $db;
+  $templates = array();
   $templates[] = array(
     "title" => 'scenetracker_forumdisplay_infos',
     "template" => '<div class="author smalltext">
@@ -5910,7 +5955,7 @@ function scenetracker_add_templates($type = 'install')
   );
   $templates[] = array(
     "title" => 'scenetracker_popup',
-    "template" => '<a onclick="$(\\\'#certain{$id}\\\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \\\'undefined\\\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;"><i class="fas fa-cogs"></i></a>
+    "template" => '<a onclick="$(\\\'#certain{$id}\\\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \\\'undefined\\\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;"><i class="fas fa-cogs"></i>[...]</a>
         <div class="modal addrela" id="certain{$id}" style="display: none; padding: 10px; margin: auto; text-align: center;">
           <form method="post" action="usercp.php?action=scenetracker">
             {$hidden}
@@ -5943,6 +5988,7 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
+
   $templates[] = array(
     "title" => 'scenetracker_profil',
     "template" => '<div class="scenetracker container scenetracker_profil">
@@ -5952,6 +5998,7 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
+
   $templates[] = array(
     "title" => 'scenetracker_profil_active',
     "template" => '	<div class="scenetracker container active">
@@ -5961,6 +6008,7 @@ function scenetracker_add_templates($type = 'install')
     "version" => "",
     "dateline" => TIME_NOW
   );
+
   $templates[] = array(
     "title" => 'scenetracker_profil_bit',
     "template" => '{$scenetracker_profil_bit_mY}
@@ -6010,10 +6058,10 @@ function scenetracker_add_templates($type = 'install')
   $templates[] = array(
     "title" => 'scenetracker_showthread_export',
     "template" => '<div class="scenetracker__sceneitem scene_export">
-	<form  method="post">
-		{$exp_sel} <input type="submit" name="export_scene" value="export" id="export" />
-	</form>
-</div>',
+      <form  method="post">
+        {$exp_sel} <input type="submit" name="export_scene" value="export" id="export" />
+      </form>
+    </div>',
     "sid" => "-2",
     "version" => "",
     "dateline" => TIME_NOW
@@ -6487,8 +6535,8 @@ function scenetracker_add_templates($type = 'install')
     "title" => 'scenetracker_popup_select_options',
     "template" => '<option value="0" {$always_opt}>{$lang->scenetracker_alersetting_always}</option>
     <option value="-2" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option>
-  <option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>
-  {$users_options_bit}',
+    <option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>
+    {$users_options_bit}',
     "sid" => "-2",
     "version" => "",
     "dateline" => TIME_NOW
@@ -6497,42 +6545,85 @@ function scenetracker_add_templates($type = 'install')
   $templates[] = array(
     "title" => 'scenetracker_showthread_export',
     "template" => '<div class="scenetracker__sceneitem scene_export">
-	<form  method="post">
-		{$exp_sel} <input type="submit" name="export_scene" value="export" id="export" />
-	</form>
-</div>',
+    <form  method="post">
+      {$exp_sel} <input type="submit" name="export_scene" value="export" id="export" />
+      </form>
+    </div>',
     "sid" => "-2",
     "version" => "",
     "dateline" => TIME_NOW
   );
 
-  // if ($type == 'update') {
-  // foreach ($templates as $template) {
-  //   $query = $db->simple_select("templates", "tid, template", "title = '" . $template['title'] . "' AND sid = '-2'");
-  //   $existing_template = $db->fetch_array($query);
+  $templates[] = array(
+    "title" => 'scenetracker_displaystatus_shown',
+    "template" => '{$lang->scenetracker_displaystatus_shown} <a href="usercp.php?action=scenetracker&showsceneprofil=0&getsid={$id}"><i class="fas fa-toggle-on"></i>[hide]</a>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
 
-  //   if ($existing_template) {
-  //     if ($existing_template['template'] !== $template['template']) {
-  //       $db->update_query("templates", array(
-  //         'template' => $template['template'],
-  //         'dateline' => TIME_NOW
-  //       ), "tid = '" . $existing_template['tid'] . "'");
-  //     }
-  //   } else {
-  //     $db->insert_query("templates", $template);
-  //   }
-  // }
-  // } else {
-  foreach ($templates as $template) {
-    $check = $db->num_rows($db->simple_select("templates", "title", "title = '" . $template['title'] . "'"));
-    if ($check == 0) {
-      $db->insert_query("templates", $template);
-    }
-  }
-  // }
+  $templates[] = array(
+    "title" => 'scenetracker_displaystatus_hidden',
+    "template" => '{$lang->scenetracker_displaystatus_hidden} <a href="usercp.php?action=scenetracker&showsceneprofil=1&getsid=©{$id}"><i class="fas fa-toggle-off"></i>[show]</a>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_sceneisclosed',
+    "template" => '{$lang->scenetracker_sceneisclosed} <a href="usercp.php?action=scenetracker&closed=0&getsid={$id}&gettid={$tid}&getuid={$uid}"><i class="fas fa-unlock"></i>[öffnen]</a>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_sceneisopen',
+    "template" => '{$lang->scenetracker_sceneisopen} <a href="usercp.php?action=scenetracker&closed=1&getsid={$id}&gettid={$tid}&getuid={$uid}"><i class="fas fa-lock"></i>[schließen]</a>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  $templates[] = array(
+    "title" => 'scenetracker_scenestatus_solved_mod',
+    "template" => '<a href="member.php?action=profile&uid={$userprofil}&closed=0&gettid={$tid}"><i class="fas fa-check-circle"></i>[reopen]</a>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_scenestatus_solved',
+    "template" => '<i class="fas fa-check-circle"></i>[erledigt]',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_scenestatus_unsolved_mod',
+    "template" => '<a href="member.php?action=profile&uid={$userprofil}&closed=1&gettid={$tid}"><i class=\"fas fa-times-circle"></i>[close]</a>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_scenestatus_unsolved',
+    "template" => '<i class=\"fas fa-times-circle"></i>[unerledigt]',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+  $templates[] = array(
+    "title" => 'scenetracker_scenestatus_hide',
+    "template" => '<a href="member.php?action=profile&uid={$userprofil}&show=0&getsid="{$sid}"><i class="fas fa-eye-slash"></i>[verstecken]</a>',
+    "sid" => "-2",
+    "version" => "",
+    "dateline" => TIME_NOW
+  );
+
+  return $templates;
 }
-
-
 
 
 /**
@@ -6610,7 +6701,7 @@ function scenetracker_updated_templates()
     "templatename" => 'scenetracker_popup',
     "change_string" => '{$scenetracker_popup_select_options_index}',
     "action" => 'overwrite',
-    "action_string" => '<a onclick="$(\'#certain{$id}\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \'undefined\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;"><i class="fas fa-cogs"></i></a>
+    "action_string" => '<a onclick="$(\'#certain{$id}\').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== \'undefined\' ? modal_zindex : 9999) }); return false;" style="cursor: pointer;"><i class="fas fa-cogs"></i>[...]</a>
         <div class="modal addrela" id="certain{$id}" style="display: none; padding: 10px; margin: auto; text-align: center;">
           <form method="post" action="usercp.php?action=scenetracker">
             {$hidden}
@@ -6643,13 +6734,13 @@ function scenetracker_updated_templates()
     "templatename" => 'scenetracker_showthread',
     "change_string" => '{$edit}',
     "action" => 'add',
-    "action_string" => '{$scenetracker_showthread_export}{$edit}'
+    "action_string" => '$scenetracker_showthread_export'
   );
 
   $update_template[] = array(
     "templatename" => 'scenetracker_popup_select_options',
-    "change_string" => '<option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>',
-    "action" => 'add',
+    "change_string" => '$lang->scenetracker_alersetting_always_always',
+    "action" => 'overwrite',
     "action_string" => '<option value="-2" {$always_always_opt}>{$lang->scenetracker_alersetting_always_always}</option><option value="-1" {$never_opt}>{$lang->scenetracker_alersetting_never}</option>'
   );
 
@@ -6666,83 +6757,37 @@ function scenetracker_is_updated()
 {
   global $db, $mybb;
   $needupdate = 0;
+  $text =  '<div class="border_wrapper" style="margin-bottom:10px;max-height: 200px; overflow: auto; background: #efefef; border-radius:6px; border: 1px solid #ccc;"><div class="title">Szenentracker updates:</div><div class="inner_wrapper" style="padding:10px;">';
   if (!$db->field_exists("scenetracker_date", "threads")) {
-    echo ("In der Threadtabelle muss das Feld scenetracker_date  hinzugefügt werden <br>");
+    $text .= "<br>In der Threadtabelle muss das Feld scenetracker_date  hinzugefügt werden <br>";
     $needupdate = 1;
   }
   if (!$db->field_exists("scenetracker_trigger", "threads")) {
-    echo ("In der Threadtabelle muss das Feld scenetracker_trigger  hinzugefügt werden <br>");
+    $text .= "<b>DB Update</b> Threadtabelle muss das Feld scenetracker_trigger  hinzugefügt werden <br>";
     $needupdate = 1;
   }
   if (!$db->field_exists("scenetracker_time_text", "threads")) {
-    echo ("In der Threadtabelle muss das Feld scenetracker_time_text  hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-  if (!$mybb->settings['scenetracker_filterusername_yesno']) {
-    echo ("setting scenetracker_filterusername_yesno muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_filterscenes'")) == 0) {
-    echo ("template scenetracker_ucp_filterscenes muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_showthread_trigger'")) == 0) {
-    echo ("template scenetracker_showthread_trigger muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_showthread_edit'")) == 0) {
-    echo ("template scenetracker_showthread_edit muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_search_results'")) == 0) {
-    echo ("template scenetracker_search_results muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_reminder'")) == 0) {
-    echo ("template scenetracker_ucp_options_reminder muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_calendarform'")) == 0) {
-    echo ("template scenetracker_ucp_options_calendarform muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_calendar_all'")) == 0) {
-    echo ("template scenetracker_ucp_options_calendar_all muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_minicalendar'")) == 0) {
-    echo ("template scenetracker_ucp_options_minicalendar muss hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_ucp_options_calendar'")) == 0) {
-    echo ("template scenetracker_ucp_options_calendar muss hinzugefügt werden <br>");
+    $text .= "<b>DB Update</b> Threadtabelle muss das Feld scenetracker_time_text hinzugefügt werden <br>";
     $needupdate = 1;
   }
 
   if (!$db->field_exists("type_alert", "scenetracker")) {
-    echo ("In der Scenetrackertabelle muss das Feld type_alert  hinzugefügt werden <br>");
+    $text .= "<b>DB Update</b> Scnetrackertabelle muss das Feld type_alert  hinzugefügt werden <br>";
     $needupdate = 1;
   }
 
   if (!$db->field_exists("type_alert_inform_by", "scenetracker")) {
-    echo ("In der Scenetrackertabelle muss das Feld type_alert_inform_by  hinzugefügt werden <br>");
+    $text .= "<b>DB Update</b> In der Scenetrackertabelle muss das Feld type_alert_inform_by  hinzugefügt werden <br>";
     $needupdate = 1;
   }
 
   if (!$db->field_exists("index_view_reminder", "scenetracker")) {
-    echo ("In Scenetrackertabelle muss das Feld index_view zu index_view_reminder umbenannt werden <br>");
+    $text .= "<b>DB Update</b> In Scenetrackertabelle muss das Feld index_view zu index_view_reminder umbenannt werden <br>";
     $needupdate = 1;
   }
 
   if (!$db->field_exists("index_view_reminder_days", "scenetracker")) {
-    echo ("In der Scenetrackertabelle muss das Feld index_view_reminder_days  hinzugefügt werden <br>");
-    $needupdate = 1;
-  }
-
-  if ($db->num_rows($db->simple_select("templates", "*", "title = 'scenetracker_popup_select_options'")) == 0) {
-    echo ("template scenetracker_popup_select_options muss hinzugefügt werden <br>");
+    $text .= "<b>DB Update</b> In der Scenetrackertabelle muss das Feld index_view_reminder_days  hinzugefügt werden <br>";
     $needupdate = 1;
   }
 
@@ -6761,12 +6806,12 @@ function scenetracker_is_updated()
           $setting_old['optionscode'] != $setting['optionscode'] ||
           $setting_old['disporder'] != $setting['disporder']
         ) {
-          echo "Setting: {$name} muss aktualisiert werden.<br>";
+          $text .= "<b>Setting</b>: {$name} muss aktualisiert werden.<br>";
           $needupdate = 1;
         }
       }
     } else {
-      echo "Setting: {$name} muss hinzugefügt werden.<br>";
+      $text .= "<b>Setting:</b> {$name} muss hinzugefügt werden.<br>";
       $needupdate = 1;
     }
   }
@@ -6775,7 +6820,6 @@ function scenetracker_is_updated()
   $update_data_all = scenetracker_stylesheet_update();
   //alle Themes bekommen
   $theme_query = $db->simple_select("themestylesheets", "*", "name='scenetracker.css'");
-
   while ($theme = $db->fetch_array($theme_query)) {
     foreach ($update_data_all as $update_data) {
       $update_stylesheet = $update_data['stylesheet'];
@@ -6788,12 +6832,21 @@ function scenetracker_is_updated()
             $test_ifin = $db->write_query("SELECT stylesheet FROM " . TABLE_PREFIX . "themestylesheets WHERE tid = '{$theme['tid']}' AND name = 'scenetracker.css' AND stylesheet LIKE '%" . $update_string . "%' ");
             //string war nicht vorhanden
             if ($db->num_rows($test_ifin) == 0) {
-              echo ("Mindestens Theme {$theme['tid']} muss aktualisiert werden <br>");
+              $text .= "<b>Theme</b> {$theme['tid']} muss aktualisiert werden <br>";
               $needupdate = 1;
             }
           }
         }
       }
+    }
+  }
+  //testen ob ein template hinzugefügt werden muss
+  //nur template hinzufügen, wenn es noch nicht existiert
+  $templates = scenetracker_templates();
+  foreach ($templates as $template) {
+    if (risuenaupdatefile_check_templates($template['title'])) {
+      $text .= "<b>Template (hinzufügen)</b> {$template['title']}<br>";
+      $needupdate = 1;
     }
   }
 
@@ -6813,6 +6866,7 @@ function scenetracker_is_updated()
         $check = preg_match($pattern, $old_template['template']);
       } elseif ($update_template['action'] == 'add') {
         //bei add wird etwas zum template hinzugefügt, wir müssen also testen ob das schon geschehen ist
+        //change string 
         $pattern = risuenaupdatefile_createRegexPattern($update_template['action_string']);
         $check = !preg_match($pattern, $old_template['template']);
       } elseif ($update_template['action'] == 'overwrite') {
@@ -6824,12 +6878,14 @@ function scenetracker_is_updated()
       //wenn ja muss das template aktualisiert werden.
       if ($check) {
         $templateset = $db->fetch_field($db->simple_select("templatesets", "title", "sid = '{$old_template['sid']}'"), "title");
-        echo ("Template {$update_template['templatename']} im Template-Set {$templateset}'(SID: {$old_template['sid']}') muss aktualisiert werden. ({$update_template['change_string']} zu {$update_template['action_string']})<br>");
+        $text .= "<b>Template aktualisieren</b> {$update_template['templatename']} im Set '{$templateset}(SID: {$old_template['sid']}') muss aktualisiert werden. <div style=\"max-height: 100px; overflow:auto;\">" . htmlentities($update_template['change_string']) . "</div> <b>zu</b> <div style=\"max-height: 100px; overflow:auto;\">" . htmlentities($update_template['action_string']) . ")</div><br>";
         $needupdate = 1;
       }
     }
   }
+  $text .= "</div></div>";
   if ($needupdate == 1) {
+    echo $text;
     return false;
   }
   return true;
