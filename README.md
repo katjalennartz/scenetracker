@@ -1,8 +1,8 @@
 # Szenentracker
 ## Updates: 		
 
-Last: Okto 2025  
-Version: 1.0.13
+Last: June 26
+Version: 1.0.14
 
 ### Must Have
 - RPG Modul von Lara
@@ -31,6 +31,12 @@ Version: 1.0.13
 - in PhpOffice den Ordner PHPWord einfügen
 
 ### Changelog: 
+#### 1.0.13 -> 1.0.14
+- bufixes: Alert einstellungen Index/Alert aufgeräumt
+- neue Templates für bessere anpassungen, raus aus der php
+- update nötig
+
+
 #### 1.0.12 -> 1.0.13
 - bugfixes
 - entfernen internen Updatefunktionen
