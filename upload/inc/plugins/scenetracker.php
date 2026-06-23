@@ -1886,7 +1886,7 @@ function scenetracker_usercp()
           eval("\$hide =\"" . $templates->get("scenetracker_displaystatus_hidden") . "\";");
         }
         if ($data['closed'] == 1 || empty($data['closed'])) {
-          eval("\$cleos =\"" . $templates->get("scenetracker_sceneisclosed") . "\";");
+          eval("\$close =\"" . $templates->get("scenetracker_sceneisclosed") . "\";");
         } else {
           eval("\$close =\"" . $templates->get("scenetracker_sceneisopen") . "\";");
         }
