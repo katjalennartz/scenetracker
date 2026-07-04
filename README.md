@@ -6,7 +6,7 @@ Version: 1.0.14
 
 ### Must Have
 - RPG Modul von Lara
-- Der Ordner risuenas_updatefile mit der Datei risuena_updatefile.php [Zum Download](https://github.com/katjalennartz/risuena_updates)
+- Updatefile **MUSS** runter geladen und hochgeladen werden [Zum Download](https://github.com/katjalennartz/risuena_updates)
 - Accountswitcher
 - Für Export als PDF: https://github.com/dompdf/dompdf/releases **Installationshinweis beachten**
 - Für Export als Word: https://github.com/PHPOffice/PHPWord **Installationshinweis beachten**
