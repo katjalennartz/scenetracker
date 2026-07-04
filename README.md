@@ -34,7 +34,7 @@ Version: 1.0.14
 #### 1.0.13 -> 1.0.14
 - bufixes: Alert einstellungen Index/Alert aufgeräumt
 - neue Templates für bessere anpassungen, raus aus der php
-- Sorterung von allen Szenen (aller Charas) im UCP nach lastpost
+- Sortierung von allen Szenen (aller Charas) im UCP nach lastpost
 - update nötig
 
 
