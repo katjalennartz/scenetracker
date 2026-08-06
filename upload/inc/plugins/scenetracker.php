@@ -6840,6 +6840,12 @@ function scenetracker_is_updated()
       }
     }
   }
+
+  //Testen ob eins der Templates aktualisiert werden muss
+  //Wir wollen erst einmal die templates, die eventuellverändert werden müssen
+  $update_template_all = scenetracker_updated_templates();
+  require_once MYBB_ROOT . "inc/plugins/risuena_updates/risuena_updatefile.php";
+
   //testen ob ein template hinzugefügt werden muss
   //nur template hinzufügen, wenn es noch nicht existiert
   $templates = scenetracker_templates();
@@ -6849,11 +6855,6 @@ function scenetracker_is_updated()
       $needupdate = 1;
     }
   }
-
-  //Testen ob eins der Templates aktualisiert werden muss
-  //Wir wollen erst einmal die templates, die eventuellverändert werden müssen
-  $update_template_all = scenetracker_updated_templates();
-  require_once MYBB_ROOT . "inc/plugins/risuena_updates/risuena_updatefile.php";
 
   //alle themes durchgehen
   foreach ($update_template_all as $update_template) {
