@@ -6,7 +6,7 @@ Version: 1.0.14
 
 ### Must Have
 - RPG Modul von Lara
-- Der Ordner risuenas_updatefile mit der Datei risuena_updatefile.php
+- Updatefile **MUSS** runter geladen und hochgeladen werden [Zum Download](https://github.com/katjalennartz/risuena_updates)
 - Accountswitcher
 - Für Export als PDF: https://github.com/dompdf/dompdf/releases **Installationshinweis beachten**
 - Für Export als Word: https://github.com/PHPOffice/PHPWord **Installationshinweis beachten**
@@ -34,6 +34,7 @@ Version: 1.0.14
 #### 1.0.13 -> 1.0.14
 - bufixes: Alert einstellungen Index/Alert aufgeräumt
 - neue Templates für bessere anpassungen, raus aus der php
+- Sortierung von allen Szenen (aller Charas) im UCP nach lastpost
 - update nötig
 
 
