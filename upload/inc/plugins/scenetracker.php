@@ -1045,12 +1045,12 @@ function scenetracker_showthread_showtrackerstuff()
       $scenetrigger = "";
     }
     if ($allowclosing || $mybb->usergroup['canmodcp'] == 1) {
-      if ($thread['closed'] == 1 || empty($data['closed'])) {
-        $mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=open\">{$lang->scenetracker_openscene}</a></span>";
-        $scenestatus = "<span class=\"scenestate bl-btn bl-btn--scenetracker\">{$lang->scenetracker_closescenestatus} " . $mark;
-      } else {
+      if ($thread['closed'] != 1 ) {
         $mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=close\">{$lang->scenetracker_closescene}</a></span>";
         $scenestatus = "<span class=\"scenestate bl-btn bl-btn--scenetracker\">{$lang->scenetracker_openscenestatus} " . $mark;
+      } else {
+		$mark = "<a href=\"showthread.php?tid=" . $tid . "&scenestate=open\">{$lang->scenetracker_openscene}</a></span>";
+        $scenestatus = "<span class=\"scenestate bl-btn bl-btn--scenetracker\">{$lang->scenetracker_closescenestatus} " . $mark;
       }
 
       if ($mybb->settings['scenetracker_time_text'] == 0) {
@@ -1885,11 +1885,12 @@ function scenetracker_usercp()
         } else {
           eval("\$hide =\"" . $templates->get("scenetracker_displaystatus_hidden") . "\";");
         }
-        if ($data['closed'] == 1 || empty($data['closed'])) {
-          eval("\$close =\"" . $templates->get("scenetracker_sceneisclosed") . "\";");
-        } else {
-          eval("\$close =\"" . $templates->get("scenetracker_sceneisopen") . "\";");
-        }
+		// Status der Szene
+		if ((int)$data['closed'] !== 1) {
+			eval("\$close = \"" . $templates->get('scenetracker_sceneisopen') . "\";");
+		} else {
+			eval("\$close = \"" . $templates->get('scenetracker_sceneisclosed') . "\";");
+		}
 
         if ($data['index_view_reminder'] == 1) {
           $index_reminder = $lang->scenetracker_index_view_reminder_on;
@@ -4064,19 +4065,12 @@ function scenetracker_get_scenes($charas, $tplstring)
         } else {
           eval("\$hide = \"" . $templates->get("scenetracker_displaystatus_hidden") . "\";");
         }
-        if ($data['closed'] == 1 || empty($data['closed'])) {
-          if ($tplstring != "index") {
-            eval("\$close = \"" . $templates->get("scenetracker_sceneisclosed") . "\";");
-          } else {
-            eval("\$close = \"" . $templates->get("scenetracker_sceneisopen") . "\";");
-          }
-        } else {
-          if ($tplstring != "index") {
-            eval("\$close = \"" . $templates->get("scenetracker_sceneisopen") . "\";");
-          } else {
-            eval("\$close = \"" . $templates->get("scenetracker_sceneisclosed") . "\";");
-          }
-        }
+		//Szene geschlossen wenn closed = 1
+		if ($data['closed'] != 1 {
+		  eval("\$close = \"" . $templates->get("scenetracker_sceneisopen") . "\";");
+		} else {
+		  eval("\$close = \"" . $templates->get("scenetracker_sceneisclosed") . "\";");
+		}
 
         if ($data['type'] == 'certain' && $info_by != 0) {
           $users_options_bit = "";
