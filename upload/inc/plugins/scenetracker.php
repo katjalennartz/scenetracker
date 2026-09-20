@@ -1681,7 +1681,7 @@ function scenetracker_usercp()
 				$playerarr = $db->fetch_array($db->write_query(
 					"
 					SELECT af.uid from " . TABLE_PREFIX . "application_ucp_userfields af, 
-					mybb_users u 
+					". TABLE_PREFIX ."users u 
 					WHERE af.uid = u.uid 
 					AND fieldid = 
 						(SELECT id FROM " . TABLE_PREFIX . "application_ucp_fields WHERE fieldname = '{$playerfieldid}') 
@@ -3731,7 +3731,7 @@ function scenetracker_get_fid()
 				$query = $db->write_query(
 					"
 						SELECT value as {$playerfieldid} from " . TABLE_PREFIX . "application_ucp_userfields af, 
-						mybb_users u 
+						". TABLE_PREFIX ."users u 
 						WHERE af.uid = u.uid 
 						AND fieldid = 
 							(SELECT id FROM " . TABLE_PREFIX . "application_ucp_fields WHERE fieldname = '{$playerfieldid}') 
