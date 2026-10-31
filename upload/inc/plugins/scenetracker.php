@@ -26,7 +26,7 @@ function scenetracker_info()
 		"website" => "https://github.com/katjalennartz",
 		"author" => "risuena",
 		"authorsite" => "https://github.com/katjalennartz",
-		"version" => "1.0.13",
+		"version" => "1.1",
 		"compatibility" => "18*",
 		// benötigte Version der Updatefile
 		"requires_risuena_updatefile" => "1.0.0"
