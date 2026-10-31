@@ -1,8 +1,8 @@
 # Szenentracker
 ## Updates: 		
 
-Last: June 26
-Version: 1.0.14
+Last: Oktober 26
+Version: 1.1
 
 ### Must Have
 - RPG Modul von Lara
@@ -31,6 +31,15 @@ Version: 1.0.14
 - in PhpOffice den Ordner PHPWord einfügen
 
 ### Changelog: 
+#### 1.0.14 -> 1.1
+- Kalender ausgelagert - eigene Funktion
+- ACP Verwaltung im RPG Modul
+- Szenenübersicht im ACP
+- Erstellen und verwalten von Plots
+- Erstellen von Character Events (privat & öffentlich - anzeige im Profil (&& Kalender))
+- Berücksichtigung der eingetragenen Reihenfolge der Teilnehmer in Szenen möglich
+- neue templates
+
 #### 1.0.13 -> 1.0.14
 - bufixes: Alert einstellungen Index/Alert aufgeräumt
 - neue Templates für bessere anpassungen, raus aus der php
@@ -141,15 +150,81 @@ darüber einfügen
 ```
 
 
-## **Allgemeine Beschreibung**   
-Der Tracker funktioniert automatisch und ermöglicht es so, den Usern eine wunderbaren Überblick über all ihre Szenen zu haben. Beim Erstellen der Szene werden Datum, Zeit(feste Zeit oder freier String) und Ort eingetragen. Außerdem kann hier auch direkt eine Triggerwarnung eingestellt werden, welche die Szene mit einem Ausrufezeichen schon im Forumdisplay und auch in der Profilübersicht kennzeichnet.   
-Teilnehmer können beim erstellen der Szene hinzugefügt werden, die Usernamen werden automatisch vervollständigt, so dass keine Tippfehler entstehen können. Anders als bei der Autovervollständigung von Mybb können jedoch auch zusätzliche Infos hinzugefügt werden, also zum Beispiel: 'John Smith, Jane Doe, und alle die möchten'
-Wird eine Szene erstellt, erhalten die eingetragenen Teilnehmer einen Alert, auch wenn sie im Nachhinein hinzugefügt wurden.     
-Antwortet auf die Szene ein Charakter der noch nicht eingetragen ist, kann er sich automatisch hinzufügen. Desweiteren können **alle** Teilnehmer die Szeneninformationen auch im Nachhinein bearbeiten.   
-Szenen haben den Status offen oder geschlossen, welcher von den Teilnehmern gesetzt werden kann und mit dem Thread erledigt/unerledigt Plugin verbunden werden kann.   
-Die Übersicht der Szenen findet sich im User CP, hier können die Nutzer ihre Szenen ansehen, filtern und verwalten.   
-Im Profil wird automatisch eine Szenenübersicht nach Monaten und Jahren sortiert. Der Charakter kann Szenen aber auch ausblenden, sowie bei Wunsch im UCP dann doch wieder einblenden.    
-Außerdem können User bestimmen, wann sie über eine Antwort informiert werden wollen. Immer (wenn ein anderer Charakter gepostet hat), wenn ein bestimmer Charakter gepostet hat, oder nie.  
+## Allgemeine Beschreibung
+
+Der Szenentracker funktioniert weitgehend automatisch und ermöglicht den Usern einen umfassenden Überblick über ihre Szenen, Plots und Charakterereignisse.
+
+### Szenen erstellen und verwalten
+
+Beim Erstellen einer Szene werden Datum, Zeit (wahlweise als feste Uhrzeit oder freier Text) und Ort eingetragen. Zusätzlich kann eine Triggerwarnung hinterlegt werden, die bereits im Forumdisplay und in der Profilübersicht durch ein Ausrufezeichen auf die entsprechenden Inhalte aufmerksam macht.
+
+Teilnehmer können direkt beim Erstellen der Szene hinzugefügt werden. Die Usernamen werden dabei automatisch vervollständigt, um Tippfehler zu vermeiden. Anders als bei der standardmäßigen Autovervollständigung von MyBB sind jedoch auch zusätzliche Angaben möglich, beispielsweise: „John Smith, Jane Doe und alle, die möchten“.
+
+Wird eine neue Szene erstellt, erhalten die eingetragenen Teilnehmer eine Benachrichtigung. Das gilt auch für Charaktere, die erst nachträglich hinzugefügt werden. Antwortet ein bislang nicht eingetragener Charakter auf die Szene, kann er sich selbst als Teilnehmer hinzufügen.
+
+**Alle Teilnehmer können die Szeneninformationen auch nachträglich bearbeiten.** Dabei wird die Reihenfolge der eingetragenen Charaktere berücksichtigt und bei der Ausgabe beibehalten.
+
+Szenen können als offen oder geschlossen markiert werden. Dieser Status lässt sich durch die Teilnehmer ändern und bei Bedarf mit dem Plugin „Thread erledigt/unerledigt“ verbinden.
+
+### Szenenübersichten und Benachrichtigungen
+
+Im [User-CP](usercp.php?action=scenetracker) steht eine umfangreiche Szenenübersicht zur Verfügung, in der Nutzer ihre Szenen ansehen, filtern und verwalten können.
+
+Im Profil wird automatisch eine nach Monaten und Jahren sortierte Szenenübersicht angezeigt. Einzelne Szenen lassen sich aus der öffentlichen Profilansicht ausblenden und im User-CP bei Bedarf wieder einblenden.
+
+Darüber hinaus können Nutzer individuell festlegen, wann sie über neue Antworten informiert werden möchten: immer, sobald ein anderer Charakter gepostet hat, nur bei Antworten eines bestimmten Charakters oder überhaupt nicht.
+
+### Kalender
+
+Der Szenentracker verfügt über ein **eigenständiges Kalendersystem, das unabhängig vom standardmäßigen MyBB-Kalender funktioniert**.
+
+Szenen, Geburtstage, Plots und Charakterereignisse können gemeinsam im Kalender dargestellt werden. Neben einer großen Kalenderansicht steht auch ein kompakter Minikalender zur Verfügung.
+
+Die Kalenderdarstellung lässt sich über verschiedene Templates individuell gestalten. Unterschiedliche Ereignisarten können dadurch getrennt gekennzeichnet und dargestellt werden.
+
+Über die persönlichen Kalendereinstellungen können Nutzer beeinflussen, welche Inhalte ihnen angezeigt werden. Für den großen Kalender und den Minikalender stehen dabei separate Einstellungen zur Verfügung.
+
+**Links:**
+- [Ingame-Kalender öffnen](misc.php?action=calendar)
+- [Kalendereinstellungen im User-CP](usercp.php?action=scenetracker)
+
+### Plots
+
+Über die integrierte Plotverwaltung können eigene Plots angelegt und verwaltet werden.
+
+Plots lassen sich in unterschiedliche Kategorien einteilen, um beispielsweise Hauptplots, Nebenhandlungen oder andere Handlungsstränge voneinander zu unterscheiden.
+
+Szenen können bereits beim Erstellen oder auch nachträglich einem Plot zugeordnet werden. So lassen sich zusammengehörige Szenen bündeln und einem übergeordneten Handlungsstrang zuweisen.
+
+Plots können außerdem mit einem Start- und Enddatum versehen und im Kalender angezeigt werden. Die Sichtbarkeit kann entsprechend der verfügbaren Einstellungen eingeschränkt werden, sodass nicht jeder Plot automatisch für alle Nutzer zugänglich sein muss.
+
+**Link:** [Plotübersicht öffnen](misc.php?action=scenetracker_plots)
+
+### Charakterevents
+
+Zusätzlich zu Szenen und Plots können **eigene Charakterereignisse** angelegt werden. Damit lassen sich auch Ereignisse festhalten, die nicht unmittelbar mit einer ausgespielten Szene verbunden sind, beispielsweise Verabredungen, wichtige persönliche Termine oder andere Ereignisse im Leben eines Charakters.
+
+Die Verwaltung erfolgt direkt im User-CP. Dort können Charakterevents angelegt, bearbeitet, gelöscht und in einer Listen- oder Kalenderansicht betrachtet werden.
+
+Charakterevents können außerdem im großen Ingame-Kalender und in der entsprechenden Charakterübersicht angezeigt werden.
+
+Dabei wird zwischen öffentlichen und privaten Ereignissen unterschieden, sodass nicht jedes Event automatisch für alle Nutzer sichtbar ist.
+
+**Wiederkehrende Ereignisse** werden ebenfalls unterstützt. Dafür stehen verschiedene Wiederholungsintervalle zur Verfügung:
+
+- Wöchentlich
+- Monatlich
+- Vierteljährlich
+- Halbjährlich
+- Jährlich
+- Alle X Tage (frei wählbares Intervall)
+
+So müssen regelmäßig stattfindende Ereignisse nicht jedes Mal neu angelegt werden.
+
+**Links:**
+- [Charakterevents im User-CP verwalten](usercp.php?action=scenetracker&view=events)
+- [Neues Charakterevent erstellen](misc.php?action=calendar&do=add_event)
+- [Charakterevents in der Kalenderansicht](usercp.php?action=scenetracker&view=events&event_view=calendar)
 
 ### **Mini Kalendar**  
 Einbindung im Footer oder im Header über
